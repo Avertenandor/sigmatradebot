@@ -6,3 +6,6 @@
 export * from './start.handler';
 export * from './registration.handler';
 export * from './profile.handler';
+export * from './deposit.handler';
+export * from './referral.handler';
+export * from './admin.handler';

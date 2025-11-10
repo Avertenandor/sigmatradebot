@@ -31,6 +31,26 @@ import {
   handleSkipContactInfo,
   handleCancelRegistration,
   handleProfile,
+  handleDeposits,
+  handleDepositLevel,
+  handleActivateDeposit,
+  handleDepositHistory,
+  handleReferrals,
+  handleReferralLink,
+  handleReferralStats,
+  handleReferralEarnings,
+  handleAdminPanel,
+  handleAdminStats,
+  handleStartBroadcast,
+  handleBroadcastMessage,
+  handleStartSendToUser,
+  handleSendToUserMessage,
+  handleStartBanUser,
+  handleBanUserInput,
+  handleStartUnbanUser,
+  handleUnbanUserInput,
+  handleStartPromoteAdmin,
+  handlePromoteAdminInput,
 } from './handlers';
 
 // Context types
@@ -99,37 +119,34 @@ export const initializeBot = (): Telegraf => {
 
   /**
    * Deposits
-   * TODO: Implement deposit handlers
    */
-  bot.action('deposits', async (ctx) => {
-    await ctx.answerCbQuery('Функция депозитов в разработке');
-    await ctx.reply('💰 Депозиты\n\nЭта функция будет доступна в ближайшее время.');
-  });
+  bot.action('deposits', handleDeposits);
+  bot.action(/^deposit_level_\d+$/, handleDepositLevel);
+  bot.action(/^activate_deposit_\d+$/, handleActivateDeposit);
+  bot.action('deposit_history', handleDepositHistory);
+  bot.action(/^deposit_history_\d+$/, handleDepositHistory);
 
   /**
    * Referrals
-   * TODO: Implement referral handlers
    */
-  bot.action('referrals', async (ctx) => {
-    await ctx.answerCbQuery('Функция рефералов в разработке');
-    await ctx.reply('🤝 Рефералы\n\nЭта функция будет доступна в ближайшее время.');
-  });
+  bot.action('referrals', handleReferrals);
+  bot.action('referral_link', handleReferralLink);
+  bot.action('referral_stats', handleReferralStats);
+  bot.action(/^referral_stats_level_\d+$/, handleReferralStats);
+  bot.action('referral_earnings', handleReferralEarnings);
+  bot.action(/^referral_earnings_\d+$/, handleReferralEarnings);
 
   /**
    * Admin panel
-   * TODO: Implement admin handlers
    */
-  bot.action('admin_panel', async (ctx) => {
-    const adminCtx = ctx as AdminContext;
-
-    if (!adminCtx.isAdmin) {
-      await ctx.answerCbQuery('Доступ запрещен');
-      return;
-    }
-
-    await ctx.answerCbQuery('Админ-панель в разработке');
-    await ctx.reply('👑 Админ-панель\n\nЭта функция будет доступна в ближайшее время.');
-  });
+  bot.action('admin_panel', handleAdminPanel);
+  bot.action('admin_stats', handleAdminStats);
+  bot.action(/^admin_stats_\w+$/, handleAdminStats);
+  bot.action('admin_broadcast', handleStartBroadcast);
+  bot.action('admin_send_to_user', handleStartSendToUser);
+  bot.action('admin_ban_user', handleStartBanUser);
+  bot.action('admin_unban_user', handleStartUnbanUser);
+  bot.action('admin_promote', handleStartPromoteAdmin);
 
   /**
    * No-op action (for non-clickable buttons)
@@ -153,6 +170,26 @@ export const initializeBot = (): Telegraf => {
 
       case BotState.AWAITING_CONTACT_INFO:
         await handleContactInfoInput(ctx);
+        break;
+
+      case BotState.AWAITING_ADMIN_BROADCAST_MESSAGE:
+        await handleBroadcastMessage(ctx);
+        break;
+
+      case BotState.AWAITING_ADMIN_USER_MESSAGE:
+        await handleSendToUserMessage(ctx);
+        break;
+
+      case BotState.AWAITING_ADMIN_USER_TO_BAN:
+        await handleBanUserInput(ctx);
+        break;
+
+      case BotState.AWAITING_ADMIN_USER_TO_UNBAN:
+        await handleUnbanUserInput(ctx);
+        break;
+
+      case BotState.AWAITING_ADMIN_USER_TO_PROMOTE:
+        await handlePromoteAdminInput(ctx);
         break;
 
       default:
