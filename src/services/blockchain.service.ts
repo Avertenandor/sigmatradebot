@@ -35,6 +35,9 @@ export class BlockchainService {
   private usdtContractWs?: ethers.Contract;
   private payoutWallet?: ethers.Wallet;
 
+  // Cached USDT decimals (always 18, but cached to avoid repeated RPC calls)
+  private usdtDecimals?: number;
+
   private isMonitoring = false;
   private reconnectAttempts = 0;
   private readonly MAX_RECONNECT_ATTEMPTS = 10;
@@ -113,6 +116,17 @@ export class BlockchainService {
       logger.error('❌ Failed to initialize blockchain providers:', error);
       throw error;
     }
+  }
+
+  /**
+   * Get cached USDT decimals (fetches once on first call)
+   */
+  private async getUsdtDecimals(): Promise<number> {
+    if (this.usdtDecimals === undefined) {
+      this.usdtDecimals = await this.usdtContract.decimals();
+      logger.info(`✅ USDT decimals cached: ${this.usdtDecimals}`);
+    }
+    return this.usdtDecimals;
   }
 
   /**
@@ -353,7 +367,7 @@ export class BlockchainService {
 
     try {
       // Convert USDT amount (6 decimals for USDT on BSC)
-      const decimals = await this.usdtContract.decimals();
+      const decimals = await this.getUsdtDecimals();
       const amount = parseFloat(ethers.formatUnits(value, decimals));
 
       logger.info(
@@ -622,8 +636,8 @@ export class BlockchainService {
         };
       }
 
-      // Get USDT decimals
-      const decimals = await this.usdtContract.decimals();
+      // Get USDT decimals (cached)
+      const decimals = await this.getUsdtDecimals();
       const amountWei = ethers.parseUnits(amount.toString(), decimals);
 
       // Create contract instance with signer
@@ -695,7 +709,7 @@ export class BlockchainService {
    */
   public async getBalance(address: string): Promise<number> {
     try {
-      const decimals = await this.usdtContract.decimals();
+      const decimals = await this.getUsdtDecimals();
       const balance = await this.usdtContract.balanceOf(address);
       return parseFloat(ethers.formatUnits(balance, decimals));
     } catch (error) {
