@@ -494,17 +494,21 @@ export class BlockchainService {
       const depositRepo = AppDataSource.getRepository(Deposit);
       const transactionRepo = AppDataSource.getRepository(Transaction);
 
-      // Get all pending deposits with transaction hashes
+      // Get pending deposits in batches (pagination to prevent memory issues)
+      // Process oldest first to ensure timely confirmations
+      const BATCH_SIZE = 100;
       const pendingDeposits = await depositRepo.find({
         where: { status: TransactionStatus.PENDING },
         relations: ['user'],
+        order: { created_at: 'ASC' },
+        take: BATCH_SIZE,
       });
 
       if (pendingDeposits.length === 0) {
         return;
       }
 
-      logger.info(`🔍 Checking ${pendingDeposits.length} pending deposits...`);
+      logger.info(`🔍 Checking ${pendingDeposits.length} pending deposits (batch of ${BATCH_SIZE})...`);
 
       // Get current block number
       const currentBlock = await this.httpProvider.getBlockNumber();
