@@ -143,10 +143,10 @@ export class TransactionService {
             amount: parseFloat(earning.amount),
             status: earning.paid ? TransactionStatus.CONFIRMED : TransactionStatus.PENDING,
             createdAt: earning.created_at,
-            description: `Реферальное вознаграждение (уровень ${earning.referral_level})`,
+            description: `Реферальное вознаграждение (уровень ${earning.referral?.level || '?'})`,
             metadata: {
-              referralLevel: earning.referral_level,
-              referredUserId: earning.referral?.referred_user_id,
+              referralLevel: earning.referral?.level,
+              referredUserId: earning.referral?.referral_id,
             },
           });
         });
