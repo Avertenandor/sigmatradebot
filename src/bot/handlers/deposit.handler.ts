@@ -352,7 +352,13 @@ export const handleDepositHistory = async (ctx: Context) => {
       message += `${emoji} **Уровень ${deposit.level}** - ${deposit.amountAsNumber} USDT\n`;
       message += `Дата: ${date}\n`;
       message += `Статус: ${deposit.status}\n`;
-      message += `TX: \`${deposit.tx_hash.substring(0, 10)}...${deposit.tx_hash.substring(deposit.tx_hash.length - 6)}\`\n\n`;
+
+      // Show TX hash if available, otherwise show "awaiting confirmation"
+      if (deposit.tx_hash && deposit.tx_hash.length > 0) {
+        message += `TX: \`${deposit.tx_hash.substring(0, 10)}...${deposit.tx_hash.substring(deposit.tx_hash.length - 6)}\`\n\n`;
+      } else {
+        message += `TX: Ожидает подтверждения\n\n`;
+      }
     });
 
     message += `📊 Всего депозитов: ${total}`;
