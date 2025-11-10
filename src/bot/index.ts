@@ -19,6 +19,7 @@ import {
   rateLimitMiddleware,
   registrationRateLimitMiddleware,
 } from './middlewares';
+import { requestIdMiddleware } from './middlewares/request-id.middleware';
 
 // Handlers
 import {
@@ -104,6 +105,8 @@ export const initializeBot = (): Telegraf => {
   notificationService.setBot(bot);
 
   // Apply global middlewares
+  // IMPORTANT: requestIdMiddleware MUST be first for end-to-end request tracking
+  bot.use(requestIdMiddleware);
   bot.use(loggerMiddleware);
   bot.use(rateLimitMiddleware);
   bot.use(sessionMiddleware);
