@@ -565,22 +565,26 @@ export class ReferralService {
         .having('COUNT(DISTINCT referral.referral_id) > 0')
         .getRawMany();
 
-      // Get user details for each referrer
-      const leaderboardData = await Promise.all(
-        usersWithReferrals.map(async (item) => {
-          const user = await this.userRepository.findOne({
-            where: { id: parseInt(item.userId) },
-          });
+      // Fetch all users in a single query (fix N+1 query issue)
+      const userIds = usersWithReferrals.map((item) => parseInt(item.userId));
+      const users = await this.userRepository.findByIds(userIds);
 
-          return {
-            userId: parseInt(item.userId),
-            username: user?.username,
-            telegramId: user?.telegram_id || 0,
-            referralCount: parseInt(item.referralCount || '0'),
-            totalEarnings: parseFloat(item.totalEarnings || '0'),
-          };
-        })
-      );
+      // Create user lookup map for O(1) access
+      const userMap = new Map(users.map((user) => [user.id, user]));
+
+      // Map user data using in-memory lookup
+      const leaderboardData = usersWithReferrals.map((item) => {
+        const userId = parseInt(item.userId);
+        const user = userMap.get(userId);
+
+        return {
+          userId,
+          username: user?.username,
+          telegramId: user?.telegram_id || 0,
+          referralCount: parseInt(item.referralCount || '0'),
+          totalEarnings: parseFloat(item.totalEarnings || '0'),
+        };
+      });
 
       // Sort by referral count
       const byReferrals = [...leaderboardData]
