@@ -175,6 +175,29 @@ export const handleActivateDeposit = async (ctx: Context) => {
     return;
   }
 
+  // Check if user can activate this level
+  const { canActivate, reason } = await depositService.canActivateLevel(
+    authCtx.user.id,
+    level
+  );
+
+  if (!canActivate) {
+    await ctx.answerCbQuery(reason || 'Невозможно активировать этот уровень');
+    return;
+  }
+
+  // Create pending deposit in database
+  const { deposit, error } = await depositService.createPendingDeposit({
+    userId: authCtx.user.id,
+    level,
+    amount: depositInfo.amount,
+  });
+
+  if (error) {
+    await ctx.answerCbQuery(error);
+    return;
+  }
+
   const message = `
 💳 **Активация уровня ${level}**
 
@@ -192,6 +215,8 @@ export const handleActivateDeposit = async (ctx: Context) => {
 После отправки бот автоматически обнаружит транзакцию и активирует уровень.
 
 ⏱ Время обработки: 5-10 минут
+
+✅ Депозит зарегистрирован в системе (ID: ${deposit?.id})
   `.trim();
 
   await ctx.editMessageText(message, {
@@ -201,8 +226,9 @@ export const handleActivateDeposit = async (ctx: Context) => {
 
   await ctx.answerCbQuery('Скопируйте адрес и отправьте USDT');
 
-  logger.info('Activate deposit instructions shown', {
+  logger.info('Pending deposit created and instructions shown', {
     userId: authCtx.user.id,
+    depositId: deposit?.id,
     level,
     amount: depositInfo.amount,
   });

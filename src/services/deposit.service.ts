@@ -213,13 +213,28 @@ export class DepositService {
     userId: number;
     level: number;
     amount: number;
-    txHash: string;
+    txHash?: string; // Optional - can be added later by blockchain monitor
   }): Promise<{ deposit?: Deposit; error?: string }> {
     try {
-      // Check if deposit with this tx hash already exists
-      const existing = await this.getDepositByTxHash(data.txHash);
-      if (existing) {
-        return { error: 'Депозит с этим хешом транзакции уже существует' };
+      // Check if deposit with this tx hash already exists (if tx hash provided)
+      if (data.txHash) {
+        const existing = await this.getDepositByTxHash(data.txHash);
+        if (existing) {
+          return { error: 'Депозит с этим хешом транзакции уже существует' };
+        }
+      }
+
+      // Check if user already has pending deposit for this level
+      const existingPending = await this.depositRepository.findOne({
+        where: {
+          user_id: data.userId,
+          level: data.level,
+          status: TransactionStatus.PENDING,
+        },
+      });
+
+      if (existingPending) {
+        return { error: 'У вас уже есть ожидающий подтверждения депозит этого уровня' };
       }
 
       // Validate level and amount
@@ -247,7 +262,7 @@ export class DepositService {
         user_id: data.userId,
         level: data.level,
         amount: data.amount.toString(),
-        tx_hash: data.txHash,
+        tx_hash: data.txHash || null,
         status: TransactionStatus.PENDING,
       });
 
@@ -258,7 +273,7 @@ export class DepositService {
         userId: data.userId,
         level: data.level,
         amount: data.amount,
-        txHash: data.txHash,
+        txHash: data.txHash || 'awaiting blockchain confirmation',
       });
 
       return { deposit };

@@ -137,10 +137,14 @@ export const handleWalletInput = async (ctx: Context) => {
   // Get plain password (only available once)
   const plainPassword = (result.user as any).plainPassword;
 
-  // Success message
+  // Success message with financial password
   const successMessage = `${SUCCESS_MESSAGES.REGISTRATION_COMPLETE}
 
 Ваш кошелек: \`${result.user.maskedWallet}\`
+
+🔐 **Ваш финансовый пароль:** \`${plainPassword}\`
+
+⚠️ **ВАЖНО:** Сохраните этот пароль! Он понадобится для вывода средств и других операций. Мы больше не сможем его показать.
 
 Теперь пройдите верификацию для активации аккаунта.`;
 

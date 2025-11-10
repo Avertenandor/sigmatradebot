@@ -262,6 +262,39 @@ ${message}
   }
 
   /**
+   * Notify user about deposit timeout
+   */
+  public async notifyDepositTimeout(
+    telegramId: number,
+    amount: number,
+    level: number
+  ): Promise<void> {
+    const message = `
+⏱️ **Время ожидания депозита истекло**
+
+💰 Сумма: ${amount} USDT
+📊 Уровень: ${level}
+
+К сожалению, мы не обнаружили депозит в течение 24 часов.
+
+Возможные причины:
+• Транзакция не была отправлена
+• Неправильный адрес или сеть
+• Недостаточная сумма для покрытия комиссии
+
+Если вы отправили средства, свяжитесь с поддержкой.
+    `.trim();
+
+    await this.sendNotification(telegramId, message, { parse_mode: 'Markdown' });
+
+    logger.info('Deposit timeout notification sent', {
+      telegramId,
+      amount,
+      level,
+    });
+  }
+
+  /**
    * Notify user about withdrawal request received
    */
   public async notifyWithdrawalReceived(

@@ -16,6 +16,7 @@ import { Deposit } from '../database/entities/Deposit.entity';
 import { User } from '../database/entities/User.entity';
 import { TransactionStatus, TransactionType } from '../utils/constants';
 import type { DepositService } from './deposit.service';
+import { notificationService } from './notification.service';
 
 // USDT BEP-20 ABI (ERC20 standard)
 const USDT_ABI = [
@@ -338,40 +339,23 @@ export class BlockchainService {
         return;
       }
 
-      // Find matching pending deposit
-      const depositRepo = AppDataSource.getRepository(Deposit);
-      const pendingDeposit = await depositRepo.findOne({
-        where: {
-          user_id: user.id,
-          status: TransactionStatus.PENDING,
-        },
-        order: { created_at: 'DESC' },
-      });
+      // Determine deposit level from amount
+      const { DEPOSIT_LEVELS } = await import('../utils/constants');
+      let matchedLevel: number | null = null;
+      const tolerance = 0.5; // 0.5 USDT tolerance
 
-      if (!pendingDeposit) {
-        logger.warn(
-          `⚠️ No pending deposit found for user ${user.telegram_id}`
-        );
-        return;
+      for (const [level, levelAmount] of Object.entries(DEPOSIT_LEVELS)) {
+        if (Math.abs(amount - levelAmount) <= tolerance) {
+          matchedLevel = parseInt(level);
+          break;
+        }
       }
 
-      // Check if deposit already has a transaction hash (race condition protection)
-      if (pendingDeposit.tx_hash) {
-        logger.info(
-          `ℹ️ Deposit ${pendingDeposit.id} already has tx_hash: ${pendingDeposit.tx_hash}`
-        );
-        return;
-      }
-
-      // Verify amount matches expected deposit level
-      const expectedAmount = parseFloat(pendingDeposit.amount);
-      const tolerance = 0.01; // 1% tolerance for gas variations
-
-      if (Math.abs(amount - expectedAmount) / expectedAmount > tolerance) {
+      if (!matchedLevel) {
         logger.warn(
-          `⚠️ Amount mismatch: expected ${expectedAmount} USDT, got ${amount} USDT`
+          `⚠️ Amount ${amount} USDT doesn't match any deposit level for user ${user.telegram_id}`
         );
-        // Still create transaction but mark as failed
+        // Create transaction record for audit
         await transactionRepo.save({
           user_id: user.id,
           tx_hash: txHash,
@@ -382,6 +366,46 @@ export class BlockchainService {
           block_number: blockNumber,
           status: TransactionStatus.FAILED,
         });
+        return;
+      }
+
+      // Find matching pending deposit by level
+      const depositRepo = AppDataSource.getRepository(Deposit);
+      const pendingDeposit = await depositRepo.findOne({
+        where: {
+          user_id: user.id,
+          level: matchedLevel,
+          status: TransactionStatus.PENDING,
+        },
+        order: { created_at: 'DESC' },
+      });
+
+      if (!pendingDeposit) {
+        logger.warn(
+          `⚠️ No pending deposit found for user ${user.telegram_id} level ${matchedLevel}`
+        );
+        // Create transaction record for manual review
+        await transactionRepo.save({
+          user_id: user.id,
+          tx_hash: txHash,
+          type: TransactionType.DEPOSIT,
+          amount: amount.toString(),
+          from_address: from.toLowerCase(),
+          to_address: to.toLowerCase(),
+          block_number: blockNumber,
+          status: TransactionStatus.PENDING,
+        });
+        logger.info(
+          `ℹ️ Transaction recorded for manual review: ${txHash}`
+        );
+        return;
+      }
+
+      // Check if deposit already has a transaction hash (race condition protection)
+      if (pendingDeposit.tx_hash) {
+        logger.info(
+          `ℹ️ Deposit ${pendingDeposit.id} already has tx_hash: ${pendingDeposit.tx_hash}`
+        );
         return;
       }
 
@@ -452,6 +476,16 @@ export class BlockchainService {
             logger.warn(
               `⏱️ Deposit ${deposit.id} timed out after ${Math.round(depositAge / 1000 / 60 / 60)}h (user: ${deposit.user?.telegram_id})`
             );
+
+            // Notify user about timeout
+            if (deposit.user) {
+              await notificationService.notifyDepositTimeout(
+                deposit.user.telegram_id,
+                parseFloat(deposit.amount),
+                deposit.level
+              );
+            }
+
             continue;
           }
 
