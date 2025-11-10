@@ -28,9 +28,9 @@ export class Transaction {
   @JoinColumn({ name: 'user_id' })
   user?: User;
 
-  @Column({ type: 'varchar', length: 66, unique: true })
+  @Column({ type: 'varchar', length: 66, nullable: true })
   @Index()
-  tx_hash!: string;
+  tx_hash?: string;
 
   @Column({ type: 'varchar', length: 20 })
   @Index()
@@ -87,8 +87,8 @@ export class Transaction {
     return this.type === TransactionType.SYSTEM_PAYOUT;
   }
 
-  // BSCScan link
-  get explorerLink(): string {
-    return `https://bscscan.com/tx/${this.tx_hash}`;
+  // BSCScan link (returns null if tx_hash not available yet)
+  get explorerLink(): string | null {
+    return this.tx_hash ? `https://bscscan.com/tx/${this.tx_hash}` : null;
   }
 }
