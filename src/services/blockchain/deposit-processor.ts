@@ -1,0 +1,371 @@
+/**
+ * Deposit Processor
+ * Handles deposit confirmation and processing
+ */
+
+import { ethers } from 'ethers';
+import { config } from '../../config';
+import { logger } from '../../utils/logger.util';
+import { AppDataSource } from '../../database/data-source';
+import { Transaction } from '../../database/entities/Transaction.entity';
+import { Deposit } from '../../database/entities/Deposit.entity';
+import { User } from '../../database/entities/User.entity';
+import { TransactionStatus, TransactionType, DEPOSIT_LEVELS } from '../../utils/constants';
+import { notificationService } from '../notification.service';
+import { ProviderManager } from './provider.manager';
+import { getUsdtDecimals } from './utils';
+import type { DepositService } from '../deposit.service';
+
+export class DepositProcessor {
+  private readonly DEPOSIT_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
+  private readonly CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
+  private cleanupInterval?: NodeJS.Timeout;
+
+  // Lazy-loaded to avoid circular dependency
+  private depositService?: DepositService;
+
+  constructor(private providerManager: ProviderManager) {}
+
+  /**
+   * Get deposit service instance (lazy-loaded)
+   */
+  private async getDepositService(): Promise<DepositService> {
+    if (!this.depositService) {
+      const { default: depositService } = await import('../deposit.service');
+      this.depositService = depositService;
+    }
+    return this.depositService;
+  }
+
+  /**
+   * Handle Transfer event from blockchain
+   */
+  public async handleTransferEvent(
+    from: string,
+    to: string,
+    value: bigint,
+    event: any
+  ): Promise<void> {
+    const txHash = event.log.transactionHash;
+    const blockNumber = event.log.blockNumber;
+
+    logger.info(
+      `📥 New Transfer event detected: ${txHash} (block ${blockNumber})`
+    );
+
+    try {
+      const usdtContract = this.providerManager.getUsdtContract();
+
+      // Convert USDT amount (6 decimals for USDT on BSC)
+      const decimals = await getUsdtDecimals(usdtContract);
+      const amount = parseFloat(ethers.formatUnits(value, decimals));
+
+      logger.info(
+        `💰 Transfer: ${amount} USDT from ${from} to ${to}`
+      );
+
+      // Check if transaction already exists
+      const transactionRepo = AppDataSource.getRepository(Transaction);
+      const existingTx = await transactionRepo.findOne({
+        where: { tx_hash: txHash },
+      });
+
+      if (existingTx) {
+        logger.info(`ℹ️ Transaction ${txHash} already processed`);
+        return;
+      }
+
+      // Find user by wallet address
+      const userRepo = AppDataSource.getRepository(User);
+      const user = await userRepo.findOne({
+        where: { wallet_address: from.toLowerCase() },
+      });
+
+      if (!user) {
+        logger.warn(`⚠️ No user found with wallet address: ${from}`);
+        // Still create transaction record for audit purposes
+        await transactionRepo.save({
+          tx_hash: txHash,
+          type: TransactionType.DEPOSIT,
+          amount: amount.toString(),
+          from_address: from.toLowerCase(),
+          to_address: to.toLowerCase(),
+          block_number: blockNumber,
+          status: TransactionStatus.PENDING,
+        });
+        return;
+      }
+
+      // Determine deposit level from amount
+      let matchedLevel: number | null = null;
+      const tolerance = 0.5; // 0.5 USDT tolerance
+
+      for (const [level, levelAmount] of Object.entries(DEPOSIT_LEVELS)) {
+        if (Math.abs(amount - levelAmount) <= tolerance) {
+          matchedLevel = parseInt(level);
+          break;
+        }
+      }
+
+      if (!matchedLevel) {
+        logger.warn(
+          `⚠️ Amount ${amount} USDT doesn't match any deposit level for user ${user.telegram_id}`
+        );
+        // Create transaction record for audit
+        await transactionRepo.save({
+          user_id: user.id,
+          tx_hash: txHash,
+          type: TransactionType.DEPOSIT,
+          amount: amount.toString(),
+          from_address: from.toLowerCase(),
+          to_address: to.toLowerCase(),
+          block_number: blockNumber,
+          status: TransactionStatus.FAILED,
+        });
+        return;
+      }
+
+      // Use database transaction with pessimistic lock to prevent race conditions
+      // This ensures only one concurrent transaction can claim a pending deposit
+      const depositRepo = AppDataSource.getRepository(Deposit);
+
+      await AppDataSource.transaction(async (transactionalEntityManager) => {
+        // Find and lock matching pending deposit (SELECT FOR UPDATE)
+        // This prevents race conditions when multiple transactions arrive simultaneously
+        const pendingDeposit = await transactionalEntityManager
+          .createQueryBuilder(Deposit, 'deposit')
+          .where('deposit.user_id = :userId', { userId: user.id })
+          .andWhere('deposit.level = :level', { level: matchedLevel })
+          .andWhere('deposit.status = :status', { status: TransactionStatus.PENDING })
+          .andWhere('(deposit.tx_hash IS NULL OR deposit.tx_hash = \'\')')
+          .orderBy('deposit.created_at', 'DESC')
+          .setLock('pessimistic_write') // Row-level lock (SELECT FOR UPDATE)
+          .getOne();
+
+        if (!pendingDeposit) {
+          logger.warn(
+            `⚠️ No pending deposit found for user ${user.telegram_id} level ${matchedLevel}`
+          );
+          // Create transaction record for manual review
+          await transactionalEntityManager.save(Transaction, {
+            user_id: user.id,
+            tx_hash: txHash,
+            type: TransactionType.DEPOSIT,
+            amount: amount.toString(),
+            from_address: from.toLowerCase(),
+            to_address: to.toLowerCase(),
+            block_number: blockNumber,
+            status: TransactionStatus.PENDING,
+          });
+          logger.info(
+            `ℹ️ Transaction recorded for manual review: ${txHash}`
+          );
+          return;
+        }
+
+        // Update deposit with transaction hash (will be confirmed after N blocks)
+        pendingDeposit.tx_hash = txHash;
+        pendingDeposit.block_number = blockNumber;
+        await transactionalEntityManager.save(Deposit, pendingDeposit);
+
+        // Create transaction record
+        await transactionalEntityManager.save(Transaction, {
+          user_id: user.id,
+          tx_hash: txHash,
+          type: TransactionType.DEPOSIT,
+          amount: amount.toString(),
+          from_address: from.toLowerCase(),
+          to_address: to.toLowerCase(),
+          block_number: blockNumber,
+          status: TransactionStatus.PENDING,
+        });
+
+        logger.info(
+          `✅ Deposit tracked: ${amount} USDT for user ${user.telegram_id} (tx: ${txHash})`
+        );
+      });
+
+      // Notify user about detected deposit (pending confirmation)
+      await notificationService.notifyDepositPending(
+        user.telegram_id,
+        amount,
+        matchedLevel!,
+        txHash
+      ).catch((err) => {
+        logger.error('Failed to send deposit pending notification', { error: err });
+      });
+    } catch (error) {
+      logger.error('❌ Error processing Transfer event:', error);
+    }
+  }
+
+  /**
+   * Check and confirm pending deposits (called by background job)
+   */
+  public async checkPendingDeposits(): Promise<void> {
+    try {
+      const depositRepo = AppDataSource.getRepository(Deposit);
+      const transactionRepo = AppDataSource.getRepository(Transaction);
+
+      // Get pending deposits in batches (pagination to prevent memory issues)
+      // Process oldest first to ensure timely confirmations
+      const BATCH_SIZE = 100;
+      const pendingDeposits = await depositRepo.find({
+        where: { status: TransactionStatus.PENDING },
+        relations: ['user'],
+        order: { created_at: 'ASC' },
+        take: BATCH_SIZE,
+      });
+
+      if (pendingDeposits.length === 0) {
+        return;
+      }
+
+      logger.info(`🔍 Checking ${pendingDeposits.length} pending deposits (batch of ${BATCH_SIZE})...`);
+
+      // Get current block number
+      const currentBlock = await this.providerManager.getHttpProvider().getBlockNumber();
+
+      for (const deposit of pendingDeposits) {
+        try {
+          // Check for deposit timeout (24 hours without confirmation)
+          const depositAge = Date.now() - deposit.created_at.getTime();
+          if (depositAge > this.DEPOSIT_TIMEOUT_MS) {
+            deposit.status = TransactionStatus.FAILED;
+            await depositRepo.save(deposit);
+
+            // Update transaction status if exists
+            if (deposit.tx_hash) {
+              await transactionRepo.update(
+                { tx_hash: deposit.tx_hash },
+                { status: TransactionStatus.FAILED }
+              );
+            }
+
+            logger.warn(
+              `⏱️ Deposit ${deposit.id} timed out after ${Math.round(depositAge / 1000 / 60 / 60)}h (user: ${deposit.user?.telegram_id})`
+            );
+
+            // Notify user about timeout
+            if (deposit.user) {
+              await notificationService.notifyDepositTimeout(
+                deposit.user.telegram_id,
+                parseFloat(deposit.amount),
+                deposit.level
+              );
+            }
+
+            continue;
+          }
+
+          if (!deposit.block_number) {
+            continue; // Skip if no block number yet
+          }
+
+          const confirmations = currentBlock - deposit.block_number;
+
+          // Check if enough confirmations
+          if (confirmations >= config.blockchain.confirmationBlocks) {
+            // Verify transaction still exists and is successful
+            const receipt = await this.providerManager.getHttpProvider().getTransactionReceipt(
+              deposit.tx_hash
+            );
+
+            if (!receipt) {
+              logger.warn(
+                `⚠️ Transaction receipt not found: ${deposit.tx_hash}`
+              );
+              continue;
+            }
+
+            if (receipt.status !== 1) {
+              // Transaction failed
+              deposit.status = TransactionStatus.FAILED;
+              await depositRepo.save(deposit);
+
+              await transactionRepo.update(
+                { tx_hash: deposit.tx_hash },
+                { status: TransactionStatus.FAILED }
+              );
+
+              logger.warn(
+                `❌ Deposit transaction failed: ${deposit.tx_hash}`
+              );
+              continue;
+            }
+
+            // Confirm deposit using DepositService (creates referral earnings)
+            const depositService = await this.getDepositService();
+            await depositService.confirmDeposit(deposit.tx_hash, deposit.block_number);
+
+            // Update transaction status
+            await transactionRepo.update(
+              { tx_hash: deposit.tx_hash },
+              { status: TransactionStatus.CONFIRMED }
+            );
+
+            logger.info(
+              `✅ Deposit confirmed: ${deposit.amount} USDT for user ${deposit.user.telegram_id} (${confirmations} confirmations)`
+            );
+          }
+        } catch (error) {
+          logger.error(
+            `❌ Error checking deposit ${deposit.id}:`,
+            error
+          );
+        }
+      }
+    } catch (error) {
+      logger.error('❌ Error checking pending deposits:', error);
+    }
+  }
+
+  /**
+   * Start orphaned deposit cleanup job
+   */
+  public startCleanupJob(): void {
+    // Run cleanup immediately
+    this.runCleanup().catch((error) => {
+      logger.error('❌ Error in initial cleanup run:', error);
+    });
+
+    // Then run periodically
+    this.cleanupInterval = setInterval(async () => {
+      try {
+        await this.runCleanup();
+      } catch (error) {
+        logger.error('❌ Error in scheduled cleanup:', error);
+      }
+    }, this.CLEANUP_INTERVAL_MS);
+
+    logger.info(
+      `🧹 Orphaned deposit cleanup job started (interval: ${this.CLEANUP_INTERVAL_MS / 1000 / 60} minutes)`
+    );
+  }
+
+  /**
+   * Stop cleanup job
+   */
+  public stopCleanupJob(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
+  }
+
+  /**
+   * Run cleanup of orphaned deposits
+   */
+  private async runCleanup(): Promise<void> {
+    const depositService = await this.getDepositService();
+
+    logger.info('🧹 Running orphaned deposit cleanup...');
+    const { cleaned, errors } = await depositService.cleanupOrphanedDeposits();
+
+    if (cleaned > 0 || errors > 0) {
+      logger.info(`🧹 Cleanup complete: ${cleaned} cleaned, ${errors} errors`);
+    } else {
+      logger.debug('🧹 Cleanup complete: No orphaned deposits found');
+    }
+  }
+}
