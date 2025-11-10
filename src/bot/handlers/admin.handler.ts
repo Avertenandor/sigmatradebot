@@ -300,6 +300,11 @@ export const handleStartSendToUser = async (ctx: Context) => {
     return;
   }
 
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
+    return;
+  }
+
   await updateSessionState(
     ctx.from!.id,
     BotState.AWAITING_ADMIN_USER_MESSAGE
@@ -336,6 +341,11 @@ export const handleSendToUserMessage = async (ctx: Context) => {
   const adminCtx = ctx as AdminContext & SessionContext;
 
   if (!adminCtx.isAdmin) {
+    return;
+  }
+
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
     return;
   }
 
@@ -413,6 +423,11 @@ export const handleStartBanUser = async (ctx: Context) => {
     return;
   }
 
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
+    return;
+  }
+
   await updateSessionState(
     ctx.from!.id,
     BotState.AWAITING_ADMIN_USER_TO_BAN
@@ -441,6 +456,11 @@ export const handleBanUserInput = async (ctx: Context) => {
   const adminCtx = ctx as AdminContext & SessionContext;
 
   if (!adminCtx.isAdmin) {
+    return;
+  }
+
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
     return;
   }
 
@@ -501,6 +521,11 @@ export const handleStartUnbanUser = async (ctx: Context) => {
     return;
   }
 
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
+    return;
+  }
+
   await updateSessionState(
     ctx.from!.id,
     BotState.AWAITING_ADMIN_USER_TO_UNBAN
@@ -529,6 +554,11 @@ export const handleUnbanUserInput = async (ctx: Context) => {
   const adminCtx = ctx as AdminContext & SessionContext;
 
   if (!adminCtx.isAdmin) {
+    return;
+  }
+
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
     return;
   }
 
@@ -589,6 +619,11 @@ export const handleStartPromoteAdmin = async (ctx: Context) => {
     return;
   }
 
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
+    return;
+  }
+
   await updateSessionState(
     ctx.from!.id,
     BotState.AWAITING_ADMIN_USER_TO_PROMOTE
@@ -617,6 +652,11 @@ export const handlePromoteAdminInput = async (ctx: Context) => {
   const adminCtx = ctx as AdminContext & SessionContext;
 
   if (!adminCtx.isSuperAdmin) {
+    return;
+  }
+
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
     return;
   }
 
@@ -723,6 +763,11 @@ export const handlePendingWithdrawals = async (ctx: Context) => {
     return;
   }
 
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
+    return;
+  }
+
   try {
     const pendingWithdrawals = await withdrawalService.getPendingWithdrawals();
 
@@ -809,6 +854,11 @@ export const handleApproveWithdrawal = async (ctx: Context) => {
 
   if (!adminCtx.isAdmin) {
     await ctx.answerCbQuery(ERROR_MESSAGES.ADMIN_ONLY);
+    return;
+  }
+
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
     return;
   }
 
@@ -912,6 +962,11 @@ export const handleRejectWithdrawal = async (ctx: Context) => {
     return;
   }
 
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
+    return;
+  }
+
   // Extract withdrawal ID from callback data
   const callbackData = ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
   const match = callbackData.match(/^admin_reject_withdrawal_(\d+)$/);
@@ -991,6 +1046,11 @@ export const handleListAdmins = async (ctx: Context) => {
 
   if (!adminCtx.isSuperAdmin) {
     await ctx.answerCbQuery('Только главный администратор может просматривать список админов');
+    return;
+  }
+
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
     return;
   }
 
@@ -1086,6 +1146,11 @@ export const handleRemoveAdmin = async (ctx: Context) => {
     return;
   }
 
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
+    return;
+  }
+
   // Extract admin ID from callback data
   const callbackData = ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
   const match = callbackData.match(/^admin_remove_(\d+)$/);
@@ -1145,6 +1210,11 @@ export const handleRegenerateMasterKey = async (ctx: Context) => {
 
   if (!adminCtx.isSuperAdmin) {
     await ctx.answerCbQuery('Только главный администратор может сбрасывать ключи');
+    return;
+  }
+
+  // Require authentication
+  if (!(await requireAuthenticatedAdmin(ctx))) {
     return;
   }
 

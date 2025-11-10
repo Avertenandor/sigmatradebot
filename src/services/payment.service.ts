@@ -10,6 +10,7 @@
 import { In } from 'typeorm';
 import { AppDataSource } from '../database/data-source';
 import { ReferralEarning } from '../database/entities/ReferralEarning.entity';
+import { DepositReward } from '../database/entities/DepositReward.entity';
 import { Transaction } from '../database/entities/Transaction.entity';
 import { User } from '../database/entities/User.entity';
 import { Referral } from '../database/entities/Referral.entity';
@@ -31,7 +32,7 @@ export class PaymentService {
   }
 
   /**
-   * Process pending referral earnings
+   * Process pending referral earnings and deposit rewards
    * Called by payment processor job
    */
   public async processPendingPayments(): Promise<{
@@ -41,46 +42,85 @@ export class PaymentService {
   }> {
     try {
       const earningRepo = AppDataSource.getRepository(ReferralEarning);
+      const rewardRepo = AppDataSource.getRepository(DepositReward);
       const userRepo = AppDataSource.getRepository(User);
 
-      // Get all pending earnings
+      // Get all pending referral earnings
       const pendingEarnings = await earningRepo.find({
         where: { paid: false },
         relations: ['referral', 'referral.referrer'],
         order: { created_at: 'ASC' },
       });
 
-      if (pendingEarnings.length === 0) {
+      // Get all pending deposit rewards
+      const pendingRewards = await rewardRepo.find({
+        where: { paid: false },
+        order: { calculated_at: 'ASC' },
+      });
+
+      if (pendingEarnings.length === 0 && pendingRewards.length === 0) {
         return { processed: 0, successful: 0, failed: 0 };
       }
 
-      logger.info(`💸 Processing ${pendingEarnings.length} pending payments...`);
-
-      // Group earnings by user (referrer)
-      const earningsByUser = new Map<number, ReferralEarning[]>();
-
-      for (const earning of pendingEarnings) {
-        const referrerId = earning.referral.referrer_id;
-        if (!earningsByUser.has(referrerId)) {
-          earningsByUser.set(referrerId, []);
-        }
-        earningsByUser.get(referrerId)!.push(earning);
-      }
+      logger.info(
+        `💸 Processing ${pendingEarnings.length} referral earnings + ${pendingRewards.length} deposit rewards...`
+      );
 
       let processed = 0;
       let successful = 0;
       let failed = 0;
 
-      // Process payments for each user
-      for (const [referrerId, earnings] of earningsByUser) {
-        try {
-          const result = await this.processUserPayments(referrerId, earnings);
-          processed += result.processed;
-          successful += result.successful;
-          failed += result.failed;
-        } catch (error) {
-          logger.error(`❌ Error processing payments for user ${referrerId}:`, error);
-          failed += earnings.length;
+      // Process referral earnings
+      if (pendingEarnings.length > 0) {
+        // Group earnings by user (referrer)
+        const earningsByUser = new Map<number, ReferralEarning[]>();
+
+        for (const earning of pendingEarnings) {
+          const referrerId = earning.referral.referrer_id;
+          if (!earningsByUser.has(referrerId)) {
+            earningsByUser.set(referrerId, []);
+          }
+          earningsByUser.get(referrerId)!.push(earning);
+        }
+
+        // Process payments for each user
+        for (const [referrerId, earnings] of earningsByUser) {
+          try {
+            const result = await this.processUserPayments(referrerId, earnings);
+            processed += result.processed;
+            successful += result.successful;
+            failed += result.failed;
+          } catch (error) {
+            logger.error(`❌ Error processing referral payments for user ${referrerId}:`, error);
+            failed += earnings.length;
+          }
+        }
+      }
+
+      // Process deposit rewards
+      if (pendingRewards.length > 0) {
+        // Group rewards by user
+        const rewardsByUser = new Map<number, DepositReward[]>();
+
+        for (const reward of pendingRewards) {
+          const userId = reward.user_id;
+          if (!rewardsByUser.has(userId)) {
+            rewardsByUser.set(userId, []);
+          }
+          rewardsByUser.get(userId)!.push(reward);
+        }
+
+        // Process reward payments for each user
+        for (const [userId, rewards] of rewardsByUser) {
+          try {
+            const result = await this.processUserRewardPayments(userId, rewards);
+            processed += result.processed;
+            successful += result.successful;
+            failed += result.failed;
+          } catch (error) {
+            logger.error(`❌ Error processing reward payments for user ${userId}:`, error);
+            failed += rewards.length;
+          }
         }
       }
 
@@ -197,6 +237,113 @@ export class PaymentService {
         processed: earnings.length,
         successful: 0,
         failed: earnings.length,
+      };
+    }
+  }
+
+  /**
+   * Process all pending deposit reward payments for a single user
+   */
+  private async processUserRewardPayments(
+    userId: number,
+    rewards: DepositReward[]
+  ): Promise<{
+    processed: number;
+    successful: number;
+    failed: number;
+  }> {
+    const userRepo = AppDataSource.getRepository(User);
+    const rewardRepo = AppDataSource.getRepository(DepositReward);
+    const transactionRepo = AppDataSource.getRepository(Transaction);
+
+    try {
+      // Get user
+      const user = await userRepo.findOne({ where: { id: userId } });
+
+      if (!user) {
+        logger.error(`❌ User not found: ${userId}`);
+        return { processed: rewards.length, successful: 0, failed: rewards.length };
+      }
+
+      if (!user.wallet_address) {
+        logger.error(`❌ User ${user.telegram_id} has no wallet address`);
+        return { processed: rewards.length, successful: 0, failed: rewards.length };
+      }
+
+      // Calculate total amount to pay
+      const totalAmount = rewards.reduce(
+        (sum, reward) => sum + parseFloat(reward.reward_amount),
+        0
+      );
+
+      logger.info(
+        `💰 Paying ${totalAmount} USDT deposit rewards to user ${user.telegram_id} (${rewards.length} rewards)`
+      );
+
+      // Send payment via blockchain
+      const paymentResult = await blockchainService.sendPayment(
+        user.wallet_address,
+        totalAmount
+      );
+
+      if (!paymentResult.success) {
+        logger.error(
+          `❌ Deposit reward payment failed for user ${user.telegram_id}: ${paymentResult.error}`
+        );
+
+        // Alert admins about failed payment
+        await notificationService.alertPaymentFailed(
+          user.id,
+          totalAmount,
+          paymentResult.error || 'Unknown error'
+        ).catch((err) => {
+          logger.error('Failed to send payment failure alert', { error: err });
+        });
+
+        return { processed: rewards.length, successful: 0, failed: rewards.length };
+      }
+
+      // Mark rewards as paid
+      for (const reward of rewards) {
+        reward.paid = true;
+        reward.paid_at = new Date();
+        reward.tx_hash = paymentResult.txHash;
+        await rewardRepo.save(reward);
+      }
+
+      // Create transaction record
+      await transactionRepo.save({
+        user_id: user.id,
+        tx_hash: paymentResult.txHash!,
+        type: TransactionType.DEPOSIT_REWARD,
+        amount: totalAmount.toString(),
+        from_address: '', // Will be filled by blockchain service
+        to_address: user.wallet_address,
+        status: TransactionStatus.CONFIRMED,
+      });
+
+      logger.info(
+        `✅ Deposit reward payment successful: ${totalAmount} USDT to user ${user.telegram_id} (tx: ${paymentResult.txHash})`
+      );
+
+      // Send notification to user about deposit reward payment
+      await notificationService.notifyDepositRewardPayment(
+        user.telegram_id,
+        totalAmount,
+        paymentResult.txHash!
+      );
+
+      return {
+        processed: rewards.length,
+        successful: rewards.length,
+        failed: 0,
+      };
+    } catch (error) {
+      logger.error(`❌ Error processing user ${userId} reward payments:`, error);
+      return {
+        processed: rewards.length,
+        successful: 0,
+        failed: rewards.length,
       };
     }
   }

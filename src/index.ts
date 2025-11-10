@@ -14,6 +14,8 @@ import {
   stopBlockchainMonitor,
   startPaymentProcessor,
   stopPaymentProcessor,
+  startRewardCalculator,
+  stopRewardCalculator,
   startBackupScheduler,
   stopBackupScheduler,
   startCleanupScheduler,
@@ -70,12 +72,17 @@ async function main() {
     await startPaymentProcessor();
     logger.info('✅ Payment processor started');
 
-    // Step 7: Start backup scheduler
+    // Step 7: Start reward calculator
+    logger.info('Starting reward calculator...');
+    await startRewardCalculator();
+    logger.info('✅ Reward calculator started');
+
+    // Step 8: Start backup scheduler
     logger.info('Starting backup scheduler...');
     await startBackupScheduler();
     logger.info('✅ Backup scheduler started');
 
-    // Step 8: Start cleanup scheduler
+    // Step 9: Start cleanup scheduler
     logger.info('Starting cleanup scheduler...');
     await startCleanupScheduler();
     logger.info('✅ Cleanup scheduler started');
@@ -89,6 +96,7 @@ async function main() {
 ║  Bot: Active                                          ║
 ║  Blockchain Monitor: Active                           ║
 ║  Payment Processor: Active                            ║
+║  Reward Calculator: Active                            ║
 ║  Background Jobs: Active                              ║
 ║                                                       ║
 ║  Press Ctrl+C to stop                                 ║
@@ -127,6 +135,10 @@ function setupGracefulShutdown(bot: any) {
       logger.info('Stopping payment processor...');
       await stopPaymentProcessor();
       logger.info('✅ Payment processor stopped');
+
+      logger.info('Stopping reward calculator...');
+      await stopRewardCalculator();
+      logger.info('✅ Reward calculator stopped');
 
       logger.info('Stopping backup scheduler...');
       await stopBackupScheduler();

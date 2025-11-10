@@ -74,6 +74,7 @@ export enum TransactionType {
   DEPOSIT = 'deposit',
   WITHDRAWAL = 'withdrawal',
   REFERRAL_REWARD = 'referral_reward',
+  DEPOSIT_REWARD = 'deposit_reward',
   SYSTEM_PAYOUT = 'system_payout',
 }
 

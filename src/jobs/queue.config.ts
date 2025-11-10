@@ -11,6 +11,7 @@ import { logger } from '../utils/logger.util';
 export enum QueueName {
   BLOCKCHAIN_MONITOR = 'blockchain-monitor',
   PAYMENT_PROCESSOR = 'payment-processor',
+  REWARD_CALCULATOR = 'reward-calculator',
   BACKUP = 'backup',
   LOG_CLEANUP = 'log-cleanup',
 }
@@ -44,11 +45,13 @@ export const initializeQueues = (): void => {
   // Create queues
   const blockchainMonitorQueue = new Queue(QueueName.BLOCKCHAIN_MONITOR, queueOptions);
   const paymentProcessorQueue = new Queue(QueueName.PAYMENT_PROCESSOR, queueOptions);
+  const rewardCalculatorQueue = new Queue(QueueName.REWARD_CALCULATOR, queueOptions);
   const backupQueue = new Queue(QueueName.BACKUP, queueOptions);
   const logCleanupQueue = new Queue(QueueName.LOG_CLEANUP, queueOptions);
 
   queues.set(QueueName.BLOCKCHAIN_MONITOR, blockchainMonitorQueue);
   queues.set(QueueName.PAYMENT_PROCESSOR, paymentProcessorQueue);
+  queues.set(QueueName.REWARD_CALCULATOR, rewardCalculatorQueue);
   queues.set(QueueName.BACKUP, backupQueue);
   queues.set(QueueName.LOG_CLEANUP, logCleanupQueue);
 

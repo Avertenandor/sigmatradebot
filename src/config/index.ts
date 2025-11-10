@@ -126,6 +126,10 @@ export const config = {
     paymentProcessor: {
       enabled: process.env.JOB_PAYMENT_PROCESSOR_ENABLED !== 'false',
     },
+    rewardCalculator: {
+      enabled: process.env.JOB_REWARD_CALCULATOR_ENABLED !== 'false',
+      intervalMinutes: parseInt(process.env.JOB_REWARD_CALCULATOR_INTERVAL_MINUTES || '60', 10),
+    },
     backup: {
       enabled: process.env.JOB_BACKUP_ENABLED !== 'false',
       cron: process.env.JOB_BACKUP_CRON || '0 4 * * *',

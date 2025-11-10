@@ -152,6 +152,33 @@ ${referredUsername ? `👤 Реферал: @${referredUsername}` : ''}
   }
 
   /**
+   * Notify user about deposit reward payment
+   */
+  public async notifyDepositRewardPayment(
+    telegramId: number,
+    amount: number,
+    txHash: string
+  ): Promise<void> {
+    const message = `
+💰 **Награда за депозит выплачена!**
+
+💸 Сумма: ${amount.toFixed(4)} USDT
+🔗 Транзакция: \`${txHash}\`
+
+Ваша награда за депозиты отправлена на ваш кошелек!
+
+[Посмотреть в BSCScan](https://bscscan.com/tx/${txHash})
+    `.trim();
+
+    await this.sendNotification(telegramId, message, { parse_mode: 'Markdown' });
+
+    logger.info('Deposit reward payment notification sent', {
+      telegramId,
+      amount,
+    });
+  }
+
+  /**
    * Notify user about new referral
    */
   public async notifyNewReferral(
