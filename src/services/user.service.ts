@@ -281,6 +281,7 @@ export class UserService {
     totalEarned: number;
     totalPaid: number;
     pendingEarnings: number;
+    pendingWithdrawals: number;
   } | null> {
     try {
       const user = await this.findById(userId);
@@ -321,27 +322,34 @@ export class UserService {
         );
       }
 
-      // Get total paid out (confirmed withdrawal transactions)
+      // Get total paid out and pending withdrawals
       const withdrawals = await transactionRepo.find({
         where: {
           user_id: userId,
           type: TransactionType.WITHDRAWAL,
-          status: TransactionStatus.CONFIRMED,
+          status: In([TransactionStatus.CONFIRMED, TransactionStatus.PENDING]),
         },
       });
 
-      const totalPaid = withdrawals.reduce(
-        (sum, tx) => sum + parseFloat(tx.amount),
-        0
-      );
+      // Total confirmed withdrawals (actually paid out)
+      const totalPaid = withdrawals
+        .filter(tx => tx.status === TransactionStatus.CONFIRMED)
+        .reduce((sum, tx) => sum + parseFloat(tx.amount), 0);
 
-      const availableBalance = totalEarned - totalPaid;
+      // Total locked in pending withdrawals
+      const pendingWithdrawals = withdrawals
+        .filter(tx => tx.status === TransactionStatus.PENDING)
+        .reduce((sum, tx) => sum + parseFloat(tx.amount), 0);
+
+      // Available balance = total earned - confirmed withdrawals - pending withdrawals
+      const availableBalance = totalEarned - totalPaid - pendingWithdrawals;
 
       return {
         availableBalance,
         totalEarned,
         totalPaid,
         pendingEarnings,
+        pendingWithdrawals,
       };
     } catch (error) {
       logger.error('Error getting user balance', {

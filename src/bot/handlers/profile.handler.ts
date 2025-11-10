@@ -53,7 +53,7 @@ ${user.is_banned ? '🚫 Аккаунт заблокирован' : '✅ Акк�
 💰 Доступно для вывода: **${balance?.availableBalance.toFixed(2) || 0} USDT**
 💸 Всего заработано: ${balance?.totalEarned.toFixed(2) || 0} USDT
 ⏳ В ожидании выплаты: ${balance?.pendingEarnings.toFixed(2) || 0} USDT
-✅ Уже выплачено: ${balance?.totalPaid.toFixed(2) || 0} USDT
+${balance && balance.pendingWithdrawals > 0 ? `🔒 Заблокировано в выводах: ${balance.pendingWithdrawals.toFixed(2)} USDT\n` : ''}✅ Уже выплачено: ${balance?.totalPaid.toFixed(2) || 0} USDT
 
 **Депозиты и рефералы:**
 💰 Всего депозитов: ${stats?.totalDeposits.toFixed(2) || 0} USDT

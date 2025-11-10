@@ -37,7 +37,7 @@ export const handleWithdrawals = async (ctx: Context) => {
 **Ваш баланс:**
 💰 Доступно для вывода: **${balance?.availableBalance.toFixed(2) || 0} USDT**
 ⏳ В ожидании выплаты: ${balance?.pendingEarnings.toFixed(2) || 0} USDT
-
+${balance && balance.pendingWithdrawals > 0 ? `🔒 Заблокировано в выводах: ${balance.pendingWithdrawals.toFixed(2)} USDT\n` : ''}
 **Условия вывода:**
 • Минимальная сумма: ${minAmount} USDT
 • Вывод на ваш кошелек: \`${authCtx.user.wallet_address}\`
