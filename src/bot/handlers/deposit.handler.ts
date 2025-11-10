@@ -235,6 +235,71 @@ export const handleActivateDeposit = async (ctx: Context) => {
 };
 
 /**
+ * Handle check pending deposits status
+ */
+export const handleCheckPendingDeposits = async (ctx: Context) => {
+  const authCtx = ctx as AuthContext;
+
+  if (!authCtx.isRegistered || !authCtx.user) {
+    await ctx.answerCbQuery('Пожалуйста, сначала зарегистрируйтесь');
+    return;
+  }
+
+  // Get pending deposits
+  const pendingDeposits = await depositService.getPendingDeposits(authCtx.user.id);
+
+  let message = `⏳ **Проверка статуса депозитов**\n\n`;
+
+  if (pendingDeposits.length === 0) {
+    message += 'У вас нет ожидающих подтверждения депозитов.';
+  } else {
+    message += `Найдено **${pendingDeposits.length}** ожидающих депозитов:\n\n`;
+
+    pendingDeposits.forEach((deposit, index) => {
+      const createdDate = new Date(deposit.created_at);
+      const timeAgo = Math.floor((Date.now() - createdDate.getTime()) / 1000 / 60); // minutes
+
+      const status = deposit.tx_hash
+        ? `🔄 Ожидание ${config.blockchain.confirmationBlocks} подтверждений`
+        : `⏳ Ожидание отправки средств`;
+
+      message += `${index + 1}. **Уровень ${deposit.level}** - ${deposit.amountAsNumber} USDT\n`;
+      message += `   Создан: ${timeAgo < 60 ? `${timeAgo} мин` : `${Math.floor(timeAgo / 60)} ч`} назад\n`;
+      message += `   Статус: ${status}\n`;
+
+      if (deposit.tx_hash) {
+        message += `   TX: \`${deposit.tx_hash.substring(0, 10)}...${deposit.tx_hash.substring(deposit.tx_hash.length - 6)}\`\n`;
+      }
+
+      message += '\n';
+    });
+
+    message += `💡 Подтверждение обычно занимает 5-10 минут после отправки.`;
+  }
+
+  if (ctx.callbackQuery && 'message' in ctx.callbackQuery) {
+    await ctx.editMessageText(message, {
+      parse_mode: 'Markdown',
+      ...getBackButton('deposits'),
+    });
+  } else {
+    await ctx.reply(message, {
+      parse_mode: 'Markdown',
+      ...getBackButton('deposits'),
+    });
+  }
+
+  if (ctx.callbackQuery) {
+    await ctx.answerCbQuery();
+  }
+
+  logger.debug('Pending deposits status shown', {
+    userId: authCtx.user.id,
+    pendingCount: pendingDeposits.length,
+  });
+};
+
+/**
  * Handle deposit history
  */
 export const handleDepositHistory = async (ctx: Context) => {
@@ -302,5 +367,6 @@ export default {
   handleDeposits,
   handleDepositLevel,
   handleActivateDeposit,
+  handleCheckPendingDeposits,
   handleDepositHistory,
 };

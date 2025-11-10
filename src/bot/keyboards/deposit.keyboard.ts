@@ -35,8 +35,9 @@ export const getDepositLevelsKeyboard = (
     ]);
   }
 
-  // Add deposit history button
+  // Add status checker and history buttons
   buttons.push([
+    Markup.button.callback('⏳ Проверить статус', 'check_pending_deposits'),
     Markup.button.callback(BUTTON_LABELS.DEPOSIT_HISTORY, 'deposit_history'),
   ]);
 

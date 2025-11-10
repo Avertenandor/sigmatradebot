@@ -149,6 +149,27 @@ export class DepositService {
   }
 
   /**
+   * Get pending deposits for user
+   */
+  async getPendingDeposits(userId: number): Promise<Deposit[]> {
+    try {
+      return await this.depositRepository.find({
+        where: {
+          user_id: userId,
+          status: TransactionStatus.PENDING,
+        },
+        order: { created_at: 'DESC' },
+      });
+    } catch (error) {
+      logger.error('Error getting pending deposits', {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return [];
+    }
+  }
+
+  /**
    * Get deposit history for user
    */
   async getDepositHistory(

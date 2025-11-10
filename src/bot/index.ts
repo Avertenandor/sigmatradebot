@@ -35,6 +35,7 @@ import {
   handleDeposits,
   handleDepositLevel,
   handleActivateDeposit,
+  handleCheckPendingDeposits,
   handleDepositHistory,
   handleReferrals,
   handleReferralLink,
@@ -127,6 +128,7 @@ export const initializeBot = (): Telegraf => {
   bot.action('deposits', handleDeposits);
   bot.action(/^deposit_level_\d+$/, handleDepositLevel);
   bot.action(/^activate_deposit_\d+$/, handleActivateDeposit);
+  bot.action('check_pending_deposits', handleCheckPendingDeposits);
   bot.action('deposit_history', handleDepositHistory);
   bot.action(/^deposit_history_\d+$/, handleDepositHistory);
 

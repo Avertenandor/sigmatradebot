@@ -299,6 +299,13 @@ export const handleContactInfoInput = async (ctx: Context) => {
     return;
   }
 
+  // Get bot username for referral link
+  const botInfo = await ctx.telegram.getMe();
+  const referralLink = userService.generateReferralLink(
+    authCtx.user.id,
+    botInfo.username
+  );
+
   const confirmMessage = `
 ✅ Контакты сохранены!
 
@@ -306,9 +313,24 @@ ${phone ? `📞 Телефон: ${phone}` : ''}
 ${email ? `📧 Email: ${email}` : ''}
 
 Добро пожаловать в SigmaTrade! 🎉
+
+💰 **Зарабатывайте с реферальной программой!**
+
+Ваша реферальная ссылка:
+\`${referralLink}\`
+
+**Вознаграждения:**
+• 3% от депозитов прямых рефералов
+• 2% от депозитов рефералов 2-го уровня
+• 5% от депозитов рефералов 3-го уровня
+
+Приглашайте друзей и зарабатывайте! 🚀
   `.trim();
 
-  await ctx.reply(confirmMessage, getMainKeyboard(false));
+  await ctx.reply(confirmMessage, {
+    parse_mode: 'Markdown',
+    ...getMainKeyboard(false),
+  });
 
   // Reset session
   await updateSessionState(ctx.from!.id, BotState.IDLE);
@@ -331,15 +353,37 @@ export const handleSkipContactInfo = async (ctx: Context) => {
     return;
   }
 
+  // Get bot username for referral link
+  const botInfo = await ctx.telegram.getMe();
+  const referralLink = userService.generateReferralLink(
+    authCtx.user.id,
+    botInfo.username
+  );
+
   const welcomeMessage = `
 🎉 Регистрация завершена!
 
 Добро пожаловать в SigmaTrade!
 
+💰 **Зарабатывайте с реферальной программой!**
+
+Ваша реферальная ссылка:
+\`${referralLink}\`
+
+**Вознаграждения:**
+• 3% от депозитов прямых рефералов
+• 2% от депозитов рефералов 2-го уровня
+• 5% от депозитов рефералов 3-го уровня
+
+Приглашайте друзей и зарабатывайте! 🚀
+
 Используйте меню для навигации по системе.
   `.trim();
 
-  await ctx.editMessageText(welcomeMessage, getMainKeyboard(false));
+  await ctx.editMessageText(welcomeMessage, {
+    parse_mode: 'Markdown',
+    ...getMainKeyboard(false),
+  });
   await ctx.answerCbQuery('Контакты пропущены');
 
   // Reset session
