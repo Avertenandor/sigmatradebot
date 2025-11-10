@@ -37,6 +37,10 @@ import {
   handleActivateDeposit,
   handleCheckPendingDeposits,
   handleDepositHistory,
+  handleWithdrawals,
+  handleRequestWithdrawal,
+  handleWithdrawalAmountInput,
+  handleWithdrawalHistory,
   handleReferrals,
   handleReferralLink,
   handleReferralStats,
@@ -133,6 +137,14 @@ export const initializeBot = (): Telegraf => {
   bot.action(/^deposit_history_\d+$/, handleDepositHistory);
 
   /**
+   * Withdrawals
+   */
+  bot.action('withdrawals', handleWithdrawals);
+  bot.action('request_withdrawal', handleRequestWithdrawal);
+  bot.action('withdrawal_history', handleWithdrawalHistory);
+  bot.action(/^withdrawal_history_\d+$/, handleWithdrawalHistory);
+
+  /**
    * Referrals
    */
   bot.action('referrals', handleReferrals);
@@ -176,6 +188,10 @@ export const initializeBot = (): Telegraf => {
 
       case BotState.AWAITING_CONTACT_INFO:
         await handleContactInfoInput(ctx);
+        break;
+
+      case BotState.AWAITING_WITHDRAWAL_AMOUNT:
+        await handleWithdrawalAmountInput(ctx);
         break;
 
       case BotState.AWAITING_ADMIN_BROADCAST_MESSAGE:
