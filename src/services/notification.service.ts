@@ -346,6 +346,32 @@ ${message}
       amount,
     });
   }
+
+  /**
+   * Notify user about withdrawal rejected
+   */
+  public async notifyWithdrawalRejected(
+    telegramId: number,
+    amount: number
+  ): Promise<void> {
+    const message = `
+❌ **Заявка на вывод отклонена**
+
+💰 Сумма: ${amount} USDT
+
+К сожалению, ваша заявка на вывод была отклонена администратором.
+
+Средства возвращены на ваш баланс.
+Вы можете повторить запрос на вывод или обратиться в поддержку.
+    `.trim();
+
+    await this.sendNotification(telegramId, message, { parse_mode: 'Markdown' });
+
+    logger.info('Withdrawal rejected notification sent', {
+      telegramId,
+      amount,
+    });
+  }
 }
 
 // Export singleton instance

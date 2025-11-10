@@ -14,6 +14,7 @@ import userService from '../../services/user.service';
 import depositService from '../../services/deposit.service';
 import referralService from '../../services/referral.service';
 import withdrawalService from '../../services/withdrawal.service';
+import { notificationService } from '../../services/notification.service';
 import { AppDataSource } from '../../database/data-source';
 import { Admin } from '../../database/entities';
 import { createLogger, logAdminAction } from '../../utils/logger.util';
@@ -761,6 +762,18 @@ export const handleApproveWithdrawal = async (ctx: Context) => {
       return;
     }
 
+    // Send notification to user about withdrawal approval
+    const user = await userService.findById(withdrawal.user_id);
+    if (user) {
+      await notificationService.notifyWithdrawalProcessed(
+        user.telegram_id,
+        parseFloat(withdrawal.amount),
+        txHash
+      ).catch((err) => {
+        logger.error('Failed to send withdrawal processed notification', { error: err });
+      });
+    }
+
     await ctx.answerCbQuery('✅ Заявка одобрена!');
 
     // Update message
@@ -831,6 +844,17 @@ export const handleRejectWithdrawal = async (ctx: Context) => {
     if (!success) {
       await ctx.answerCbQuery(`❌ Ошибка: ${error}`);
       return;
+    }
+
+    // Send notification to user about withdrawal rejection
+    const user = await userService.findById(withdrawal.user_id);
+    if (user) {
+      await notificationService.notifyWithdrawalRejected(
+        user.telegram_id,
+        parseFloat(withdrawal.amount)
+      ).catch((err) => {
+        logger.error('Failed to send withdrawal rejected notification', { error: err });
+      });
     }
 
     await ctx.answerCbQuery('✅ Заявка отклонена');

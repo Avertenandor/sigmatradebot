@@ -11,6 +11,7 @@ import { BotState } from '../../utils/constants';
 import { getBackButton } from '../keyboards';
 import userService from '../../services/user.service';
 import withdrawalService from '../../services/withdrawal.service';
+import { notificationService } from '../../services/notification.service';
 import { createLogger } from '../../utils/logger.util';
 
 const logger = createLogger('WithdrawalHandler');
@@ -294,6 +295,14 @@ export const handleWithdrawalPasswordInput = async (ctx: Context) => {
     await updateSessionState(ctx.from!.id, BotState.IDLE);
     return;
   }
+
+  // Send notification to user about withdrawal request
+  await notificationService.notifyWithdrawalReceived(
+    authCtx.user.telegram_id,
+    amount
+  ).catch((err) => {
+    logger.error('Failed to send withdrawal received notification', { error: err });
+  });
 
   const successMessage = `
 ✅ **Заявка на вывод создана!**
