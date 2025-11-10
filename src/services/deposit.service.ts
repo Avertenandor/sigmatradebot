@@ -467,6 +467,126 @@ export class DepositService {
       };
     }
   }
+
+  /**
+   * Cleanup orphaned deposits (pending deposits without tx_hash older than 24 hours)
+   */
+  async cleanupOrphanedDeposits(): Promise<{
+    cleaned: number;
+    errors: number;
+  }> {
+    try {
+      const TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
+      const timeoutDate = new Date(Date.now() - TIMEOUT_MS);
+
+      // Find pending deposits without tx_hash older than 24 hours
+      const orphanedDeposits = await this.depositRepository
+        .createQueryBuilder('deposit')
+        .where('deposit.status = :status', { status: TransactionStatus.PENDING })
+        .andWhere('(deposit.tx_hash IS NULL OR deposit.tx_hash = \'\')')
+        .andWhere('deposit.created_at < :timeoutDate', { timeoutDate })
+        .getMany();
+
+      let cleaned = 0;
+      let errors = 0;
+
+      for (const deposit of orphanedDeposits) {
+        try {
+          // Mark as failed/expired
+          deposit.status = TransactionStatus.FAILED;
+          await this.depositRepository.save(deposit);
+          cleaned++;
+
+          logger.info('Orphaned deposit cleaned', {
+            depositId: deposit.id,
+            userId: deposit.user_id,
+            level: deposit.level,
+            age: Date.now() - deposit.created_at.getTime(),
+          });
+
+          // Optionally notify user
+          if (deposit.user_id) {
+            const user = await userService.findById(deposit.user_id);
+            if (user) {
+              await notificationService.sendNotification(
+                user.telegram_id,
+                `⏱️ Ваш запрос на депозит уровня ${deposit.level} истёк.\n\n` +
+                `Депозит был создан более 24 часов назад, но средства не были отправлены.\n\n` +
+                `Вы можете создать новый запрос на депозит.`
+              );
+            }
+          }
+        } catch (error) {
+          errors++;
+          logger.error('Error cleaning orphaned deposit', {
+            depositId: deposit.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+
+      logger.info('Orphaned deposits cleanup completed', {
+        found: orphanedDeposits.length,
+        cleaned,
+        errors,
+      });
+
+      return { cleaned, errors };
+    } catch (error) {
+      logger.error('Error in cleanupOrphanedDeposits', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return { cleaned: 0, errors: 1 };
+    }
+  }
+
+  /**
+   * Cancel pending deposit (user-initiated)
+   */
+  async cancelPendingDeposit(
+    userId: number,
+    depositId: number
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const deposit = await this.depositRepository.findOne({
+        where: {
+          id: depositId,
+          user_id: userId,
+          status: TransactionStatus.PENDING,
+        },
+      });
+
+      if (!deposit) {
+        return { success: false, error: 'Депозит не найден или уже обработан' };
+      }
+
+      // Only allow cancellation if no tx_hash (funds not sent)
+      if (deposit.tx_hash && deposit.tx_hash.length > 0) {
+        return {
+          success: false,
+          error: 'Нельзя отменить депозит после отправки средств',
+        };
+      }
+
+      deposit.status = TransactionStatus.FAILED;
+      await this.depositRepository.save(deposit);
+
+      logger.info('Deposit cancelled by user', {
+        depositId,
+        userId,
+        level: deposit.level,
+      });
+
+      return { success: true };
+    } catch (error) {
+      logger.error('Error cancelling deposit', {
+        depositId,
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return { success: false, error: 'Ошибка при отмене депозита' };
+    }
+  }
 }
 
 export default new DepositService();

@@ -277,15 +277,34 @@ export const handleCheckPendingDeposits = async (ctx: Context) => {
     message += `💡 Подтверждение обычно занимает 5-10 минут после отправки.`;
   }
 
+  // Create buttons for cancelling deposits without tx_hash
+  const buttons: any[][] = [];
+  const cancelableDeposits = pendingDeposits.filter((d) => !d.tx_hash || d.tx_hash.length === 0);
+
+  if (cancelableDeposits.length > 0) {
+    cancelableDeposits.forEach((deposit) => {
+      buttons.push([
+        Markup.button.callback(
+          `❌ Отменить депозит уровня ${deposit.level}`,
+          `cancel_deposit_${deposit.id}`
+        ),
+      ]);
+    });
+  }
+
+  buttons.push([Markup.button.callback('🔙 Назад', 'deposits')]);
+
+  const keyboard = Markup.inlineKeyboard(buttons);
+
   if (ctx.callbackQuery && 'message' in ctx.callbackQuery) {
     await ctx.editMessageText(message, {
       parse_mode: 'Markdown',
-      ...getBackButton('deposits'),
+      ...keyboard,
     });
   } else {
     await ctx.reply(message, {
       parse_mode: 'Markdown',
-      ...getBackButton('deposits'),
+      ...keyboard,
     });
   }
 
@@ -296,6 +315,7 @@ export const handleCheckPendingDeposits = async (ctx: Context) => {
   logger.debug('Pending deposits status shown', {
     userId: authCtx.user.id,
     pendingCount: pendingDeposits.length,
+    cancelableCount: cancelableDeposits.length,
   });
 };
 
@@ -363,10 +383,74 @@ export const handleDepositHistory = async (ctx: Context) => {
   });
 };
 
+/**
+ * Handle cancel pending deposit
+ */
+export const handleCancelDeposit = async (ctx: Context) => {
+  const authCtx = ctx as AuthContext;
+
+  if (!authCtx.isRegistered || !authCtx.user) {
+    await ctx.answerCbQuery('Пожалуйста, сначала зарегистрируйтесь');
+    return;
+  }
+
+  // Extract deposit ID from callback data
+  const callbackData = ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+  const match = callbackData.match(/^cancel_deposit_(\d+)$/);
+
+  if (!match) {
+    await ctx.answerCbQuery('❌ Неверный формат');
+    return;
+  }
+
+  const depositId = parseInt(match[1]);
+
+  try {
+    const { success, error } = await depositService.cancelPendingDeposit(
+      authCtx.user.id,
+      depositId
+    );
+
+    if (!success) {
+      await ctx.answerCbQuery(`❌ ${error}`);
+      return;
+    }
+
+    await ctx.answerCbQuery('✅ Депозит отменён');
+
+    // Update message to show success
+    await ctx.editMessageText(
+      `✅ **Депозит отменён**\n\n` +
+      `Запрос на депозит был успешно отменён.\n` +
+      `Вы можете создать новый запрос на депозит в любое время.`,
+      {
+        parse_mode: 'Markdown',
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback('💰 Депозиты', 'deposits')],
+          [Markup.button.callback('🏠 Главное меню', 'main_menu')],
+        ]),
+      }
+    );
+
+    logger.info('Deposit cancelled by user', {
+      userId: authCtx.user.id,
+      depositId,
+    });
+  } catch (error) {
+    await ctx.answerCbQuery('❌ Ошибка при отмене');
+    logger.error('Failed to cancel deposit', {
+      userId: authCtx.user.id,
+      depositId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
 export default {
   handleDeposits,
   handleDepositLevel,
   handleActivateDeposit,
   handleCheckPendingDeposits,
   handleDepositHistory,
+  handleCancelDeposit,
 };

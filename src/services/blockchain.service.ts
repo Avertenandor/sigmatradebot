@@ -44,7 +44,9 @@ export class BlockchainService {
 
   // Health check interval
   private wsHealthCheckInterval?: NodeJS.Timeout;
+  private cleanupInterval?: NodeJS.Timeout;
   private lastWsActivity = Date.now();
+  private readonly CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 
   // Lazy-loaded to avoid circular dependency
   private depositService?: DepositService;
@@ -221,6 +223,9 @@ export class BlockchainService {
       // Start WebSocket health check
       this.startWsHealthCheck();
 
+      // Start orphaned deposit cleanup job
+      this.startCleanupJob();
+
       this.isMonitoring = true;
       logger.info('✅ Blockchain monitoring started');
       logger.info(`📡 Listening for deposits to: ${config.blockchain.systemWalletAddress}`);
@@ -241,6 +246,12 @@ export class BlockchainService {
       if (this.wsHealthCheckInterval) {
         clearInterval(this.wsHealthCheckInterval);
         this.wsHealthCheckInterval = undefined;
+      }
+
+      // Clear cleanup interval
+      if (this.cleanupInterval) {
+        clearInterval(this.cleanupInterval);
+        this.cleanupInterval = undefined;
       }
 
       if (this.usdtContractWs) {
@@ -280,6 +291,48 @@ export class BlockchainService {
     logger.info(
       `🏥 WebSocket health check started (interval: ${this.WS_HEALTH_CHECK_INTERVAL_MS / 1000}s)`
     );
+  }
+
+  /**
+   * Start orphaned deposit cleanup job
+   */
+  private startCleanupJob(): void {
+    // Run cleanup immediately
+    this.runCleanup().catch((error) => {
+      logger.error('❌ Error in initial cleanup run:', error);
+    });
+
+    // Then run periodically
+    this.cleanupInterval = setInterval(async () => {
+      try {
+        await this.runCleanup();
+      } catch (error) {
+        logger.error('❌ Error in scheduled cleanup:', error);
+      }
+    }, this.CLEANUP_INTERVAL_MS);
+
+    logger.info(
+      `🧹 Orphaned deposit cleanup job started (interval: ${this.CLEANUP_INTERVAL_MS / 1000 / 60} minutes)`
+    );
+  }
+
+  /**
+   * Run cleanup of orphaned deposits
+   */
+  private async runCleanup(): Promise<void> {
+    if (!this.depositService) {
+      const { default: depositService } = await import('./deposit.service');
+      this.depositService = depositService;
+    }
+
+    logger.info('🧹 Running orphaned deposit cleanup...');
+    const { cleaned, errors } = await this.depositService.cleanupOrphanedDeposits();
+
+    if (cleaned > 0 || errors > 0) {
+      logger.info(`🧹 Cleanup complete: ${cleaned} cleaned, ${errors} errors`);
+    } else {
+      logger.debug('🧹 Cleanup complete: No orphaned deposits found');
+    }
   }
 
   /**

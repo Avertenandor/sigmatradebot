@@ -37,6 +37,7 @@ import {
   handleActivateDeposit,
   handleCheckPendingDeposits,
   handleDepositHistory,
+  handleCancelDeposit,
   handleWithdrawals,
   handleRequestWithdrawal,
   handleWithdrawalAmountInput,
@@ -142,6 +143,7 @@ export const initializeBot = (): Telegraf => {
   bot.action('check_pending_deposits', handleCheckPendingDeposits);
   bot.action('deposit_history', handleDepositHistory);
   bot.action(/^deposit_history_\d+$/, handleDepositHistory);
+  bot.action(/^cancel_deposit_\d+$/, handleCancelDeposit);
 
   /**
    * Withdrawals
