@@ -37,9 +37,9 @@ export class Deposit {
   @Column({ type: 'decimal', precision: 18, scale: 8 })
   amount!: string; // Stored as string to preserve precision
 
-  @Column({ type: 'varchar', length: 66, unique: true })
+  @Column({ type: 'varchar', length: 66, nullable: true })
   @Index()
-  tx_hash!: string;
+  tx_hash?: string;
 
   @Column({
     type: 'varchar',
