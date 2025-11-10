@@ -40,6 +40,7 @@ import {
   handleWithdrawals,
   handleRequestWithdrawal,
   handleWithdrawalAmountInput,
+  handleWithdrawalPasswordInput,
   handleWithdrawalHistory,
   handleTransactionHistory,
   handleTransactionHistoryFilter,
@@ -203,6 +204,10 @@ export const initializeBot = (): Telegraf => {
 
       case BotState.AWAITING_WITHDRAWAL_AMOUNT:
         await handleWithdrawalAmountInput(ctx);
+        break;
+
+      case BotState.AWAITING_WITHDRAWAL_FINANCIAL_PASSWORD:
+        await handleWithdrawalPasswordInput(ctx);
         break;
 
       case BotState.AWAITING_ADMIN_BROADCAST_MESSAGE:

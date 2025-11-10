@@ -162,14 +162,121 @@ export const handleWithdrawalAmountInput = async (ctx: Context) => {
     return;
   }
 
-  // Request withdrawal
-  const { transaction, error } = await withdrawalService.requestWithdrawal({
+  // Validate amount against balance
+  const balance = await userService.getUserBalance(authCtx.user.id);
+  const minAmount = withdrawalService.getMinWithdrawalAmount();
+
+  if (!balance || balance.availableBalance < amount) {
+    await ctx.reply(`❌ Недостаточно средств. Доступно: ${balance?.availableBalance.toFixed(2) || 0} USDT`, {
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback('🔙 Назад', 'withdrawals')],
+      ]),
+    });
+    await updateSessionState(ctx.from!.id, BotState.IDLE);
+    return;
+  }
+
+  if (amount < minAmount) {
+    await ctx.reply(`❌ Минимальная сумма вывода: ${minAmount} USDT`, {
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback('🔙 Назад', 'withdrawals')],
+      ]),
+    });
+    await updateSessionState(ctx.from!.id, BotState.IDLE);
+    return;
+  }
+
+  // Store amount in session data and request financial password
+  if (authCtx.session) {
+    authCtx.session.data = { withdrawalAmount: amount };
+  }
+
+  await updateSessionState(ctx.from!.id, BotState.AWAITING_WITHDRAWAL_FINANCIAL_PASSWORD);
+
+  const passwordMessage = `
+🔐 **Подтверждение вывода**
+
+💰 Сумма: ${amount.toFixed(2)} USDT
+💳 Кошелек: \`${authCtx.user.wallet_address}\`
+
+⚠️ **Для подтверждения операции введите ваш финансовый пароль:**
+
+Этот пароль был выдан вам при регистрации.
+  `.trim();
+
+  await ctx.reply(passwordMessage, {
+    parse_mode: 'Markdown',
+    ...Markup.inlineKeyboard([
+      [Markup.button.callback('❌ Отмена', 'withdrawals')],
+    ]),
+  });
+
+  logger.debug('Withdrawal amount validated, requesting password', {
+    userId: authCtx.user.id,
+    amount,
+  });
+};
+
+/**
+ * Handle withdrawal financial password verification
+ */
+export const handleWithdrawalPasswordInput = async (ctx: Context) => {
+  const authCtx = ctx as AuthContext & SessionContext;
+
+  if (!authCtx.isRegistered || !authCtx.user) {
+    await ctx.reply('Пожалуйста, сначала зарегистрируйтесь');
+    return;
+  }
+
+  // Check session state
+  if (authCtx.session?.state !== BotState.AWAITING_WITHDRAWAL_FINANCIAL_PASSWORD) {
+    return;
+  }
+
+  // Get amount from session
+  const amount = authCtx.session?.data?.withdrawalAmount;
+  if (!amount) {
+    await ctx.reply('❌ Ошибка: сумма не найдена. Начните процесс вывода заново.', {
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback('🔙 Назад', 'withdrawals')],
+      ]),
+    });
+    await updateSessionState(ctx.from!.id, BotState.IDLE);
+    return;
+  }
+
+  const password = ctx.text?.trim();
+  if (!password) {
+    await ctx.reply('Пожалуйста, введите финансовый пароль');
+    return;
+  }
+
+  // Verify financial password
+  const { success, error } = await userService.verifyFinancialPassword(
+    authCtx.user.id,
+    password
+  );
+
+  if (!success) {
+    await ctx.reply(`❌ ${error || 'Неверный пароль'}. Попробуйте снова или отмените операцию.`, {
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback('❌ Отмена', 'withdrawals')],
+      ]),
+    });
+    logger.warn('Failed withdrawal password attempt', {
+      userId: authCtx.user.id,
+    });
+    return;
+  }
+
+  // Password verified, create withdrawal request
+  const { transaction, error: withdrawalError } = await withdrawalService.requestWithdrawal({
     userId: authCtx.user.id,
     amount,
   });
 
-  if (error) {
-    await ctx.reply(`❌ Ошибка: ${error}`, {
+  if (withdrawalError) {
+    await ctx.reply(`❌ Ошибка: ${withdrawalError}`, {
       ...Markup.inlineKeyboard([
         [Markup.button.callback('🔙 Назад', 'withdrawals')],
       ]),
@@ -199,10 +306,13 @@ export const handleWithdrawalAmountInput = async (ctx: Context) => {
     ]),
   });
 
-  // Reset session state
+  // Clear session data and reset state
+  if (authCtx.session) {
+    authCtx.session.data = {};
+  }
   await updateSessionState(ctx.from!.id, BotState.IDLE);
 
-  logger.info('Withdrawal request created', {
+  logger.info('Withdrawal request created after password verification', {
     userId: authCtx.user.id,
     transactionId: transaction?.id,
     amount,
@@ -310,5 +420,6 @@ export default {
   handleWithdrawals,
   handleRequestWithdrawal,
   handleWithdrawalAmountInput,
+  handleWithdrawalPasswordInput,
   handleWithdrawalHistory,
 };

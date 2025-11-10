@@ -479,6 +479,49 @@ export class UserService {
       return 0;
     }
   }
+
+  /**
+   * Verify user's financial password
+   */
+  async verifyFinancialPassword(
+    userId: number,
+    password: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        return { success: false, error: 'Пользователь не найден' };
+      }
+
+      if (!user.financial_password) {
+        return { success: false, error: 'Финансовый пароль не установлен' };
+      }
+
+      const isValid = await verifyPassword(password, user.financial_password);
+
+      if (!isValid) {
+        logger.warn('Failed financial password verification attempt', {
+          userId,
+        });
+        return { success: false, error: 'Неверный финансовый пароль' };
+      }
+
+      logger.info('Financial password verified successfully', {
+        userId,
+      });
+
+      return { success: true };
+    } catch (error) {
+      logger.error('Error verifying financial password', {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return { success: false, error: 'Ошибка при проверке пароля' };
+    }
+  }
 }
 
 export default new UserService();

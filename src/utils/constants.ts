@@ -308,6 +308,7 @@ export enum BotState {
   AWAITING_WALLET_ADDRESS = 'awaiting_wallet_address',
   AWAITING_CONTACT_INFO = 'awaiting_contact_info',
   AWAITING_WITHDRAWAL_AMOUNT = 'awaiting_withdrawal_amount',
+  AWAITING_WITHDRAWAL_FINANCIAL_PASSWORD = 'awaiting_withdrawal_financial_password',
   AWAITING_ADMIN_BROADCAST_MESSAGE = 'awaiting_admin_broadcast_message',
   AWAITING_ADMIN_USER_MESSAGE = 'awaiting_admin_user_message',
   AWAITING_ADMIN_USER_TO_BAN = 'awaiting_admin_user_to_ban',
