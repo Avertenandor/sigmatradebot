@@ -352,6 +352,14 @@ export class DepositService {
           deposit.level,
           txHash
         );
+
+        // Send level activation notification
+        await notificationService.notifyLevelActivated(
+          user.telegram_id,
+          deposit.level
+        ).catch((err) => {
+          logger.error('Failed to send level activation notification', { error: err });
+        });
       }
 
       // Find associated transaction for source_transaction_id
