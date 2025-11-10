@@ -379,6 +379,19 @@ export const validateFinancialAmount = (
   return { valid: true, value: rounded };
 };
 
+/**
+ * Format transaction hash for display
+ * Returns shortened hash or fallback text if invalid
+ */
+export const formatTxHash = (txHash: string | null | undefined, fallback: string = 'Ожидает подтверждения'): string => {
+  if (!txHash || txHash.length < 16) {
+    return fallback;
+  }
+
+  // Show first 10 and last 6 characters
+  return `${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}`;
+};
+
 export default {
   validate,
   validateAsync,
@@ -392,4 +405,5 @@ export default {
   normalizeTelegramUsername,
   safeParseFloat,
   validateFinancialAmount,
+  formatTxHash,
 };
