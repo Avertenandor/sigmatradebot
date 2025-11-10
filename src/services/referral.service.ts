@@ -559,10 +559,10 @@ export class ReferralService {
       const usersWithReferrals = await this.referralRepository
         .createQueryBuilder('referral')
         .select('referral.referrer_id', 'userId')
-        .addSelect('COUNT(DISTINCT referral.referred_user_id)', 'referralCount')
+        .addSelect('COUNT(DISTINCT referral.referral_id)', 'referralCount')
         .addSelect('SUM(CAST(referral.total_earned AS DECIMAL))', 'totalEarnings')
         .groupBy('referral.referrer_id')
-        .having('COUNT(DISTINCT referral.referred_user_id) > 0')
+        .having('COUNT(DISTINCT referral.referral_id) > 0')
         .getRawMany();
 
       // Get user details for each referrer
