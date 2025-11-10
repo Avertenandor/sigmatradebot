@@ -121,6 +121,10 @@ export const handleAdminStats = async (ctx: Context) => {
   logAdminAction(ctx.from!.id, 'viewed_stats', { range });
 };
 
+// Rate limiting for broadcasts: Map of adminId -> last broadcast timestamp
+const broadcastRateLimits = new Map<number, number>();
+const BROADCAST_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+
 /**
  * Start broadcast message
  */
@@ -130,6 +134,25 @@ export const handleStartBroadcast = async (ctx: Context) => {
   if (!adminCtx.isAdmin) {
     await ctx.answerCbQuery(ERROR_MESSAGES.ADMIN_ONLY);
     return;
+  }
+
+  // Check rate limit
+  const adminId = ctx.from!.id;
+  const lastBroadcast = broadcastRateLimits.get(adminId);
+  const now = Date.now();
+
+  if (lastBroadcast) {
+    const timeSinceLastBroadcast = now - lastBroadcast;
+    const remainingCooldown = BROADCAST_COOLDOWN_MS - timeSinceLastBroadcast;
+
+    if (remainingCooldown > 0) {
+      const remainingMinutes = Math.ceil(remainingCooldown / 60000);
+      await ctx.answerCbQuery(
+        `⏳ Подождите ${remainingMinutes} мин. перед следующей рассылкой`,
+        { show_alert: true }
+      );
+      return;
+    }
   }
 
   await updateSessionState(
@@ -207,6 +230,9 @@ export const handleBroadcastMessage = async (ctx: Context) => {
       });
     }
   }
+
+  // Record broadcast timestamp for rate limiting
+  broadcastRateLimits.set(ctx.from!.id, Date.now());
 
   await ctx.reply(
     `✅ Рассылка завершена!\n\n` +
