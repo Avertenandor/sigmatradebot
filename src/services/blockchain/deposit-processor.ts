@@ -16,6 +16,8 @@ import { ProviderManager } from './provider.manager';
 import { getUsdtDecimals } from './utils';
 import type { DepositService } from '../deposit.service';
 import { logFinancialOperation } from '../../utils/audit-logger.util';
+import { withTransaction, TRANSACTION_PRESETS } from '../../database/transaction.util';
+import { lockForDepositProcessing } from '../../database/locking.util';
 
 export class DepositProcessor {
   private readonly DEPOSIT_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -227,12 +229,11 @@ export class DepositProcessor {
 
       // Use database transaction with pessimistic lock to prevent race conditions
       // This ensures only one concurrent transaction can claim a pending deposit
-      const depositRepo = AppDataSource.getRepository(Deposit);
-
-      await AppDataSource.transaction(async (transactionalEntityManager) => {
+      // Uses withTransaction for automatic retry on deadlock/serialization errors
+      await withTransaction(async (manager) => {
         // Find and lock matching pending deposit (SELECT FOR UPDATE)
         // This prevents race conditions when multiple transactions arrive simultaneously
-        const pendingDeposit = await transactionalEntityManager
+        const pendingDeposit = await manager
           .createQueryBuilder(Deposit, 'deposit')
           .where('deposit.user_id = :userId', { userId: user.id })
           .andWhere('deposit.level = :level', { level: matchedLevel })
@@ -244,10 +245,32 @@ export class DepositProcessor {
 
         if (!pendingDeposit) {
           logger.warn(
-            `⚠️ No pending deposit found for user ${user.telegram_id} level ${matchedLevel}`
+            `⚠️ No pending deposit found for user ${user.telegram_id} level ${matchedLevel}`,
+            {
+              userId: user.id,
+              telegramId: user.telegram_id,
+              level: matchedLevel,
+              amount,
+              txHash,
+            }
           );
+
+          // Log to audit trail
+          logFinancialOperation({
+            category: 'deposit',
+            userId: user.id,
+            action: 'no_pending_deposit_found',
+            amount,
+            success: false,
+            details: {
+              txHash,
+              level: matchedLevel,
+              expected: expectedAmount,
+            },
+          });
+
           // Create transaction record for manual review
-          await transactionalEntityManager.save(Transaction, {
+          await manager.save(Transaction, {
             user_id: user.id,
             tx_hash: txHash,
             type: TransactionType.DEPOSIT,
@@ -257,6 +280,7 @@ export class DepositProcessor {
             block_number: blockNumber,
             status: TransactionStatus.PENDING,
           });
+
           logger.info(
             `ℹ️ Transaction recorded for manual review: ${txHash}`
           );
@@ -266,10 +290,10 @@ export class DepositProcessor {
         // Update deposit with transaction hash (will be confirmed after N blocks)
         pendingDeposit.tx_hash = txHash;
         pendingDeposit.block_number = blockNumber;
-        await transactionalEntityManager.save(Deposit, pendingDeposit);
+        await manager.save(Deposit, pendingDeposit);
 
         // Create transaction record
-        await transactionalEntityManager.save(Transaction, {
+        await manager.save(Transaction, {
           user_id: user.id,
           tx_hash: txHash,
           type: TransactionType.DEPOSIT,
@@ -280,10 +304,25 @@ export class DepositProcessor {
           status: TransactionStatus.PENDING,
         });
 
+        // Log successful deposit tracking to audit trail
+        logFinancialOperation({
+          category: 'deposit',
+          userId: user.id,
+          action: 'deposit_tracked',
+          amount,
+          success: true,
+          details: {
+            txHash,
+            level: matchedLevel,
+            depositId: pendingDeposit.id,
+            blockNumber,
+          },
+        });
+
         logger.info(
           `✅ Deposit tracked: ${amount} USDT for user ${user.telegram_id} (tx: ${txHash})`
         );
-      });
+      }, TRANSACTION_PRESETS.FINANCIAL); // Use FINANCIAL preset for higher retries and timeout
 
       // Notify user about detected deposit (pending confirmation)
       await notificationService.notifyDepositPending(
@@ -331,28 +370,58 @@ export class DepositProcessor {
           // Check for deposit timeout (24 hours without confirmation)
           const depositAge = Date.now() - deposit.created_at.getTime();
           if (depositAge > this.DEPOSIT_TIMEOUT_MS) {
-            deposit.status = TransactionStatus.FAILED;
-            await depositRepo.save(deposit);
+            // Use pessimistic lock to prevent race conditions when marking as failed
+            await withTransaction(async (manager) => {
+              await lockForDepositProcessing(manager, deposit.id, async (lockedDeposit) => {
+                // Double-check status after acquiring lock (another worker might have processed it)
+                if (lockedDeposit.status !== TransactionStatus.PENDING) {
+                  logger.info(
+                    `Deposit ${deposit.id} already processed by another worker (status: ${lockedDeposit.status})`
+                  );
+                  return;
+                }
 
-            // Update transaction status if exists
-            if (deposit.tx_hash) {
-              await transactionRepo.update(
-                { tx_hash: deposit.tx_hash },
-                { status: TransactionStatus.FAILED }
-              );
-            }
+                lockedDeposit.status = TransactionStatus.FAILED;
+                await manager.save(Deposit, lockedDeposit);
 
-            logger.warn(
-              `⏱️ Deposit ${deposit.id} timed out after ${Math.round(depositAge / 1000 / 60 / 60)}h (user: ${deposit.user?.telegram_id})`
-            );
+                // Update transaction status if exists
+                if (lockedDeposit.tx_hash) {
+                  await manager.update(Transaction,
+                    { tx_hash: lockedDeposit.tx_hash },
+                    { status: TransactionStatus.FAILED }
+                  );
+                }
 
-            // Notify user about timeout
+                // Log to audit trail
+                logFinancialOperation({
+                  category: 'deposit',
+                  userId: lockedDeposit.user_id,
+                  action: 'deposit_timeout',
+                  amount: parseFloat(lockedDeposit.amount),
+                  success: false,
+                  error: 'Deposit timed out after 24 hours',
+                  details: {
+                    depositId: lockedDeposit.id,
+                    txHash: lockedDeposit.tx_hash,
+                    ageHours: Math.round(depositAge / 1000 / 60 / 60),
+                  },
+                });
+
+                logger.warn(
+                  `⏱️ Deposit ${lockedDeposit.id} timed out after ${Math.round(depositAge / 1000 / 60 / 60)}h (user: ${deposit.user?.telegram_id})`
+                );
+              });
+            }, TRANSACTION_PRESETS.FINANCIAL);
+
+            // Notify user about timeout (outside transaction)
             if (deposit.user) {
               await notificationService.notifyDepositTimeout(
                 deposit.user.telegram_id,
                 parseFloat(deposit.amount),
                 deposit.level
-              );
+              ).catch(err => {
+                logger.error('Failed to send timeout notification', { error: err });
+              });
             }
 
             continue;
@@ -379,18 +448,46 @@ export class DepositProcessor {
             }
 
             if (receipt.status !== 1) {
-              // Transaction failed
-              deposit.status = TransactionStatus.FAILED;
-              await depositRepo.save(deposit);
+              // Transaction failed - use pessimistic lock to prevent race conditions
+              await withTransaction(async (manager) => {
+                await lockForDepositProcessing(manager, deposit.id, async (lockedDeposit) => {
+                  // Double-check status after acquiring lock
+                  if (lockedDeposit.status !== TransactionStatus.PENDING) {
+                    logger.info(
+                      `Deposit ${deposit.id} already processed (status: ${lockedDeposit.status})`
+                    );
+                    return;
+                  }
 
-              await transactionRepo.update(
-                { tx_hash: deposit.tx_hash },
-                { status: TransactionStatus.FAILED }
-              );
+                  lockedDeposit.status = TransactionStatus.FAILED;
+                  await manager.save(Deposit, lockedDeposit);
 
-              logger.warn(
-                `❌ Deposit transaction failed: ${deposit.tx_hash}`
-              );
+                  await manager.update(Transaction,
+                    { tx_hash: lockedDeposit.tx_hash },
+                    { status: TransactionStatus.FAILED }
+                  );
+
+                  // Log to audit trail
+                  logFinancialOperation({
+                    category: 'deposit',
+                    userId: lockedDeposit.user_id,
+                    action: 'deposit_transaction_failed',
+                    amount: parseFloat(lockedDeposit.amount),
+                    success: false,
+                    error: 'Blockchain transaction failed',
+                    details: {
+                      depositId: lockedDeposit.id,
+                      txHash: lockedDeposit.tx_hash,
+                      blockNumber: lockedDeposit.block_number,
+                    },
+                  });
+
+                  logger.warn(
+                    `❌ Deposit transaction failed: ${lockedDeposit.tx_hash}`
+                  );
+                });
+              }, TRANSACTION_PRESETS.FINANCIAL);
+
               continue;
             }
 
