@@ -32,43 +32,51 @@ export class WithdrawalService {
         };
       }
 
-      // Get user balance
-      const balance = await userService.getUserBalance(data.userId);
-      if (!balance) {
-        return { error: 'Не удалось получить баланс' };
-      }
+      // Use database transaction to prevent race condition
+      return await AppDataSource.transaction(async (transactionalEntityManager) => {
+        // Get user for wallet address (with pessimistic lock)
+        const user = await transactionalEntityManager
+          .createQueryBuilder(User, 'user')
+          .where('user.id = :userId', { userId: data.userId })
+          .setLock('pessimistic_write') // Row-level lock (SELECT FOR UPDATE)
+          .getOne();
 
-      // Check if user has enough balance
-      if (balance.availableBalance < data.amount) {
-        return {
-          error: `Недостаточно средств. Доступно: ${balance.availableBalance.toFixed(2)} USDT`,
-        };
-      }
+        if (!user) {
+          return { error: 'Пользователь не найден' };
+        }
 
-      // Get user for wallet address
-      const user = await userService.findById(data.userId);
-      if (!user) {
-        return { error: 'Пользователь не найден' };
-      }
+        // Re-check balance inside transaction (with locked user data)
+        const balance = await userService.getUserBalance(data.userId);
+        if (!balance) {
+          return { error: 'Не удалось получить баланс' };
+        }
 
-      // Create withdrawal transaction
-      const transaction = this.transactionRepository.create({
-        user_id: data.userId,
-        type: TransactionType.WITHDRAWAL,
-        amount: data.amount.toString(),
-        to_address: user.wallet_address, // Withdraw to user's wallet
-        status: TransactionStatus.PENDING,
+        // Check if user has enough balance
+        if (balance.availableBalance < data.amount) {
+          return {
+            error: `Недостаточно средств. Доступно: ${balance.availableBalance.toFixed(2)} USDT`,
+          };
+        }
+
+        // Create withdrawal transaction atomically
+        const transaction = transactionalEntityManager.create(Transaction, {
+          user_id: data.userId,
+          type: TransactionType.WITHDRAWAL,
+          amount: data.amount.toString(),
+          to_address: user.wallet_address, // Withdraw to user's wallet
+          status: TransactionStatus.PENDING,
+        });
+
+        await transactionalEntityManager.save(Transaction, transaction);
+
+        logger.info('Withdrawal request created', {
+          transactionId: transaction.id,
+          userId: data.userId,
+          amount: data.amount,
+        });
+
+        return { transaction };
       });
-
-      await this.transactionRepository.save(transaction);
-
-      logger.info('Withdrawal request created', {
-        transactionId: transaction.id,
-        userId: data.userId,
-        amount: data.amount,
-      });
-
-      return { transaction };
     } catch (error) {
       logger.error('Error creating withdrawal request', {
         userId: data.userId,
