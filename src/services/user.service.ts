@@ -1,0 +1,360 @@
+/**
+ * User Service
+ * Business logic for user management
+ */
+
+import { AppDataSource } from '../database/data-source';
+import { User } from '../database/entities';
+import { createLogger } from '../utils/logger.util';
+import {
+  generateFinancialPassword,
+  hashPassword,
+  verifyPassword,
+  generateReferralCode,
+} from '../utils/crypto.util';
+import {
+  normalizeWalletAddress,
+  isValidBSCAddress,
+  isValidEmail,
+  isValidPhone,
+} from '../utils/validation.util';
+
+const logger = createLogger('UserService');
+
+export class UserService {
+  private userRepository = AppDataSource.getRepository(User);
+
+  /**
+   * Find user by Telegram ID
+   */
+  async findByTelegramId(telegramId: number): Promise<User | null> {
+    try {
+      return await this.userRepository.findOne({
+        where: { telegram_id: telegramId },
+        relations: ['referrer'],
+      });
+    } catch (error) {
+      logger.error('Error finding user by telegram ID', {
+        telegramId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
+  }
+
+  /**
+   * Find user by wallet address
+   */
+  async findByWalletAddress(walletAddress: string): Promise<User | null> {
+    const normalizedAddress = normalizeWalletAddress(walletAddress);
+
+    try {
+      return await this.userRepository.findOne({
+        where: { wallet_address: normalizedAddress },
+      });
+    } catch (error) {
+      logger.error('Error finding user by wallet', {
+        walletAddress: normalizedAddress,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
+  }
+
+  /**
+   * Find user by ID
+   */
+  async findById(userId: number): Promise<User | null> {
+    try {
+      return await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ['referrer'],
+      });
+    } catch (error) {
+      logger.error('Error finding user by ID', {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
+  }
+
+  /**
+   * Create new user
+   */
+  async createUser(data: {
+    telegramId: number;
+    username?: string;
+    walletAddress: string;
+    referrerId?: number;
+  }): Promise<{ user?: User; error?: string }> {
+    // Validate wallet address
+    if (!isValidBSCAddress(data.walletAddress)) {
+      return { error: 'Неверный формат адреса кошелька' };
+    }
+
+    const normalizedAddress = normalizeWalletAddress(data.walletAddress);
+
+    // Check if telegram ID already exists
+    const existingByTelegramId = await this.findByTelegramId(data.telegramId);
+    if (existingByTelegramId) {
+      return { error: 'Telegram аккаунт уже зарегистрирован' };
+    }
+
+    // Check if wallet already exists
+    const existingByWallet = await this.findByWalletAddress(normalizedAddress);
+    if (existingByWallet) {
+      return { error: 'Этот кошелек уже зарегистрирован' };
+    }
+
+    // Validate referrer if provided
+    if (data.referrerId) {
+      const referrer = await this.findById(data.referrerId);
+      if (!referrer) {
+        logger.warn('Invalid referrer ID provided', {
+          referrerId: data.referrerId,
+          telegramId: data.telegramId,
+        });
+        // Don't fail registration, just ignore invalid referrer
+        data.referrerId = undefined;
+      }
+    }
+
+    // Generate financial password
+    const plainPassword = generateFinancialPassword();
+    const hashedPassword = await hashPassword(plainPassword);
+
+    try {
+      // Create user
+      const user = this.userRepository.create({
+        telegram_id: data.telegramId,
+        username: data.username,
+        wallet_address: normalizedAddress,
+        financial_password: hashedPassword,
+        referrer_id: data.referrerId,
+        is_verified: false,
+        is_banned: false,
+      });
+
+      await this.userRepository.save(user);
+
+      logger.info('User created', {
+        userId: user.id,
+        telegramId: user.telegram_id,
+        wallet: user.maskedWallet,
+        hasReferrer: !!data.referrerId,
+      });
+
+      // Attach plain password for returning to user (only this once!)
+      (user as any).plainPassword = plainPassword;
+
+      return { user };
+    } catch (error) {
+      logger.error('Error creating user', {
+        telegramId: data.telegramId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return { error: 'Ошибка при создании пользователя' };
+    }
+  }
+
+  /**
+   * Verify user and set contact info
+   */
+  async verifyUser(
+    userId: number,
+    contactInfo?: { phone?: string; email?: string }
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const user = await this.findById(userId);
+
+      if (!user) {
+        return { success: false, error: 'Пользователь не найден' };
+      }
+
+      if (user.is_verified) {
+        return { success: false, error: 'Пользователь уже верифицирован' };
+      }
+
+      // Validate contact info if provided
+      if (contactInfo?.email && !isValidEmail(contactInfo.email)) {
+        return { success: false, error: 'Неверный формат email' };
+      }
+
+      if (contactInfo?.phone && !isValidPhone(contactInfo.phone)) {
+        return { success: false, error: 'Неверный формат телефона' };
+      }
+
+      // Update user
+      user.is_verified = true;
+      if (contactInfo?.phone) {
+        user.phone = contactInfo.phone;
+      }
+      if (contactInfo?.email) {
+        user.email = contactInfo.email;
+      }
+
+      await this.userRepository.save(user);
+
+      logger.info('User verified', {
+        userId: user.id,
+        telegramId: user.telegram_id,
+        hasPhone: !!user.phone,
+        hasEmail: !!user.email,
+      });
+
+      return { success: true };
+    } catch (error) {
+      logger.error('Error verifying user', {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return { success: false, error: 'Ошибка при верификации' };
+    }
+  }
+
+  /**
+   * Ban user
+   */
+  async banUser(userId: number): Promise<{ success: boolean; error?: string }> {
+    try {
+      const user = await this.findById(userId);
+
+      if (!user) {
+        return { success: false, error: 'Пользователь не найден' };
+      }
+
+      user.is_banned = true;
+      await this.userRepository.save(user);
+
+      logger.warn('User banned', {
+        userId: user.id,
+        telegramId: user.telegram_id,
+      });
+
+      return { success: true };
+    } catch (error) {
+      logger.error('Error banning user', {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return { success: false, error: 'Ошибка при блокировке пользователя' };
+    }
+  }
+
+  /**
+   * Unban user
+   */
+  async unbanUser(userId: number): Promise<{ success: boolean; error?: string }> {
+    try {
+      const user = await this.findById(userId);
+
+      if (!user) {
+        return { success: false, error: 'Пользователь не найден' };
+      }
+
+      user.is_banned = false;
+      await this.userRepository.save(user);
+
+      logger.info('User unbanned', {
+        userId: user.id,
+        telegramId: user.telegram_id,
+      });
+
+      return { success: true };
+    } catch (error) {
+      logger.error('Error unbanning user', {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return { success: false, error: 'Ошибка при разблокировке пользователя' };
+    }
+  }
+
+  /**
+   * Get user statistics
+   */
+  async getUserStats(userId: number): Promise<{
+    totalDeposits: number;
+    totalEarned: number;
+    referralCount: number;
+    activatedLevels: number[];
+  } | null> {
+    try {
+      const user = await this.findById(userId);
+
+      if (!user) {
+        return null;
+      }
+
+      // This will be expanded when we implement deposit and referral services
+      // For now, return empty stats
+      return {
+        totalDeposits: 0,
+        totalEarned: 0,
+        referralCount: 0,
+        activatedLevels: [],
+      };
+    } catch (error) {
+      logger.error('Error getting user stats', {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
+  }
+
+  /**
+   * Generate referral link for user
+   */
+  generateReferralLink(userId: number, botUsername: string): string {
+    const referralCode = generateReferralCode(userId);
+    return `https://t.me/${botUsername}?start=ref_${referralCode}_${userId}`;
+  }
+
+  /**
+   * Parse referral code from start command
+   */
+  parseReferralCode(startPayload: string): number | null {
+    // Format: ref_{code}_{userId}
+    const match = startPayload.match(/^ref_[a-zA-Z0-9]+_(\d+)$/);
+
+    if (match) {
+      return parseInt(match[1], 10);
+    }
+
+    return null;
+  }
+
+  /**
+   * Get total user count
+   */
+  async getTotalUsers(): Promise<number> {
+    try {
+      return await this.userRepository.count();
+    } catch (error) {
+      logger.error('Error getting total users', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return 0;
+    }
+  }
+
+  /**
+   * Get verified user count
+   */
+  async getVerifiedUsers(): Promise<number> {
+    try {
+      return await this.userRepository.count({
+        where: { is_verified: true },
+      });
+    } catch (error) {
+      logger.error('Error getting verified users', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return 0;
+    }
+  }
+}
+
+export default new UserService();
