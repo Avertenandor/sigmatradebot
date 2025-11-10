@@ -38,6 +38,12 @@ export class BlockchainService {
   private reconnectAttempts = 0;
   private readonly MAX_RECONNECT_ATTEMPTS = 10;
   private readonly RECONNECT_DELAY_MS = 5000;
+  private readonly DEPOSIT_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
+  private readonly WS_HEALTH_CHECK_INTERVAL_MS = 30000; // 30 seconds
+
+  // Health check interval
+  private wsHealthCheckInterval?: NodeJS.Timeout;
+  private lastWsActivity = Date.now();
 
   // Lazy-loaded to avoid circular dependency
   private depositService?: DepositService;
@@ -204,11 +210,15 @@ export class BlockchainService {
 
       this.usdtContractWs.on(filter, async (from, to, value, event) => {
         try {
+          this.lastWsActivity = Date.now(); // Update activity timestamp
           await this.handleTransferEvent(from, to, value, event);
         } catch (error) {
           logger.error('❌ Error handling Transfer event:', error);
         }
       });
+
+      // Start WebSocket health check
+      this.startWsHealthCheck();
 
       this.isMonitoring = true;
       logger.info('✅ Blockchain monitoring started');
@@ -226,6 +236,12 @@ export class BlockchainService {
     try {
       this.isMonitoring = false;
 
+      // Clear WebSocket health check interval
+      if (this.wsHealthCheckInterval) {
+        clearInterval(this.wsHealthCheckInterval);
+        this.wsHealthCheckInterval = undefined;
+      }
+
       if (this.usdtContractWs) {
         this.usdtContractWs.removeAllListeners();
       }
@@ -239,6 +255,30 @@ export class BlockchainService {
     } catch (error) {
       logger.error('❌ Error stopping blockchain monitoring:', error);
     }
+  }
+
+  /**
+   * Start WebSocket health check
+   */
+  private startWsHealthCheck(): void {
+    this.wsHealthCheckInterval = setInterval(async () => {
+      try {
+        const timeSinceActivity = Date.now() - this.lastWsActivity;
+
+        if (timeSinceActivity > this.WS_HEALTH_CHECK_INTERVAL_MS * 2) {
+          logger.warn(
+            `⚠️ WebSocket appears inactive (${Math.round(timeSinceActivity / 1000)}s since last activity), reconnecting...`
+          );
+          await this.handleWebSocketDisconnect();
+        }
+      } catch (error) {
+        logger.error('❌ Error in WebSocket health check:', error);
+      }
+    }, this.WS_HEALTH_CHECK_INTERVAL_MS);
+
+    logger.info(
+      `🏥 WebSocket health check started (interval: ${this.WS_HEALTH_CHECK_INTERVAL_MS / 1000}s)`
+    );
   }
 
   /**
@@ -395,6 +435,26 @@ export class BlockchainService {
 
       for (const deposit of pendingDeposits) {
         try {
+          // Check for deposit timeout (24 hours without confirmation)
+          const depositAge = Date.now() - deposit.created_at.getTime();
+          if (depositAge > this.DEPOSIT_TIMEOUT_MS) {
+            deposit.status = TransactionStatus.FAILED;
+            await depositRepo.save(deposit);
+
+            // Update transaction status if exists
+            if (deposit.tx_hash) {
+              await transactionRepo.update(
+                { tx_hash: deposit.tx_hash },
+                { status: TransactionStatus.FAILED }
+              );
+            }
+
+            logger.warn(
+              `⏱️ Deposit ${deposit.id} timed out after ${Math.round(depositAge / 1000 / 60 / 60)}h (user: ${deposit.user?.telegram_id})`
+            );
+            continue;
+          }
+
           if (!deposit.block_number) {
             continue; // Skip if no block number yet
           }

@@ -245,10 +245,28 @@ export const validateAsync = async <T>(
 };
 
 /**
- * Validate BSC address format
+ * Validate BSC address format with EIP-55 checksum
  */
 export const isValidBSCAddress = (address: string): boolean => {
-  return REGEX_PATTERNS.BSC_ADDRESS.test(address);
+  // Basic format check
+  if (!REGEX_PATTERNS.BSC_ADDRESS.test(address)) {
+    return false;
+  }
+
+  // EIP-55 checksum validation using ethers
+  try {
+    const { ethers } = require('ethers');
+    // getAddress will throw if checksum is invalid
+    ethers.getAddress(address);
+    return true;
+  } catch {
+    // If it's all lowercase or uppercase, it's valid but not checksummed
+    if (address === address.toLowerCase() || address === address.toUpperCase()) {
+      return true;
+    }
+    // Invalid checksum
+    return false;
+  }
 };
 
 /**
