@@ -41,7 +41,8 @@ export class BlockchainService {
   private isMonitoring = false;
   private reconnectAttempts = 0;
   private readonly MAX_RECONNECT_ATTEMPTS = 10;
-  private readonly RECONNECT_DELAY_MS = 5000;
+  private readonly INITIAL_RECONNECT_DELAY_MS = 1000; // 1 second initial delay
+  private readonly MAX_RECONNECT_DELAY_MS = 30000; // 30 seconds max delay
   private readonly DEPOSIT_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
   private readonly WS_HEALTH_CHECK_INTERVAL_MS = 30000; // 30 seconds
   private readonly HISTORICAL_BLOCKS_LOOKBACK = 2000; // ~100 minutes on BSC (3s per block)
@@ -188,8 +189,14 @@ export class BlockchainService {
       return;
     }
 
+    // Calculate exponential backoff delay: min(initialDelay * 2^attempts, maxDelay)
+    const exponentialDelay = Math.min(
+      this.INITIAL_RECONNECT_DELAY_MS * Math.pow(2, this.reconnectAttempts - 1),
+      this.MAX_RECONNECT_DELAY_MS
+    );
+
     logger.info(
-      `🔄 Reconnecting WebSocket (attempt ${this.reconnectAttempts}/${this.MAX_RECONNECT_ATTEMPTS})...`
+      `🔄 Reconnecting WebSocket (attempt ${this.reconnectAttempts}/${this.MAX_RECONNECT_ATTEMPTS}) in ${exponentialDelay}ms...`
     );
 
     setTimeout(async () => {
@@ -197,11 +204,12 @@ export class BlockchainService {
         await this.initializeWebSocket();
         await this.startMonitoring();
         this.reconnectAttempts = 0; // Reset on successful reconnect
+        logger.info('✅ WebSocket reconnected successfully');
       } catch (error) {
         logger.error('❌ Failed to reconnect WebSocket:', error);
         this.handleWebSocketDisconnect();
       }
-    }, this.RECONNECT_DELAY_MS);
+    }, exponentialDelay);
   }
 
   /**
