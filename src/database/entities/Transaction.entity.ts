@@ -16,6 +16,9 @@ import { User } from './User.entity';
 import { TransactionStatus, TransactionType } from '../../utils/constants';
 
 @Entity('transactions')
+@Index(['user_id', 'status']) // Compound index for user transaction queries
+@Index(['type', 'status']) // Compound index for transaction type filtering
+@Index(['status', 'created_at']) // Compound index for status-based chronological queries
 export class Transaction {
   @PrimaryGeneratedColumn()
   id!: number;

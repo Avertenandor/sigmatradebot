@@ -16,6 +16,8 @@ import { Referral } from './Referral.entity';
 import { Transaction } from './Transaction.entity';
 
 @Entity('referral_earnings')
+@Index(['referral_id', 'paid']) // Compound index for paid/unpaid earnings queries
+@Index(['paid', 'created_at']) // Compound index for payment processing
 export class ReferralEarning {
   @PrimaryGeneratedColumn()
   id!: number;

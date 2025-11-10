@@ -18,6 +18,9 @@ import { TransactionStatus } from '../../utils/constants';
 
 @Entity('deposits')
 @Check(`"level" >= 1 AND "level" <= 5`)
+@Index(['user_id', 'status']) // Compound index for user deposit queries
+@Index(['user_id', 'level', 'status']) // Compound index for level-specific deposit queries
+@Index(['status', 'created_at']) // Compound index for pending deposit cleanup
 export class Deposit {
   @PrimaryGeneratedColumn()
   id!: number;
