@@ -7,6 +7,7 @@ import { AppDataSource } from '../database/data-source';
 import { Referral, ReferralEarning, User, Transaction } from '../database/entities';
 import { createLogger } from '../utils/logger.util';
 import { REFERRAL_RATES, REFERRAL_DEPTH } from '../utils/constants';
+import { notificationService } from './notification.service';
 
 const logger = createLogger('ReferralService');
 
@@ -59,6 +60,9 @@ export class ReferralService {
     directReferrerId: number
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      // Get new user info for notification
+      const newUser = await this.userRepository.findOne({ where: { id: newUserId } });
+
       // Get referral chain from direct referrer
       const referrers = await this.getReferralChain(directReferrerId, REFERRAL_DEPTH);
 
@@ -66,6 +70,9 @@ export class ReferralService {
       referrers.unshift(
         (await this.userRepository.findOne({ where: { id: directReferrerId } }))!
       );
+
+      // Track if direct referrer was notified
+      let directReferrerNotified = false;
 
       // Create referral records for each level
       for (let i = 0; i < referrers.length && i < REFERRAL_DEPTH; i++) {
@@ -95,6 +102,32 @@ export class ReferralService {
             referralId: newUserId,
             level,
           });
+
+          // Notify direct referrer (level 1 only) about new referral
+          if (level === 1 && !directReferrerNotified && newUser) {
+            try {
+              const username = newUser.username ? `@${newUser.username}` : `ID ${newUser.telegram_id}`;
+              await notificationService.sendNotification(
+                referrer.telegram_id,
+                `🎉 **Новый реферал!**\n\n` +
+                `Пользователь ${username} зарегистрировался по вашей ссылке.\n` +
+                `Вы будете получать вознаграждения от его депозитов.`
+              );
+              directReferrerNotified = true;
+
+              logger.info('Referrer notified about new referral', {
+                referrerId: referrer.id,
+                referralId: newUserId,
+              });
+            } catch (notifError) {
+              // Log but don't fail the referral creation if notification fails
+              logger.error('Failed to notify referrer about new referral', {
+                referrerId: referrer.id,
+                referralId: newUserId,
+                error: notifError instanceof Error ? notifError.message : String(notifError),
+              });
+            }
+          }
         }
       }
 
