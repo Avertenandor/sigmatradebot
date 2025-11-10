@@ -17,7 +17,10 @@ export const getMainKeyboard = (isAdmin: boolean = false) => {
       Markup.button.callback(BUTTON_LABELS.DEPOSITS, 'deposits'),
     ],
     [
+      Markup.button.callback(BUTTON_LABELS.WITHDRAWALS, 'withdrawals'),
       Markup.button.callback(BUTTON_LABELS.REFERRALS, 'referrals'),
+    ],
+    [
       Markup.button.callback(BUTTON_LABELS.HELP, 'help'),
     ],
   ];

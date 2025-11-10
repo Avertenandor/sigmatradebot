@@ -28,6 +28,9 @@ export const handleProfile = async (ctx: Context) => {
   // Get user stats
   const stats = await userService.getUserStats(user.id);
 
+  // Get user balance
+  const balance = await userService.getUserBalance(user.id);
+
   // Get referral link
   const botUsername = (await ctx.telegram.getMe()).username;
   const referralLink = userService.generateReferralLink(user.id, botUsername);
@@ -46,15 +49,20 @@ ${user.maskedWallet ? `(${user.maskedWallet})` : ''}
 ${user.is_verified ? '✅' : '❌'} Верификация: ${user.is_verified ? 'Пройдена' : 'Не пройдена'}
 ${user.is_banned ? '🚫 Аккаунт заблокирован' : '✅ Аккаунт активен'}
 
-**Контакты:**
-${user.phone ? `📞 Телефон: ${user.phone}` : '📞 Телефон: Не указан'}
-${user.email ? `📧 Email: ${user.email}` : '📧 Email: Не указан'}
+**Баланс:**
+💰 Доступно для вывода: **${balance?.availableBalance.toFixed(2) || 0} USDT**
+💸 Всего заработано: ${balance?.totalEarned.toFixed(2) || 0} USDT
+⏳ В ожидании выплаты: ${balance?.pendingEarnings.toFixed(2) || 0} USDT
+✅ Уже выплачено: ${balance?.totalPaid.toFixed(2) || 0} USDT
 
-**Статистика:**
-💰 Всего депозитов: ${stats?.totalDeposits || 0} USDT
-💸 Заработано: ${stats?.totalEarned || 0} USDT
+**Депозиты и рефералы:**
+💰 Всего депозитов: ${stats?.totalDeposits.toFixed(2) || 0} USDT
 👥 Рефералов: ${stats?.referralCount || 0}
 📊 Активных уровней: ${stats?.activatedLevels.length || 0}/5
+
+**Контакты:**
+${user.phone ? `📞 ${user.phone}` : ''}
+${user.email ? `📧 ${user.email}` : ''}
 
 **Реферальная ссылка:**
 \`${referralLink}\`

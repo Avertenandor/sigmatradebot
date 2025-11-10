@@ -274,6 +274,85 @@ export class UserService {
   }
 
   /**
+   * Get user balance information
+   */
+  async getUserBalance(userId: number): Promise<{
+    availableBalance: number;
+    totalEarned: number;
+    totalPaid: number;
+    pendingEarnings: number;
+  } | null> {
+    try {
+      const user = await this.findById(userId);
+      if (!user) {
+        return null;
+      }
+
+      const referralRepo = AppDataSource.getRepository(Referral);
+      const earningRepo = AppDataSource.getRepository(ReferralEarning);
+      const transactionRepo = AppDataSource.getRepository(Transaction);
+
+      // Get all referrals for this user
+      const referrals = await referralRepo.find({
+        where: { referrer_id: userId },
+      });
+
+      const referralIds = referrals.map(r => r.id);
+
+      let totalEarned = 0;
+      let pendingEarnings = 0;
+
+      if (referralIds.length > 0) {
+        // Get all earnings
+        const earnings = await earningRepo.find({
+          where: { referral_id: In(referralIds) },
+        });
+
+        totalEarned = earnings.reduce(
+          (sum, earning) => sum + parseFloat(earning.amount),
+          0
+        );
+
+        // Get pending earnings (not yet paid)
+        const unpaidEarnings = earnings.filter(e => !e.paid);
+        pendingEarnings = unpaidEarnings.reduce(
+          (sum, earning) => sum + parseFloat(earning.amount),
+          0
+        );
+      }
+
+      // Get total paid out (confirmed withdrawal transactions)
+      const withdrawals = await transactionRepo.find({
+        where: {
+          user_id: userId,
+          type: TransactionType.WITHDRAWAL,
+          status: TransactionStatus.CONFIRMED,
+        },
+      });
+
+      const totalPaid = withdrawals.reduce(
+        (sum, tx) => sum + parseFloat(tx.amount),
+        0
+      );
+
+      const availableBalance = totalEarned - totalPaid;
+
+      return {
+        availableBalance,
+        totalEarned,
+        totalPaid,
+        pendingEarnings,
+      };
+    } catch (error) {
+      logger.error('Error getting user balance', {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
+  }
+
+  /**
    * Get user statistics
    */
   async getUserStats(userId: number): Promise<{
