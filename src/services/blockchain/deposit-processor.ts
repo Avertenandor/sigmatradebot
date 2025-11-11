@@ -401,6 +401,77 @@ export class DepositProcessor {
   }
 
   /**
+   * Search blockchain for transaction matching deposit
+   * Used for expired deposit recovery
+   *
+   * @returns Found tx_hash or null
+   */
+  private async searchBlockchainForDeposit(
+    deposit: Deposit
+  ): Promise<{ found: boolean; txHash: string | null; blockNumber: number | null }> {
+    if (!deposit.wallet_address || !deposit.user?.wallet_address) {
+      return { found: false, txHash: null, blockNumber: null };
+    }
+
+    try {
+      const usdtContract = this.providerManager.getUsdtContract();
+      const decimals = await getUsdtDecimals(usdtContract);
+      const expectedAmount = parseFloat(deposit.amount);
+
+      // Search last 7 days of blockchain history
+      const currentBlock = await this.providerManager.getHttpProvider().getBlockNumber();
+      const blocksPerDay = 28800; // ~3s per block on BSC
+      const searchDepthBlocks = blocksPerDay * 7;
+      const fromBlock = Math.max(0, currentBlock - searchDepthBlocks);
+
+      // Get Transfer events FROM user's wallet TO our wallet
+      const filter = usdtContract.filters.Transfer(
+        deposit.wallet_address.toLowerCase(),
+        deposit.user.wallet_address.toLowerCase()
+      );
+
+      const events = await usdtContract.queryFilter(filter, fromBlock, currentBlock);
+
+      // Check each event for matching amount
+      for (const event of events) {
+        const eventAmount = parseFloat(ethers.formatUnits(event.args.value, decimals));
+
+        // Match with tolerance
+        if (Math.abs(eventAmount - expectedAmount) <= this.DEPOSIT_AMOUNT_TOLERANCE) {
+          // Get receipt to verify transaction succeeded
+          const receipt = await this.providerManager
+            .getHttpProvider()
+            .getTransactionReceipt(event.transactionHash);
+
+          if (receipt && receipt.status === 1) {
+            logger.info('Found matching blockchain transaction for expired deposit', {
+              depositId: deposit.id,
+              txHash: event.transactionHash,
+              blockNumber: receipt.blockNumber,
+              amount: eventAmount,
+              expected: expectedAmount,
+            });
+
+            return {
+              found: true,
+              txHash: event.transactionHash,
+              blockNumber: receipt.blockNumber,
+            };
+          }
+        }
+      }
+
+      return { found: false, txHash: null, blockNumber: null };
+    } catch (error) {
+      logger.error('Error searching blockchain for expired deposit', {
+        depositId: deposit.id,
+        error,
+      });
+      return { found: false, txHash: null, blockNumber: null };
+    }
+  }
+
+  /**
    * Check and confirm pending deposits (called by background job)
    */
   public async checkPendingDeposits(): Promise<void> {
@@ -432,7 +503,13 @@ export class DepositProcessor {
           // Check for deposit timeout (24 hours without confirmation)
           const depositAge = Date.now() - deposit.created_at.getTime();
           if (depositAge > this.DEPOSIT_TIMEOUT_MS) {
-            // Use pessimistic lock to prevent race conditions when marking as failed
+            // CRITICAL FIX #1: Search blockchain for transaction before marking as FAILED
+            // User may have sent funds but we missed the blockchain event
+            logger.info(`Deposit ${deposit.id} expired - searching blockchain for transaction...`);
+
+            const searchResult = await this.searchBlockchainForDeposit(deposit);
+
+            // Use pessimistic lock to prevent race conditions
             await withTransaction(async (manager) => {
               await lockForDepositProcessing(manager, deposit.id, async (lockedDeposit) => {
                 // Double-check status after acquiring lock (another worker might have processed it)
@@ -443,6 +520,72 @@ export class DepositProcessor {
                   return;
                 }
 
+                // If transaction found on blockchain - RECOVER IT!
+                if (searchResult.found && searchResult.txHash && searchResult.blockNumber) {
+                  logger.info(
+                    `🔄 AUTO-RECOVERING expired deposit ${deposit.id} - transaction found on blockchain!`,
+                    {
+                      depositId: deposit.id,
+                      txHash: searchResult.txHash,
+                      blockNumber: searchResult.blockNumber,
+                      ageHours: Math.round(depositAge / 1000 / 60 / 60),
+                    }
+                  );
+
+                  // Update deposit with found transaction
+                  lockedDeposit.tx_hash = searchResult.txHash;
+                  lockedDeposit.block_number = searchResult.blockNumber;
+                  await manager.save(Deposit, lockedDeposit);
+
+                  // Create transaction record
+                  await manager.save(Transaction, {
+                    user_id: lockedDeposit.user_id,
+                    tx_hash: searchResult.txHash,
+                    type: TransactionType.DEPOSIT,
+                    amount: lockedDeposit.amount,
+                    from_address: deposit.wallet_address?.toLowerCase() || '',
+                    to_address: deposit.user?.wallet_address?.toLowerCase() || '',
+                    block_number: searchResult.blockNumber,
+                    status: TransactionStatus.PENDING, // Will be confirmed in next iteration
+                  });
+
+                  // Log recovery to audit trail
+                  logFinancialOperation({
+                    category: 'deposit',
+                    userId: lockedDeposit.user_id,
+                    action: 'expired_deposit_recovered',
+                    amount: parseFloat(lockedDeposit.amount),
+                    success: true,
+                    details: {
+                      depositId: lockedDeposit.id,
+                      txHash: searchResult.txHash,
+                      blockNumber: searchResult.blockNumber,
+                      ageHours: Math.round(depositAge / 1000 / 60 / 60),
+                      autoRecovered: true,
+                      searchedBlockchain: true,
+                    },
+                  });
+
+                  logger.info(
+                    `✅ Expired deposit ${deposit.id} auto-recovered - will be confirmed in next check cycle`
+                  );
+
+                  // Notify user about recovery
+                  if (deposit.user) {
+                    await notificationService.notifyDepositPending(
+                      deposit.user.telegram_id,
+                      parseFloat(lockedDeposit.amount),
+                      lockedDeposit.level,
+                      searchResult.txHash
+                    ).catch(err => {
+                      logger.error('Failed to send recovery notification', { error: err });
+                    });
+                  }
+
+                  return; // Exit - don't mark as FAILED
+                }
+
+                // No transaction found - mark as FAILED
                 lockedDeposit.status = TransactionStatus.FAILED;
                 await manager.save(Deposit, lockedDeposit);
 
@@ -461,22 +604,24 @@ export class DepositProcessor {
                   action: 'deposit_timeout',
                   amount: parseFloat(lockedDeposit.amount),
                   success: false,
-                  error: 'Deposit timed out after 24 hours',
+                  error: 'Deposit timed out after 24 hours - no blockchain transaction found',
                   details: {
                     depositId: lockedDeposit.id,
                     txHash: lockedDeposit.tx_hash,
                     ageHours: Math.round(depositAge / 1000 / 60 / 60),
+                    blockchainSearched: true,
+                    transactionFound: false,
                   },
                 });
 
                 logger.warn(
-                  `⏱️ Deposit ${lockedDeposit.id} timed out after ${Math.round(depositAge / 1000 / 60 / 60)}h (user: ${deposit.user?.telegram_id})`
+                  `⏱️ Deposit ${lockedDeposit.id} timed out after ${Math.round(depositAge / 1000 / 60 / 60)}h - no transaction found on blockchain (user: ${deposit.user?.telegram_id})`
                 );
               });
             }, TRANSACTION_PRESETS.FINANCIAL);
 
-            // Notify user about timeout (outside transaction)
-            if (deposit.user) {
+            // Notify user about timeout (only if not recovered)
+            if (deposit.user && !searchResult.found) {
               await notificationService.notifyDepositTimeout(
                 deposit.user.telegram_id,
                 parseFloat(deposit.amount),
