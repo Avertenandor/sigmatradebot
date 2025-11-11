@@ -9,6 +9,8 @@
 
 import { Telegraf } from 'telegraf';
 import { logger } from '../utils/logger.util';
+import { AppDataSource } from '../database/data-source';
+import { FailedNotification } from '../database/entities';
 
 export class NotificationService {
   private static instance: NotificationService;
@@ -31,12 +33,18 @@ export class NotificationService {
   }
 
   /**
-   * Send notification to user
+   * Send notification to user with failure tracking
+   * FIX #17: Track and retry failed notifications
    */
   private async sendNotification(
     telegramId: number,
     message: string,
-    options?: { parse_mode?: 'Markdown' | 'HTML' }
+    options?: {
+      parse_mode?: 'Markdown' | 'HTML';
+      notificationType?: string;
+      metadata?: Record<string, any>;
+      critical?: boolean;
+    }
   ): Promise<boolean> {
     if (!this.bot) {
       logger.error('Bot not initialized in NotificationService');
@@ -44,13 +52,55 @@ export class NotificationService {
     }
 
     try {
-      await this.bot.telegram.sendMessage(telegramId, message, options);
+      await this.bot.telegram.sendMessage(telegramId, message, {
+        parse_mode: options?.parse_mode,
+      });
       return true;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
       logger.error('Error sending notification', {
         telegramId,
-        error: error instanceof Error ? error.message : String(error),
+        type: options?.notificationType,
+        error: errorMessage,
       });
+
+      // FIX #17: Store failed notification for retry
+      try {
+        const failedRepo = AppDataSource.getRepository(FailedNotification);
+        await failedRepo.save({
+          user_telegram_id: telegramId,
+          notification_type: options?.notificationType || 'generic',
+          message,
+          metadata: options?.metadata || null,
+          attempt_count: 1,
+          last_error: errorMessage,
+          last_attempt_at: new Date(),
+          critical: options?.critical || false,
+        });
+
+        logger.info('Failed notification saved for retry', {
+          telegramId,
+          type: options?.notificationType,
+        });
+
+        // If critical, alert admin immediately
+        if (options?.critical) {
+          await this.alertAdminNotificationFailure(
+            telegramId,
+            options.notificationType || 'generic',
+            errorMessage
+          ).catch((err) => {
+            logger.error('Failed to alert admin', { error: err });
+          });
+        }
+      } catch (dbError) {
+        logger.error('Failed to save failed notification', {
+          telegramId,
+          error: dbError instanceof Error ? dbError.message : String(dbError),
+        });
+      }
+
       return false;
     }
   }
@@ -520,6 +570,58 @@ ${message}
       telegramId,
       amount,
     });
+  }
+
+  /**
+   * Alert admin about notification failure (FIX #17)
+   */
+  public async alertAdminNotificationFailure(
+    userId: number,
+    notificationType: string,
+    error: string
+  ): Promise<void> {
+    const message = `
+⚠️ **Уведомление не доставлено**
+
+👤 Пользователь ID: ${userId}
+📋 Тип: ${notificationType}
+❌ Ошибка: ${error}
+
+Уведомление сохранено для повторной попытки.
+    `.trim();
+
+    await this.notifyAllAdmins('Ошибка доставки уведомления', message);
+  }
+
+  /**
+   * Alert admin that notification retry gave up (FIX #17)
+   */
+  public async alertNotificationGaveUp(
+    userId: number,
+    notificationType: string,
+    originalMessage: string,
+    lastError: string
+  ): Promise<void> {
+    const truncatedMessage =
+      originalMessage.length > 200
+        ? originalMessage.substring(0, 200) + '...'
+        : originalMessage;
+
+    const message = `
+🚨 **Критическое: Уведомление не доставлено после 5 попыток**
+
+👤 Пользователь ID: ${userId}
+📋 Тип: ${notificationType}
+❌ Последняя ошибка: ${lastError}
+
+**Сообщение:**
+${truncatedMessage}
+
+Пользователь, вероятно, заблокировал бота или удалил аккаунт.
+Требуется ручное вмешательство.
+    `.trim();
+
+    await this.notifyAllAdmins('Уведомление не доставлено', message);
   }
 }
 
