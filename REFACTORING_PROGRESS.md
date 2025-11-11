@@ -164,6 +164,87 @@ Total Test Lines:  ~2,000 lines
 - ✅ FIX #17: Notification retry system
 - ✅ FIX #18: Transaction deduplication
 
+#### Non-Critical Improvements Added:
+- ✅ **Enhanced Validation Utils** (340 lines, 46 tests - ALL PASSING)
+  - XSS/injection prevention with sanitizeTextInput
+  - Numeric validation with constraints (min, max, integer, negative, zero)
+  - Telegram username validation (5-32 chars, alphanumeric + underscore)
+  - Email validation with disposable domain blocking
+  - Phone number validation with normalization
+  - Password strength validation with Russian suggestions
+  - Rate limiting with time windows and retry tracking
+  - All error messages in Russian
+
+- ✅ **Performance Monitoring Utils** (99 lines)
+  - Async execution time measurement
+  - Metric recording with metadata
+  - Memory usage tracking (RSS, heap, percentage)
+  - Automatic logging for slow operations (>1s)
+  - Last 1,000 metrics retention
+
+- ✅ **Utility Libraries with Full Test Coverage** (181 tests - ALL PASSING)
+
+  **1. Date/Time Utils (date-time.util.ts)** - 60 tests
+  - Date formatting with Russian locale (DD.MM.YYYY)
+  - Relative time formatting ("5 минут назад", "через 2 дня")
+  - Duration formatting with Russian pluralization
+  - Date arithmetic (addDays, addHours, addMinutes)
+  - Date comparisons (isToday, isYesterday, isPast, isFuture)
+  - Date parsing (ISO, DD.MM.YYYY formats)
+  - Date range formatting
+  - Russian pluralization rules (1 день, 2 дня, 5 дней)
+
+  **2. Format Utils (format.util.ts)** - 77 tests
+  - Number formatting with thousands separators (1 000 000)
+  - Currency formatting (100.00 USDT)
+  - Percentage formatting (5.5%)
+  - Compact numbers with K/M/B suffixes (1.5M)
+  - Wallet address formatting (0x742d...f44e)
+  - Transaction hash formatting
+  - File size formatting (1.5 MB, 2.3 GB)
+  - Phone number display formatting
+  - Text truncation with ellipsis
+  - Word capitalization
+  - List formatting with Russian conjunctions
+  - Status formatting with emojis (✅ Подтвержден, ❌ Ошибка)
+  - User name formatting
+  - Sensitive data masking
+  - Markdown escaping
+  - Error message formatting
+
+  **3. Array/Object Utils (array-object.util.ts)** - 57 tests
+  - Array grouping by key (groupBy)
+  - Duplicate removal (unique, uniqueBy)
+  - Array chunking for batch processing
+  - Array shuffling and random selection
+  - Multi-key sorting (sortBy)
+  - Array comparison and diff
+  - Set operations (intersection, union)
+  - Deep object cloning
+  - Object key picking/omitting
+  - Deep object merging
+  - Object flattening (a.b.c notation)
+  - Nested value get/set by path
+  - Object filtering and mapping
+  - Array compacting (remove falsy values)
+  - Debounce and throttle functions
+
+#### Test Summary (Phase 9 + Non-Critical):
+```
+Unit Tests:
+  - Validation Utils:        39 tests
+  - Enhanced Validation:     46 tests
+  - Date/Time Utils:         60 tests
+  - Format Utils:            77 tests
+  - Array/Object Utils:      57 tests
+  Total Unit Tests:         279 tests
+
+Integration Tests:         50+ tests
+
+Total Test Lines:         ~4,700 lines
+Total Tests:              329+ tests
+```
+
 #### Pending:
 - ⏳ E2E tests for complete user journeys
 - ⏳ Load testing for performance validation
