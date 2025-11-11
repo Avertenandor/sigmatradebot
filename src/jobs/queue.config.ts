@@ -12,6 +12,7 @@ export enum QueueName {
   BLOCKCHAIN_MONITOR = 'blockchain-monitor',
   PAYMENT_PROCESSOR = 'payment-processor',
   PAYMENT_RETRY = 'payment-retry',
+  NOTIFICATION_RETRY = 'notification-retry', // FIX #17
   REWARD_CALCULATOR = 'reward-calculator',
   BACKUP = 'backup',
   LOG_CLEANUP = 'log-cleanup',
@@ -47,6 +48,7 @@ export const initializeQueues = (): void => {
   const blockchainMonitorQueue = new Queue(QueueName.BLOCKCHAIN_MONITOR, queueOptions);
   const paymentProcessorQueue = new Queue(QueueName.PAYMENT_PROCESSOR, queueOptions);
   const paymentRetryQueue = new Queue(QueueName.PAYMENT_RETRY, queueOptions);
+  const notificationRetryQueue = new Queue(QueueName.NOTIFICATION_RETRY, queueOptions); // FIX #17
   const rewardCalculatorQueue = new Queue(QueueName.REWARD_CALCULATOR, queueOptions);
   const backupQueue = new Queue(QueueName.BACKUP, queueOptions);
   const logCleanupQueue = new Queue(QueueName.LOG_CLEANUP, queueOptions);
@@ -54,6 +56,7 @@ export const initializeQueues = (): void => {
   queues.set(QueueName.BLOCKCHAIN_MONITOR, blockchainMonitorQueue);
   queues.set(QueueName.PAYMENT_PROCESSOR, paymentProcessorQueue);
   queues.set(QueueName.PAYMENT_RETRY, paymentRetryQueue);
+  queues.set(QueueName.NOTIFICATION_RETRY, notificationRetryQueue); // FIX #17
   queues.set(QueueName.REWARD_CALCULATOR, rewardCalculatorQueue);
   queues.set(QueueName.BACKUP, backupQueue);
   queues.set(QueueName.LOG_CLEANUP, logCleanupQueue);
