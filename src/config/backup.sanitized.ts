@@ -17,7 +17,7 @@
  * - retry tables (may contain sensitive operation details)
  * - notification tables (may contain personal messages)
  *
- * Schedule: Every 6 hours (0 */6 * * *)
+ * Schedule: Every 6 hours (cron: "0 *\/6 * * *")
  * Format: pg_dump --format=custom --compress=9 (fast restore)
  * Storage: Git branch 'backups/sanitized' (separate from code)
  * Retention: 90 days
