@@ -577,8 +577,6 @@ export class DepositService {
     }>;
   }> {
     try {
-      const userRepo = AppDataSource.getRepository(User);
-
       // Get all Level 1 deposits
       const allL1Deposits = await this.depositRepository.find({
         where: {
@@ -624,6 +622,7 @@ export class DepositService {
 
       // Find deposits nearing completion (>80% ROI)
       const nearingCompletion = activeL1
+        .filter((deposit) => deposit.user) // Filter out deposits without user relation
         .map((deposit) => {
           const depositAmountMoney = fromDbString(deposit.amount);
           const roiCapMoney = fromDbString(deposit.roi_cap_amount!);
@@ -637,7 +636,7 @@ export class DepositService {
 
           return {
             userId: deposit.user_id,
-            telegramId: deposit.user.telegram_id,
+            telegramId: deposit.user!.telegram_id, // Safe after filter
             depositAmount,
             roiPaid,
             roiRemaining,
