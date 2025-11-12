@@ -275,6 +275,7 @@ export class DepositService {
   /**
    * Create pending deposit
    * (Will be confirmed by blockchain monitor)
+   * Uses transaction with SELECT FOR UPDATE to prevent race conditions
    */
   async createPendingDeposit(data: {
     userId: number;
@@ -301,20 +302,7 @@ export class DepositService {
         }
       }
 
-      // Check if user already has pending deposit for this level
-      const existingPending = await this.depositRepository.findOne({
-        where: {
-          user_id: data.userId,
-          level: data.level,
-          status: TransactionStatus.PENDING,
-        },
-      });
-
-      if (existingPending) {
-        return { error: 'У вас уже есть ожидающий подтверждения депозит этого уровня' };
-      }
-
-      // Validate level and amount
+      // Validate level and amount before entering transaction
       const depositInfo = this.getDepositInfo(data.level);
       if (!depositInfo) {
         return { error: 'Неверный уровень депозита' };
@@ -334,26 +322,50 @@ export class DepositService {
         return { error: reason };
       }
 
-      // Create deposit
-      const deposit = this.depositRepository.create({
-        user_id: data.userId,
-        level: data.level,
-        amount: data.amount.toString(),
-        tx_hash: data.txHash || undefined,
-        status: TransactionStatus.PENDING,
+      // Use transaction with SELECT FOR UPDATE to prevent race conditions
+      const result = await AppDataSource.transaction(async (transactionalEntityManager) => {
+        // Lock and check for existing pending deposit atomically
+        // SELECT FOR UPDATE prevents concurrent transactions from creating duplicates
+        const existingPending = await transactionalEntityManager
+          .createQueryBuilder(Deposit, 'deposit')
+          .where('deposit.user_id = :userId', { userId: data.userId })
+          .andWhere('deposit.level = :level', { level: data.level })
+          .andWhere('deposit.status = :status', { status: TransactionStatus.PENDING })
+          .setLock('pessimistic_write') // SELECT FOR UPDATE
+          .getOne();
+
+        if (existingPending) {
+          return { error: 'У вас уже есть ожидающий подтверждения депозит этого уровня' };
+        }
+
+        // Create deposit within the same transaction
+        const deposit = transactionalEntityManager.create(Deposit, {
+          user_id: data.userId,
+          level: data.level,
+          amount: data.amount.toString(),
+          tx_hash: data.txHash || undefined,
+          status: TransactionStatus.PENDING,
+        });
+
+        await transactionalEntityManager.save(deposit);
+
+        return { deposit };
       });
 
-      await this.depositRepository.save(deposit);
+      // If transaction returned an error, return it
+      if (result.error) {
+        return result;
+      }
 
       logger.info('Pending deposit created', {
-        depositId: deposit.id,
+        depositId: result.deposit?.id,
         userId: data.userId,
         level: data.level,
         amount: data.amount,
         txHash: data.txHash || 'awaiting blockchain confirmation',
       });
 
-      return { deposit };
+      return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Error creating pending deposit', {
