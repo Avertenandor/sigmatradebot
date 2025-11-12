@@ -264,8 +264,8 @@ export async function handleSupportSubmit(ctx: AppContext) {
 
       await notificationService.notifyAdmin(
         onDutyAdminId,
-        `🆘 Новое обращение #${ticket.id}\n\n` +
-          `От: ${ctx.user.username || ctx.user.telegram_id}\n` +
+        `Новое обращение #${ticket.id}`,
+        `От: ${ctx.user.username || ctx.user.telegram_id}\n` +
           `Категория: ${getCategoryName(ticket.category)}\n\n` +
           `Обращение автоматически назначено на вас (вы на дежурстве).\n\n` +
           `Используйте /admin → Техподдержка для ответа.`
@@ -273,8 +273,8 @@ export async function handleSupportSubmit(ctx: AppContext) {
     } else {
       // Notify all admins
       await notificationService.notifyAllAdmins(
-        `🆘 Новое обращение #${ticket.id}\n\n` +
-          `От: ${ctx.user.username || ctx.user.telegram_id}\n` +
+        `Новое обращение #${ticket.id}`,
+        `От: ${ctx.user.username || ctx.user.telegram_id}\n` +
           `Категория: ${getCategoryName(ticket.category)}\n\n` +
           `Используйте /admin → Техподдержка для ответа.`
       );
