@@ -393,15 +393,17 @@ export class WalletAdminService {
    * Apply system deposit wallet change
    */
   private async applySystemDepositWalletChange(request: WalletChangeRequest): Promise<void> {
+    const oldAddress = await settingsService.getSystemWalletAddress();
+
     // Update system settings
     await settingsService.setSystemWalletAddress(request.new_address);
 
-    // TODO: Reload blockchain event monitor with new address
-    // This will be implemented in provider.manager.ts
-    // await providerManager.reloadSystemWalletAddress(request.new_address);
+    // Reload blockchain event monitor with new address
+    const { blockchainService } = await import('./blockchain');
+    await blockchainService.reloadSystemWalletAddress(request.new_address);
 
     logger.info('System deposit wallet changed', {
-      oldAddress: await settingsService.getSystemWalletAddress(),
+      oldAddress,
       newAddress: request.new_address,
     });
   }
@@ -417,9 +419,9 @@ export class WalletAdminService {
     // Update system settings
     await settingsService.setPayoutWalletAddress(request.new_address);
 
-    // TODO: Reload provider manager with new signer
-    // This will be implemented in provider.manager.ts
-    // await providerManager.reloadPayoutWallet(request.secret_ref);
+    // Reload provider manager with new signer
+    const { blockchainService } = await import('./blockchain');
+    await blockchainService.reloadPayoutWallet(request.secret_ref);
 
     logger.info('Payout wallet changed', {
       newAddress: request.new_address,
