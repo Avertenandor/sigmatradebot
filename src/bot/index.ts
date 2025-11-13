@@ -144,7 +144,6 @@ import {
 import { AuthContext } from './middlewares/auth.middleware';
 import { SessionContext } from './middlewares/session.middleware';
 import { AdminContext } from './middlewares/admin.middleware';
-import { BotState } from '../utils/constants';
 
 const logger = createLogger('TelegramBot');
 
@@ -152,10 +151,34 @@ const logger = createLogger('TelegramBot');
 export type BotContext = AuthContext & SessionContext & AdminContext;
 
 /**
+ * Global bot instance (initialized by initializeBot)
+ */
+let botInstance: Telegraf | null = null;
+
+/**
+ * Get the bot instance (for jobs and services that need it)
+ */
+export const getBot = (): Telegraf => {
+  if (!botInstance) {
+    throw new Error('Bot not initialized yet! Call initializeBot() first.');
+  }
+  return botInstance;
+};
+
+/**
+ * Export bot instance directly (lazy access)
+ */
+export const bot = new Proxy({} as Telegraf, {
+  get(target, prop) {
+    return getBot()[prop as keyof Telegraf];
+  },
+});
+
+/**
  * Initialize Telegram bot
  */
 export const initializeBot = (): Telegraf => {
-  const bot = new Telegraf(config.telegram.botToken);
+  botInstance = new Telegraf(config.telegram.botToken);
 
   // Initialize notification service with bot instance
   notificationService.setBot(bot);
@@ -907,7 +930,7 @@ export const initializeBot = (): Telegraf => {
 
   logger.info('Telegram bot initialized');
 
-  return bot;
+  return botInstance;
 };
 
 /**

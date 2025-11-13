@@ -24,12 +24,21 @@
  * ```
  */
 
-import { EntityManager, QueryRunner, IsolationLevel } from 'typeorm';
+import { EntityManager, QueryRunner } from 'typeorm';
 import { AppDataSource } from './data-source';
 import { createLogger } from '../utils/logger.util';
 import { measurePerformance, getRequestId } from '../utils/audit-logger.util';
 
 const logger = createLogger('Transaction');
+
+/**
+ * TypeORM IsolationLevel type (since it's not exported in some versions)
+ */
+export type IsolationLevel =
+  | 'READ UNCOMMITTED'
+  | 'READ COMMITTED'
+  | 'REPEATABLE READ'
+  | 'SERIALIZABLE';
 
 /**
  * Transaction options
@@ -491,6 +500,3 @@ export class TransactionStats {
     };
   }
 }
-
-// Export types
-export type { IsolationLevel };

@@ -16,10 +16,13 @@ import {
 } from 'typeorm';
 import { User } from './User.entity';
 import { Admin } from './Admin.entity';
-import { SupportMessage } from './SupportMessage.entity';
+import { SupportMessage, SupportSender } from './SupportMessage.entity';
 
 export type SupportStatus = 'open' | 'in_progress' | 'answered' | 'closed';
 export type SupportCategory = 'payments' | 'withdrawals' | 'finpass' | 'referrals' | 'tech' | 'other';
+
+// Re-export SupportSender for convenience
+export type { SupportSender };
 
 @Entity('support_tickets')
 @Index(['user_id'])

@@ -11,3 +11,4 @@ export { default as transactionService } from './transaction.service';
 export { blockchainService } from './blockchain.service';
 export { paymentService } from './payment.service';
 export { notificationService } from './notification.service';
+export { settingsService } from './settings.service';

@@ -68,6 +68,8 @@ export {
   handleApproveRequest,
   handleRejectRequest,
   handleApplyRequest,
+  handleAddressInput,
+  handleKeyInput,
 } from './wallets.handler';
 
 // Blacklist Management (Pre-registration Ban)
