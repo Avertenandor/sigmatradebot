@@ -118,7 +118,7 @@ export const startPerformanceReporting = (): void => {
 
   const reportInterval = 60 * 60 * 1000; // 1 hour
 
-  performanceInterval = setInterval(() => {
+  performanceInterval = setInterval(async () => {
     try {
       const memory = getMemoryUsage();
 

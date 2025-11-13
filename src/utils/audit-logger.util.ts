@@ -119,6 +119,11 @@ export enum AuditCategory {
   BLOCKCHAIN_RECONNECT = 'blockchain_reconnect',
   DATABASE_ERROR = 'database_error',
   PAYMENT_RETRY = 'payment_retry',
+
+  // General categories (for logFinancialOperation with specific actions)
+  DEPOSIT = 'deposit',
+  PAYMENT = 'payment',
+  PERFORMANCE = 'performance',
 }
 
 /**
