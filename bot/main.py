@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.config.database import async_session_maker
 from app.config.settings import settings
+from bot.middlewares.auth import AuthMiddleware
 from bot.middlewares.database import DatabaseMiddleware
 from bot.middlewares.request_id import RequestIDMiddleware
 
@@ -50,6 +51,7 @@ async def main() -> None:
     dp.update.middleware(
         DatabaseMiddleware(session_pool=async_session_maker)
     )
+    dp.update.middleware(AuthMiddleware())
 
     # Register handlers
     from bot.handlers import (

@@ -1,0 +1,36 @@
+# Core Framework
+aiogram==3.4.1
+aiohttp==3.9.1
+
+# Database
+sqlalchemy[asyncio]==2.0.25
+alembic==1.13.1
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+
+# Settings & Configuration
+pydantic==2.5.3
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+
+# Blockchain & Web3
+web3==6.15.0
+eth-account==0.11.0
+eth-utils==3.0.0
+
+# Security & Encryption
+bcrypt==4.1.2
+cryptography==42.0.0
+
+# Logging & Monitoring
+loguru==0.7.2
+
+# Utilities
+python-dateutil==2.8.2
+
+# Development & Testing (optional)
+# pytest==7.4.4
+# pytest-asyncio==0.23.3
+# black==23.12.1
+# flake8==7.0.0
+# mypy==1.8.0

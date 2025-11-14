@@ -1,134 +1,210 @@
-# SigmaTrade DeFi Telegram Bot
+# 🤖 SigmaTrade Bot - Telegram DeFi Investment Platform (Python)
 
-DeFi платформа 5-го поколения с автоматическим мониторингом BSC блокчейна и многоуровневой реферальной системой.
+High-performance Telegram bot for DeFi investment platform with multi-level referral system, automated ROI distribution, and blockchain integration.
 
-## 🚀 Особенности
+> **Note**: This is the Python version. TypeScript version documentation is in README.typescript.md
 
-- **Многоуровневая депозитная система**: 5 уровней (10, 50, 100, 150, 300 USDT)
-- **3-уровневая реферальная программа**: 3%, 2%, 5% комиссии
-- **Автоматический мониторинг блокчейна**: Real-time обработка транзакций через QuickNode
-- **Защита от DDoS**: Многоуровневая система защиты
-- **Админ-панель**: Полный контроль над платформой
+## 🎯 Features
 
-## 📋 Требования
+### Core Functionality
+- **Multi-Level Deposits**: 5 investment levels ($10, $50, $100, $150, $300)
+- **Automated ROI**: 2% daily returns up to 500% cap
+- **3-Tier Referral System**: 3%, 2%, 5% commission structure
+- **Blockchain Integration**: USDT (BSC) deposits and withdrawals
+- **Real-time Transaction Monitoring**: Automated deposit confirmations
 
-- Node.js >= 20.0.0
-- PostgreSQL >= 15
-- Redis >= 7
-- Docker & Docker Compose
-- Google Cloud Platform аккаунт
+### Admin Features
+- **User Management**: Ban/unban users, view statistics
+- **Broadcast System**: Mass messaging with multimedia support (15 msg/sec rate limit)
+- **Withdrawal Approvals**: Manual withdrawal review and approval
+- **Analytics Dashboard**: Platform-wide statistics and insights
 
-## 🛠 Быстрый старт
+### Security
+- **Financial Password**: Additional security for withdrawals
+- **Request ID Tracking**: Unique ID for every request
+- **Rate Limiting**: Anti-spam protection
+- **Admin Authentication**: Separate admin verification system
 
-### Локальная разработка
+## 🏗️ Technology Stack
 
-```bash
-# Клонирование репозитория
-git clone https://github.com/your-org/sigmatradebot.git
-cd sigmatradebot
+- **Framework**: aiogram 3.x (async Telegram bot framework)
+- **Database**: PostgreSQL 14+ with SQLAlchemy 2.0 (async ORM)
+- **Blockchain**: Web3.py for BSC/USDT integration
+- **Migrations**: Alembic for database versioning
+- **Logging**: Loguru for structured logging
+- **Settings**: Pydantic Settings for environment config
 
-# Установка зависимостей
-npm install
-
-# Настройка окружения
-cp .env.example .env
-# Отредактируйте .env файл
-
-# Запуск базы данных
-docker-compose up -d postgres redis
-
-# Миграции
-npm run migration:run
-
-# Запуск в режиме разработки
-npm run dev
-```
-
-### Docker deployment
-
-```bash
-# Сборка и запуск всех сервисов
-docker-compose up -d
-
-# Просмотр логов
-docker-compose logs -f app
-
-# Остановка
-docker-compose down
-```
-
-## 📚 Документация
-
-- [Архитектурный план](./ARCHITECTURE.md) - Детальное описание архитектуры
-- [API документация](./docs/API.md) - REST API эндпоинты
-- [Deployment Guide](./docs/DEPLOYMENT.md) - Инструкции по деплою
-
-## 🏗 Структура проекта
+## 📁 Project Structure
 
 ```
 sigmatradebot/
-├── src/                 # Исходный код
-│   ├── bot/            # Telegram bot логика
-│   ├── blockchain/     # Blockchain интеграция
-│   ├── services/       # Бизнес-логика
-│   ├── database/       # Database entities & migrations
-│   ├── jobs/           # Background jobs
-│   ├── utils/          # Утилиты
-│   └── config/         # Конфигурация
-├── tests/              # Тесты
-├── docker/             # Docker конфигурация
-├── scripts/            # Вспомогательные скрипты
-└── backups/            # Бэкапы базы данных
+├── app/
+│   ├── config/          # Configuration (settings, database)
+│   ├── models/          # SQLAlchemy models
+│   ├── repositories/    # Data access layer
+│   └── services/        # Business logic layer
+├── bot/
+│   ├── handlers/        # Telegram command/callback handlers
+│   ├── keyboards/       # Inline/reply keyboards
+│   ├── middlewares/     # Request processing middleware
+│   ├── states/          # FSM state definitions
+│   └── main.py          # Bot entry point
+├── alembic/             # Database migrations
+├── logs/                # Application logs
+├── requirements.txt     # Python dependencies
+├── .env                 # Environment variables
+├── DEPLOYMENT.md        # Production deployment guide
+└── run.sh               # Startup script
 ```
 
-## 🔒 Безопасность
+## 🚀 Quick Start
 
-- Все секреты хранятся в Google Cloud Secret Manager
-- Rate limiting на уровне пользователя и IP
-- Валидация всех входных данных
-- Защита от SQL injection через prepared statements
-- DDoS защита через Cloud Armor и nginx
+### Prerequisites
+- Python 3.11+
+- PostgreSQL 14+
+- Telegram Bot Token (from @BotFather)
+- BSC Wallet with USDT
 
-## 🧪 Тестирование
+### Installation
 
 ```bash
-# Unit тесты
-npm run test
+# 1. Clone repository
+git clone <repository-url>
+cd sigmatradebot
 
-# Integration тесты
-npm run test:integration
+# 2. Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
 
-# E2E тесты
-npm run test:e2e
+# 3. Install dependencies
+pip install -r requirements.txt
 
-# Покрытие кода
-npm run test:coverage
+# 4. Configure environment
+cp .env.example .env
+nano .env  # Edit with your configuration
+
+# 5. Setup database
+createdb sigmatradebot
+alembic upgrade head
+
+# 6. Start bot
+./run.sh
 ```
 
-## 📊 Мониторинг
+### Required Environment Variables
+```bash
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+DATABASE_URL=postgresql+asyncpg://user:pass@localhost/sigmatradebot
+ADMIN_TELEGRAM_IDS=123456789
+WALLET_PRIVATE_KEY=your_private_key
+WALLET_ADDRESS=0xYourAddress
+SECRET_KEY=your_secret_key
+ENCRYPTION_KEY=your_encryption_key
+```
 
-- Google Cloud Monitoring для системных метрик
-- Winston для логирования
-- Custom metrics для бизнес-логики
+## 📖 Documentation
 
-## 🤝 Вклад в разработку
+- **[DEPLOYMENT.md](DEPLOYMENT.md)**: Complete production deployment guide
+- **[Migration Docs](CLOUD_CODE_PYTHON_MIGRATION_PART*.md)**: Technical specification
 
-1. Fork репозиторий
-2. Создайте feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit изменения (`git commit -m 'Add amazing feature'`)
-4. Push в branch (`git push origin feature/amazing-feature`)
-5. Откройте Pull Request
+## 🏃 Production Deployment
 
-## 📝 Лицензия
+See [DEPLOYMENT.md](DEPLOYMENT.md) for complete production setup including:
+- Systemd service configuration
+- Database setup and security
+- Firewall configuration
+- Backup strategies
+- Monitoring and logging
+- Security hardening
 
-Proprietary - Все права защищены
+## 🔐 Security
 
-## 📞 Контакты
+**CRITICAL**: Never commit secrets to git!
 
-- Website: https://sigmatrade.org
-- Telegram: @sigmatrade_support
-- Email: support@sigmatrade.org
+- Store private keys in Secret Manager (AWS/GCP/Vault)
+- Use strong database passwords
+- Enable firewall (UFW)
+- Regular automated backups
+- Monitor logs for suspicious activity
+
+## 🧪 Development
+
+### Database Migrations
+```bash
+# Create migration
+alembic revision --autogenerate -m "Description"
+
+# Apply migrations
+alembic upgrade head
+
+# Rollback
+alembic downgrade -1
+```
+
+### Testing
+```bash
+# Run tests
+pytest
+
+# Type checking
+mypy bot/ app/
+
+# Format code
+black bot/ app/
+```
+
+## 📊 Key Components
+
+### Middleware Chain (Order Critical!)
+1. RequestIDMiddleware - Unique request tracking
+2. DatabaseMiddleware - Database session management
+3. AuthMiddleware - User authentication
+
+### Models
+- User, Deposit, Transaction, Referral, ReferralEarning
+- PaymentRetry, FailedNotification (PART5)
+- SupportTicket, SupportMessage
+
+### Services
+- UserService, DepositService, ReferralService
+- WithdrawalService, NotificationService
+- TransactionService, SupportService
+
+## 🐛 Troubleshooting
+
+**Bot won't start**
+```bash
+# Check logs
+sudo journalctl -u sigmatradebot -f
+
+# Verify .env file
+cat .env | grep TELEGRAM_BOT_TOKEN
+
+# Test database
+psql -h localhost -U botuser -d sigmatradebot
+```
+
+**Database errors**
+```bash
+# Check PostgreSQL status
+sudo systemctl status postgresql
+
+# Run migrations
+alembic upgrade head
+```
+
+See DEPLOYMENT.md for more troubleshooting tips.
+
+## 📝 License
+
+[Your License]
+
+## 👥 Support
+
+- Check documentation
+- Review logs: `./logs/bot.log`
+- Open GitHub issue
 
 ---
 
-**⚠️ Дисклеймер**: Это программное обеспечение для работы с криптовалютами. Используйте на свой риск. Проконсультируйтесь с юристом относительно законности использования в вашей юрисдикции.
+**⚠️ WARNING**: This bot handles real cryptocurrency. Test thoroughly!
