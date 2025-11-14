@@ -427,3 +427,197 @@ class ReferralService:
         )
 
         return True, None
+
+    async def get_referral_stats(self, user_id: int) -> dict:
+        """
+        Get referral statistics for user.
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            Dict with referral counts and earnings
+        """
+        # Get all referral relationships
+        all_relationships = await self.referral_repo.find_by(
+            referrer_id=user_id
+        )
+
+        # Count by level
+        direct_referrals = sum(1 for r in all_relationships if r.level == 1)
+        level2_referrals = sum(1 for r in all_relationships if r.level == 2)
+        level3_referrals = sum(1 for r in all_relationships if r.level == 3)
+
+        # Calculate earnings
+        relationship_ids = [r.id for r in all_relationships]
+
+        if relationship_ids:
+            all_earnings = await self.earning_repo.find_by_referral_ids(
+                relationship_ids
+            )
+            total_earned = sum(e.amount for e in all_earnings)
+            paid_earnings = sum(e.amount for e in all_earnings if e.paid)
+            pending_earnings = sum(e.amount for e in all_earnings if not e.paid)
+        else:
+            total_earned = Decimal("0")
+            paid_earnings = Decimal("0")
+            pending_earnings = Decimal("0")
+
+        return {
+            "direct_referrals": direct_referrals,
+            "level2_referrals": level2_referrals,
+            "level3_referrals": level3_referrals,
+            "total_earned": total_earned,
+            "pending_earnings": pending_earnings,
+            "paid_earnings": paid_earnings,
+        }
+
+    async def get_referral_leaderboard(self, limit: int = 10) -> dict:
+        """
+        Get referral leaderboard.
+
+        Args:
+            limit: Number of top users to return
+
+        Returns:
+            Dict with by_referrals and by_earnings lists
+        """
+        # Get all users with referrals
+        stmt = text("""
+            WITH referral_stats AS (
+                SELECT
+                    r.referrer_id,
+                    COUNT(DISTINCT r.referral_id) as referral_count,
+                    COALESCE(SUM(re.amount), 0) as total_earnings
+                FROM referrals r
+                LEFT JOIN referral_earnings re ON re.referral_id = r.id
+                GROUP BY r.referrer_id
+            )
+            SELECT
+                u.id as user_id,
+                u.telegram_id,
+                u.username,
+                rs.referral_count,
+                rs.total_earnings
+            FROM referral_stats rs
+            JOIN users u ON u.id = rs.referrer_id
+            ORDER BY rs.referral_count DESC, rs.total_earnings DESC
+        """)
+
+        result = await self.session.execute(stmt)
+        rows = result.fetchall()
+
+        # Build by_referrals leaderboard
+        by_referrals = []
+        for idx, row in enumerate(rows[:limit], 1):
+            by_referrals.append({
+                "rank": idx,
+                "user_id": row.user_id,
+                "telegram_id": row.telegram_id,
+                "username": row.username,
+                "referral_count": row.referral_count,
+                "total_earnings": Decimal(str(row.total_earnings)),
+            })
+
+        # Build by_earnings leaderboard (sorted differently)
+        sorted_by_earnings = sorted(
+            rows, key=lambda r: (r.total_earnings, r.referral_count), reverse=True
+        )
+        by_earnings = []
+        for idx, row in enumerate(sorted_by_earnings[:limit], 1):
+            by_earnings.append({
+                "rank": idx,
+                "user_id": row.user_id,
+                "telegram_id": row.telegram_id,
+                "username": row.username,
+                "referral_count": row.referral_count,
+                "total_earnings": Decimal(str(row.total_earnings)),
+            })
+
+        return {
+            "by_referrals": by_referrals,
+            "by_earnings": by_earnings,
+        }
+
+    async def get_user_leaderboard_position(self, user_id: int) -> dict:
+        """
+        Get user's position in leaderboard.
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            Dict with referral_rank, earnings_rank, total_users
+        """
+        # Get all users with referrals
+        stmt = text("""
+            WITH referral_stats AS (
+                SELECT
+                    r.referrer_id,
+                    COUNT(DISTINCT r.referral_id) as referral_count,
+                    COALESCE(SUM(re.amount), 0) as total_earnings
+                FROM referrals r
+                LEFT JOIN referral_earnings re ON re.referral_id = r.id
+                GROUP BY r.referrer_id
+            )
+            SELECT
+                referrer_id,
+                referral_count,
+                total_earnings,
+                RANK() OVER (ORDER BY referral_count DESC, total_earnings DESC) as referral_rank,
+                RANK() OVER (ORDER BY total_earnings DESC, referral_count DESC) as earnings_rank
+            FROM referral_stats
+        """)
+
+        result = await self.session.execute(stmt)
+        rows = result.fetchall()
+
+        # Find user's position
+        referral_rank = None
+        earnings_rank = None
+
+        for row in rows:
+            if row.referrer_id == user_id:
+                referral_rank = row.referral_rank
+                earnings_rank = row.earnings_rank
+                break
+
+        return {
+            "referral_rank": referral_rank,
+            "earnings_rank": earnings_rank,
+            "total_users": len(rows),
+        }
+
+    async def get_platform_referral_stats(self) -> dict:
+        """
+        Get platform-wide referral statistics.
+
+        Returns:
+            Dict with total referrals, earnings breakdown
+        """
+        # Get all referrals
+        all_referrals = await self.referral_repo.find_by()
+
+        # Count by level
+        by_level = {}
+        for level in [1, 2, 3]:
+            level_refs = [r for r in all_referrals if r.level == level]
+            level_earnings = sum(r.total_earned for r in level_refs)
+            by_level[level] = {
+                "count": len(level_refs),
+                "earnings": level_earnings,
+            }
+
+        # Get all earnings
+        all_earnings = await self.earning_repo.find_by()
+        total_earnings = sum(e.amount for e in all_earnings)
+        paid_earnings = sum(e.amount for e in all_earnings if e.paid)
+        pending_earnings = sum(e.amount for e in all_earnings if not e.paid)
+
+        return {
+            "total_referrals": len(all_referrals),
+            "total_earnings": total_earnings,
+            "paid_earnings": paid_earnings,
+            "pending_earnings": pending_earnings,
+            "by_level": by_level,
+        }

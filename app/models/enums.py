@@ -47,8 +47,13 @@ class SupportTicketStatus(str, Enum):
     OPEN = "open"
     IN_PROGRESS = "in_progress"
     WAITING_USER = "waiting_user"
+    ANSWERED = "answered"  # Alias for when admin responds
     RESOLVED = "resolved"
     CLOSED = "closed"
+
+
+# Alias for backward compatibility
+SupportStatus = SupportTicketStatus
 
 
 class SupportTicketPriority(str, Enum):

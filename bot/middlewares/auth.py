@@ -76,6 +76,31 @@ class AuthMiddleware(BaseMiddleware):
         # Add user to data
         data["user"] = user
 
+        # Add user_id, telegram_id for handlers
+        if user:
+            data["user_id"] = user.id
+            data["telegram_id"] = telegram_user.id
+
+            # Check if user is admin
+            # Admin check: user.is_admin or check Admin table
+            is_admin = False
+            if hasattr(user, 'is_admin'):
+                is_admin = user.is_admin
+            else:
+                # Check if user exists in Admin table
+                from app.repositories.admin_repository import AdminRepository
+                admin_repo = AdminRepository(session)
+                admin = await admin_repo.get_by_telegram_id(telegram_user.id)
+                is_admin = admin is not None
+
+            data["is_admin"] = is_admin
+            data["admin_id"] = user.id if is_admin else 0
+        else:
+            data["user_id"] = 0
+            data["telegram_id"] = telegram_user.id
+            data["is_admin"] = False
+            data["admin_id"] = 0
+
         # Check if registration required
         if self.require_registration and not user:
             # User not registered - block access

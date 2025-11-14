@@ -335,7 +335,7 @@ async def handle_support_submit(
         await callback.answer()
 
         # Notify admins (handled by service layer)
-        await notification_service.notify_admins_new_ticket(ticket.id)
+        await notification_service.notify_admins_new_ticket(callback.bot, ticket.id)
 
     except Exception as e:
         await callback.message.edit_text(

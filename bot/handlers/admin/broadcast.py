@@ -150,7 +150,7 @@ async def handle_broadcast_message(
     await message.reply("📨 Ставлю рассылку в очередь...")
 
     # Get all user telegram IDs
-    user_telegram_ids = await user_service.get_all_user_telegram_ids()
+    user_telegram_ids = await user_service.get_all_telegram_ids()
 
     if not user_telegram_ids:
         await message.reply("❌ Нет пользователей для рассылки")
