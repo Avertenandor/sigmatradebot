@@ -1,0 +1,61 @@
+Alembic Database Migrations for SigmaTrade Bot
+===============================================
+
+This directory contains database migration scripts managed by Alembic.
+
+## Commands
+
+### Create a new migration (auto-generate):
+```bash
+alembic revision --autogenerate -m "description of changes"
+```
+
+### Create a new empty migration:
+```bash
+alembic revision -m "description"
+```
+
+### Apply migrations (upgrade to latest):
+```bash
+alembic upgrade head
+```
+
+### Rollback migrations (downgrade one step):
+```bash
+alembic downgrade -1
+```
+
+### Show current revision:
+```bash
+alembic current
+```
+
+### Show migration history:
+```bash
+alembic history
+```
+
+### Upgrade to specific revision:
+```bash
+alembic upgrade <revision_id>
+```
+
+### Downgrade to specific revision:
+```bash
+alembic downgrade <revision_id>
+```
+
+## Directory Structure
+
+- `env.py` - Alembic environment configuration
+- `script.py.mako` - Template for new migration files
+- `versions/` - Migration scripts directory
+- `alembic.ini` - Alembic configuration file (in project root)
+
+## Important Notes
+
+- Always review auto-generated migrations before applying them
+- Test migrations on development database first
+- Never edit applied migrations - create new ones instead
+- Keep migrations in version control
+- Use meaningful migration messages
