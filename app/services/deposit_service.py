@@ -96,3 +96,81 @@ class DepositService:
     ) -> list[Deposit]:
         """Get user's active deposits (ROI not completed)."""
         return await self.deposit_repo.get_active_deposits(user_id)
+
+    async def get_level1_roi_progress(self, user_id: int) -> dict:
+        """
+        Get ROI progress for level 1 deposits.
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            Dict with ROI progress information
+        """
+        # Get level 1 deposits
+        deposits = await self.deposit_repo.find_by(
+            user_id=user_id, level=1
+        )
+
+        if not deposits:
+            return {
+                "has_active_deposit": False,
+                "is_completed": False,
+                "deposit_amount": Decimal("0"),
+                "roi_percent": 0.0,
+                "roi_paid": Decimal("0"),
+                "roi_remaining": Decimal("0"),
+                "roi_cap": Decimal("0"),
+            }
+
+        # Get most recent deposit
+        deposit = max(deposits, key=lambda d: d.created_at)
+
+        # Calculate ROI progress
+        roi_paid = getattr(deposit, "roi_paid_amount", Decimal("0"))
+        roi_cap = deposit.roi_cap_amount
+        roi_remaining = roi_cap - roi_paid
+        roi_percent = float((roi_paid / roi_cap * 100)) if roi_cap > 0 else 0.0
+        is_completed = roi_paid >= roi_cap
+
+        return {
+            "has_active_deposit": True,
+            "is_completed": is_completed,
+            "deposit_amount": deposit.amount,
+            "roi_percent": roi_percent,
+            "roi_paid": roi_paid,
+            "roi_remaining": roi_remaining,
+            "roi_cap": roi_cap,
+        }
+
+    async def get_platform_stats(self) -> dict:
+        """
+        Get platform-wide deposit statistics.
+
+        Returns:
+            Dict with total deposits, amounts, and breakdown by level
+        """
+        # Get all confirmed deposits
+        all_deposits = await self.deposit_repo.find_by(
+            status=TransactionStatus.CONFIRMED.value
+        )
+
+        # Calculate totals
+        total_deposits = len(all_deposits)
+        total_amount = sum(d.amount for d in all_deposits)
+
+        # Get unique users with deposits
+        unique_users = len(set(d.user_id for d in all_deposits))
+
+        # Count by level
+        deposits_by_level = {}
+        for level in [1, 2, 3, 4, 5]:
+            level_deposits = [d for d in all_deposits if d.level == level]
+            deposits_by_level[level] = len(level_deposits)
+
+        return {
+            "total_deposits": total_deposits,
+            "total_amount": total_amount,
+            "total_users": unique_users,
+            "deposits_by_level": deposits_by_level,
+        }

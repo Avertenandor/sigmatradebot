@@ -80,3 +80,59 @@ class ReferralEarningRepository(
         result = await self.session.execute(stmt)
         total = result.scalar()
         return total or Decimal("0")
+
+    async def find_by_referral_ids(
+        self, referral_ids: List[int]
+    ) -> List[ReferralEarning]:
+        """
+        Get all earnings for multiple referral IDs.
+
+        Args:
+            referral_ids: List of referral IDs
+
+        Returns:
+            List of earnings
+        """
+        if not referral_ids:
+            return []
+
+        stmt = select(ReferralEarning).where(
+            ReferralEarning.referral_id.in_(referral_ids)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_unpaid_by_referral_ids(
+        self,
+        referral_ids: List[int],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+    ) -> List[ReferralEarning]:
+        """
+        Get unpaid earnings for multiple referral IDs.
+
+        Args:
+            referral_ids: List of referral IDs
+            limit: Optional limit
+            offset: Optional offset
+
+        Returns:
+            List of unpaid earnings
+        """
+        if not referral_ids:
+            return []
+
+        stmt = (
+            select(ReferralEarning)
+            .where(ReferralEarning.referral_id.in_(referral_ids))
+            .where(ReferralEarning.paid == False)
+            .order_by(ReferralEarning.created_at.desc())
+        )
+
+        if limit is not None:
+            stmt = stmt.limit(limit)
+        if offset is not None:
+            stmt = stmt.offset(offset)
+
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
