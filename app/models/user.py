@@ -1,0 +1,124 @@
+"""
+User model.
+
+Represents a registered Telegram user in the system.
+"""
+
+from datetime import datetime
+from decimal import Decimal
+from typing import List, Optional, TYPE_CHECKING
+
+from sqlalchemy import BigInteger, Boolean, DateTime, DECIMAL, ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.deposit import Deposit
+    from app.models.referral import Referral
+    from app.models.transaction import Transaction
+
+
+class User(Base):
+    """User model - registered Telegram users."""
+
+    __tablename__ = "users"
+
+    # Primary key
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    # Telegram data
+    telegram_id: Mapped[int] = mapped_column(
+        BigInteger, unique=True, index=True, nullable=False
+    )
+    username: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True, index=True
+    )
+
+    # Wallet and financial
+    wallet_address: Mapped[str] = mapped_column(
+        String(255), nullable=False
+    )
+    financial_password: Mapped[str] = mapped_column(
+        String(255), nullable=False
+    )
+
+    # Balances
+    balance: Mapped[Decimal] = mapped_column(
+        DECIMAL(18, 8), default=Decimal("0"), nullable=False
+    )
+    total_earned: Mapped[Decimal] = mapped_column(
+        DECIMAL(18, 8), default=Decimal("0"), nullable=False
+    )
+    pending_earnings: Mapped[Decimal] = mapped_column(
+        DECIMAL(18, 8), default=Decimal("0"), nullable=False
+    )
+
+    # Referral
+    referrer_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True
+    )
+
+    # Status flags
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False
+    )
+    is_verified: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    is_banned: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    is_admin: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    earnings_blocked: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False
+    )
+    last_active: Mapped[Optional[datetime]] = mapped_column(
+        DateTime, nullable=True
+    )
+
+    # Relationships
+    referrer: Mapped[Optional["User"]] = relationship(
+        "User",
+        remote_side=[id],
+        back_populates="referrals",
+        foreign_keys=[referrer_id],
+    )
+    referrals: Mapped[List["User"]] = relationship(
+        "User",
+        back_populates="referrer",
+        foreign_keys=[referrer_id]
+    )
+
+    # Deposits relationship
+    deposits: Mapped[List["Deposit"]] = relationship(
+        "Deposit",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # Transactions relationship
+    transactions: Mapped[List["Transaction"]] = relationship(
+        "Transaction",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    def __repr__(self) -> str:
+        """String representation."""
+        return f"<User(id={self.id}, telegram_id={self.telegram_id}, username={self.username})>"

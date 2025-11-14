@@ -233,7 +233,7 @@ class UserService:
         Returns:
             Result dict with success status
         """
-        user = await self.set_ban(user_id, False)
+        user = await self.ban_user(user_id, ban=False)
         if user:
             return {"success": True}
         return {"success": False, "error": "User not found"}
@@ -315,7 +315,7 @@ class UserService:
             "total_paid": Decimal("0.00"),  # Should query transactions
         }
 
-    async def generate_referral_link(self, user_id: int, bot_username: str) -> str:
+    def generate_referral_link(self, user_id: int, bot_username: str) -> str:
         """
         Generate referral link for user.
 
