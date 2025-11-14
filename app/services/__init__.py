@@ -23,6 +23,13 @@ from app.services.payment_retry_service import PaymentRetryService
 from app.services.admin_service import AdminService
 from app.services.support_service import SupportService
 
+# Blockchain Service
+from app.services.blockchain_service import (
+    BlockchainService,
+    get_blockchain_service,
+    init_blockchain_service,
+)
+
 __all__ = [
     # Core
     "DepositService",
@@ -38,4 +45,8 @@ __all__ = [
     # Support & Admin
     "AdminService",
     "SupportService",
+    # Blockchain
+    "BlockchainService",
+    "get_blockchain_service",
+    "init_blockchain_service",
 ]
