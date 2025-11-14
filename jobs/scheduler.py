@@ -9,6 +9,8 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 from loguru import logger
 
+from jobs.tasks.backup import backup_database
+from jobs.tasks.cleanup import cleanup_logs_and_data
 from jobs.tasks.daily_rewards import process_daily_rewards
 from jobs.tasks.deposit_monitoring import monitor_deposits
 from jobs.tasks.notification_retry import process_notification_retries
@@ -60,7 +62,25 @@ def create_scheduler() -> AsyncIOScheduler:
         replace_existing=True,
     )
 
-    logger.info("Task scheduler configured with 4 jobs")
+    # Database backup - daily at 04:00 UTC
+    scheduler.add_job(
+        backup_database,
+        trigger=CronTrigger(hour=4, minute=0),
+        id="database_backup",
+        name="Database Backup",
+        replace_existing=True,
+    )
+
+    # Cleanup - weekly on Sunday at 03:00 UTC
+    scheduler.add_job(
+        cleanup_logs_and_data,
+        trigger=CronTrigger(day_of_week=6, hour=3, minute=0),
+        id="cleanup",
+        name="Logs and Data Cleanup",
+        replace_existing=True,
+    )
+
+    logger.info("Task scheduler configured with 6 jobs")
 
     return scheduler
 
