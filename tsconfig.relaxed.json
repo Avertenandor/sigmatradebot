@@ -1,0 +1,48 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": false,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": false,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": false,
+    "alwaysStrict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "allowSyntheticDefaultImports": true,
+    "removeComments": false,
+    "incremental": false,
+    "types": ["node", "jest"],
+    "baseUrl": "./src",
+    "paths": {
+      "@bot/*": ["bot/*"],
+      "@blockchain/*": ["blockchain/*"],
+      "@services/*": ["services/*"],
+      "@database/*": ["database/*"],
+      "@jobs/*": ["jobs/*"],
+      "@utils/*": ["utils/*"],
+      "@config/*": ["config/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests", "**/*.spec.ts", "**/*.test.ts"]
+}
+
