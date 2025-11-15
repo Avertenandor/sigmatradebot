@@ -1,0 +1,185 @@
+"""
+Financial password recovery handler.
+
+Allows users to request financial password recovery with admin approval.
+"""
+
+from aiogram import F, Router
+from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery, InlineKeyboardButton, Message
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.user import User
+from app.services.finpass_recovery_service import FinpassRecoveryService
+from bot.states.finpass_recovery import FinpassRecoveryStates
+
+router = Router()
+
+
+@router.callback_query(lambda c: c.data == "menu:finpass_recovery")
+async def start_finpass_recovery(
+    callback: CallbackQuery,
+    session: AsyncSession,
+    user: User,
+    state: FSMContext,
+) -> None:
+    """
+    Start financial password recovery process.
+
+    Args:
+        callback: Callback query
+        session: Database session
+        user: Current user
+        state: FSM state
+    """
+    recovery_service = FinpassRecoveryService(session)
+
+    # Check if already has pending request
+    pending = await recovery_service.get_pending_by_user(user.id)
+
+    if pending:
+        await callback.message.edit_text(
+            "⏳ **У вас уже есть активный запрос на восстановление пароля**\n\n"
+            f"Статус: {pending.status}\n"
+            f"Создан: {pending.created_at.strftime('%d.%m.%Y %H:%M')}\n\n"
+            "Дождитесь рассмотрения администратором.",
+            reply_markup=InlineKeyboardBuilder()
+            .row(
+                InlineKeyboardButton(
+                    text="◀️ Назад", callback_data="menu:settings"
+                )
+            )
+            .as_markup(),
+        )
+        await callback.answer()
+        return
+
+    # Check if has active recovery (approved but not verified)
+    has_active = await recovery_service.has_active_recovery(user.id)
+
+    if has_active:
+        await callback.message.edit_text(
+            "✅ **Ваш запрос одобрен!**\n\n"
+            "Новый финансовый пароль был отправлен вам в личные сообщения.\n\n"
+            "⚠️ **Важно:**\n"
+            "• Ваши выплаты заблокированы до первого использования нового пароля\n"
+            "• После первого успешного вывода блокировка будет снята автоматически\n\n"
+            "Используйте раздел 'Вывод' для проверки нового пароля.",
+            reply_markup=InlineKeyboardBuilder()
+            .row(
+                InlineKeyboardButton(
+                    text="💸 Вывод", callback_data="menu:withdrawal"
+                )
+            )
+            .row(
+                InlineKeyboardButton(
+                    text="◀️ Назад", callback_data="menu:settings"
+                )
+            )
+            .as_markup(),
+        )
+        await callback.answer()
+        return
+
+    # Show recovery warning
+    await callback.message.edit_text(
+        "🔐 **Восстановление финансового пароля**\n\n"
+        "⚠️ **Внимание:**\n"
+        "• Запрос требует одобрения администратора\n"
+        "• На время рассмотрения ваши выплаты будут заблокированы\n"
+        "• После одобрения вы получите новый пароль\n\n"
+        "Укажите причину восстановления пароля:",
+        reply_markup=InlineKeyboardBuilder()
+        .row(
+            InlineKeyboardButton(
+                text="❌ Отмена", callback_data="menu:settings"
+            )
+        )
+        .as_markup(),
+    )
+
+    await state.set_state(FinpassRecoveryStates.waiting_for_reason)
+    await callback.answer()
+
+
+@router.message(FinpassRecoveryStates.waiting_for_reason)
+async def process_recovery_reason(
+    message: Message,
+    session: AsyncSession,
+    user: User,
+    state: FSMContext,
+) -> None:
+    """
+    Process recovery reason.
+
+    Args:
+        message: Telegram message
+        session: Database session
+        user: Current user
+        state: FSM state
+    """
+    reason = message.text.strip()
+
+    if len(reason) < 10:
+        await message.answer(
+            "❌ Причина слишком короткая!\n\n"
+            "Пожалуйста, опишите ситуацию подробнее (минимум 10 символов)."
+        )
+        return
+
+    # Create recovery request
+    recovery_service = FinpassRecoveryService(session)
+
+    try:
+        request = await recovery_service.create_recovery_request(
+            user_id=user.id,
+            reason=reason,
+        )
+
+        await session.commit()
+
+        await message.answer(
+            "✅ **Запрос на восстановление пароля создан!**\n\n"
+            f"ID запроса: #{request.id}\n"
+            f"Статус: {request.status}\n\n"
+            "Администратор рассмотрит ваш запрос в ближайшее время.\n"
+            "Вы получите уведомление о решении.",
+            reply_markup=InlineKeyboardBuilder()
+            .row(
+                InlineKeyboardButton(
+                    text="◀️ Главное меню", callback_data="menu:main"
+                )
+            )
+            .as_markup(),
+        )
+
+        # Notify admins
+        from app.config import get_settings
+
+        settings = get_settings()
+
+        if settings.admin_ids_list:
+            from bot.utils.notifications import notify_admins
+
+            try:
+                await notify_admins(
+                    message.bot,
+                    settings.admin_ids_list,
+                    f"🔐 **Новый запрос на восстановление пароля**\n\n"
+                    f"Пользователь: {user.username or user.telegram_id}\n"
+                    f"ID запроса: #{request.id}\n"
+                    f"Причина: {reason[:100]}...\n\n"
+                    f"Для рассмотрения используйте админ панель.",
+                )
+            except Exception as e:
+                logger.error(f"Failed to notify admins: {e}")
+
+    except ValueError as e:
+        await message.answer(
+            f"❌ Ошибка: {e}\n\n"
+            "Попробуйте позже или обратитесь в поддержку."
+        )
+
+    await state.clear()
