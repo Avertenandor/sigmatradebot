@@ -116,7 +116,7 @@ class DepositRepository(BaseRepository[Deposit]):
         Returns:
             Total deposited amount
         """
-        deposits = await self.get_by(
+        deposits = await self.find_by(
             user_id=user_id,
             status=TransactionStatus.CONFIRMED.value,
         )

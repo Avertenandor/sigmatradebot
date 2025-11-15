@@ -23,16 +23,33 @@ while ! nc -z redis 6379; do
 done
 echo -e "${GREEN}Redis is ready!${NC}"
 
-# Run database migrations (only for bot service)
-if [ "$1" = "bot" ]; then
-    echo -e "${YELLOW}Running database migrations...${NC}"
-    alembic upgrade head
-    echo -e "${GREEN}Migrations complete!${NC}"
-fi
-
 # Execute command based on argument
 case "$1" in
     bot)
+        # Validate environment variables
+        echo -e "${YELLOW}Validating environment variables...${NC}"
+        if python -m scripts.validate_env; then
+            echo -e "${GREEN}Environment validation passed!${NC}"
+        else
+            echo -e "${RED}Environment validation failed!${NC}"
+            echo -e "${YELLOW}Please check your .env file and fix the errors${NC}"
+            # In production, you might want to exit here:
+            # exit 1
+        fi
+        
+        # Run database migrations (only for bot service)
+        echo -e "${YELLOW}Running database migrations...${NC}"
+        if alembic upgrade head; then
+            echo -e "${GREEN}Migrations complete!${NC}"
+        else
+            MIGRATION_EXIT_CODE=$?
+            echo -e "${RED}Migration failed with exit code: ${MIGRATION_EXIT_CODE}${NC}"
+            echo -e "${YELLOW}Checking migration status...${NC}"
+            alembic current || true
+            echo -e "${YELLOW}Attempting to continue anyway...${NC}"
+            # In production, you might want to exit here:
+            # exit ${MIGRATION_EXIT_CODE}
+        fi
         echo -e "${GREEN}Starting Telegram Bot...${NC}"
         exec python -m bot.main
         ;;
@@ -44,9 +61,24 @@ case "$1" in
         echo -e "${GREEN}Starting Task Scheduler...${NC}"
         exec python -m jobs.scheduler
         ;;
+    alembic)
+        # Allow direct alembic command execution
+        shift
+        exec alembic "$@"
+        ;;
+    python)
+        # Allow direct python command execution
+        shift
+        exec python "$@"
+        ;;
+    dramatiq)
+        # Allow direct dramatiq command execution
+        shift
+        exec dramatiq "$@"
+        ;;
     *)
         echo -e "${RED}Unknown command: $1${NC}"
-        echo "Usage: $0 {bot|worker|scheduler}"
+        echo "Usage: $0 {bot|worker|scheduler|alembic|python|dramatiq} [args...]"
         exit 1
         ;;
 esac

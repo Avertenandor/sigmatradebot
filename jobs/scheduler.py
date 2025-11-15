@@ -4,10 +4,31 @@ Task scheduler.
 APScheduler-based periodic task scheduling for background jobs.
 """
 
+import sys
+from pathlib import Path
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 from loguru import logger
+
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Initialize blockchain service for scheduler tasks
+from app.config.settings import settings
+from app.services.blockchain_service import init_blockchain_service
+
+try:
+    init_blockchain_service(
+        rpc_url=settings.rpc_url,
+        usdt_contract=settings.usdt_contract_address,
+        wallet_private_key=settings.wallet_private_key,
+    )
+    logger.info("BlockchainService initialized for scheduler")
+except Exception as e:
+    logger.error(f"Failed to initialize BlockchainService: {e}")
+    logger.warning("Scheduler will continue, but blockchain operations may fail")
 
 from jobs.tasks.daily_rewards import process_daily_rewards
 from jobs.tasks.deposit_monitoring import monitor_deposits

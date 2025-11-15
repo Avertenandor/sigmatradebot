@@ -53,7 +53,7 @@ sigmatradebot/
 ├── logs/                # Application logs
 ├── requirements.txt     # Python dependencies
 ├── .env                 # Environment variables
-├── DEPLOYMENT.md        # Production deployment guide
+├── docs/               # Documentation (see docs/INDEX.md)
 └── run.sh               # Startup script
 ```
 
@@ -104,12 +104,13 @@ ENCRYPTION_KEY=your_encryption_key
 
 ## 📖 Documentation
 
-- **[DEPLOYMENT.md](DEPLOYMENT.md)**: Complete production deployment guide
-- **[Migration Docs](CLOUD_CODE_PYTHON_MIGRATION_PART*.md)**: Technical specification
+- **[docs/INDEX.md](docs/INDEX.md)**: Complete documentation index
+- **[docs/production/DEPLOYMENT.md](docs/production/DEPLOYMENT.md)**: Complete production deployment guide
+- **[docs/migration/](docs/migration/)**: Migration documentation
 
 ## 🏃 Production Deployment
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for complete production setup including:
+See [docs/production/DEPLOYMENT.md](docs/production/DEPLOYMENT.md) for complete production setup including:
 - Systemd service configuration
 - Database setup and security
 - Firewall configuration
@@ -193,7 +194,7 @@ sudo systemctl status postgresql
 alembic upgrade head
 ```
 
-See DEPLOYMENT.md for more troubleshooting tips.
+See [docs/guides/TROUBLESHOOTING.md](docs/guides/TROUBLESHOOTING.md) for more troubleshooting tips.
 
 ## 📝 License
 

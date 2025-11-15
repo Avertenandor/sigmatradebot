@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.withdrawal_service import WithdrawalService
 from app.services.user_service import UserService
-from app.services.blockchain_service import BlockchainService
+from app.services.blockchain_service import get_blockchain_service
 from app.services.notification_service import NotificationService
 from bot.utils.formatters import format_usdt
 
@@ -126,7 +126,7 @@ async def handle_approve_withdrawal(
 
     withdrawal_service = WithdrawalService(session)
     user_service = UserService(session)
-    blockchain_service = BlockchainService(session)
+    blockchain_service = get_blockchain_service()
     notification_service = NotificationService(session)
 
     try:
@@ -148,12 +148,12 @@ async def handle_approve_withdrawal(
             return
 
         tx_hash = payment_result["tx_hash"]
-        result = await withdrawal_service.approve_withdrawal(
+        success, error_msg = await withdrawal_service.approve_withdrawal(
             withdrawal_id, tx_hash
         )
 
-        if not result["success"]:
-            await callback.answer(f"❌ Ошибка: {result.get('error')}")
+        if not success:
+            await callback.answer(f"❌ Ошибка: {error_msg or 'Неизвестная ошибка'}")
             return
 
         # Send notification to user about withdrawal approval
@@ -229,10 +229,10 @@ async def handle_reject_withdrawal(
             await callback.answer("❌ Заявка не найдена")
             return
 
-        result = await withdrawal_service.reject_withdrawal(withdrawal_id)
+        success, error_msg = await withdrawal_service.reject_withdrawal(withdrawal_id)
 
-        if not result["success"]:
-            await callback.answer(f"❌ Ошибка: {result.get('error')}")
+        if not success:
+            await callback.answer(f"❌ Ошибка: {error_msg or 'Неизвестная ошибка'}")
             return
 
         # Send notification to user about withdrawal rejection

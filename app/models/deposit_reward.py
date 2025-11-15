@@ -55,6 +55,11 @@ class DepositReward(Base):
 
     __tablename__ = "deposit_rewards"
 
+    # Primary key
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
     # References
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=False, index=True

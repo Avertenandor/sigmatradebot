@@ -28,6 +28,21 @@ class Settings(BaseSettings):
     wallet_address: str
     usdt_contract_address: str
     rpc_url: str
+    system_wallet_address: str  # System wallet for deposits
+    payout_wallet_address: Optional[str] = None  # Payout wallet (optional, defaults to wallet_address)
+
+    # Deposit levels (USDT amounts)
+    deposit_level_1: float = 50.0
+    deposit_level_2: float = 100.0
+    deposit_level_3: float = 250.0
+    deposit_level_4: float = 500.0
+    deposit_level_5: float = 1000.0
+
+    # Redis (for FSM storage and Dramatiq)
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_password: Optional[str] = None
+    redis_db: int = 0
 
     # Security
     secret_key: str

@@ -117,6 +117,12 @@ async def handle_broadcast_message(
     if not is_admin:
         return
 
+    # Check if message is a menu button - if so, clear state and ignore
+    from bot.utils.menu_buttons import is_menu_button
+    if message.text and is_menu_button(message.text):
+        await state.clear()
+        return  # Let menu handlers process this
+
     user_service = UserService(session)
 
     # Determine message type

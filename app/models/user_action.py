@@ -7,7 +7,7 @@ Audit logging for user actions with auto-cleanup after 7 days.
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from sqlalchemy import Index, Integer, String, ForeignKey, JSON
+from sqlalchemy import DateTime, Index, Integer, String, ForeignKey, JSON
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -37,6 +37,11 @@ class UserAction(Base):
 
     __tablename__ = "user_actions"
 
+    # Primary key
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
     # User (nullable for anonymous actions)
     user_id: Mapped[Optional[int]] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=True, index=True
@@ -53,6 +58,11 @@ class UserAction(Base):
     # IP address (PostgreSQL INET type)
     ip_address: Mapped[Optional[str]] = mapped_column(
         INET, nullable=True
+    )
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
     )
 
     # Relationships

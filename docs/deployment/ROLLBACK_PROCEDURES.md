@@ -109,7 +109,13 @@ pm2 logs --lines 50
 pm2 stop sigmatradebot
 
 # 2. Notify users (if possible)
-# TODO: Send Telegram broadcast about maintenance
+# Send Telegram broadcast about maintenance using admin panel:
+# - Go to admin panel in bot: /admin or use admin callback
+# - Select "📢 Рассылка" (Broadcast)
+# - Send maintenance message to all users
+# 
+# OR use Python utility (if bot is still running):
+# python scripts/notify_admin.py "⚠️ Техническое обслуживание: восстановление из резервной копии. Возможны временные перебои в работе."
 
 # 3. Create safety backup of current state (even if broken)
 ./scripts/backup-production.sh

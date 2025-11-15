@@ -13,11 +13,11 @@ from aiogram.types import (
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.enums import SupportCategory, SupportStatus
+from app.models.enums import SupportCategory, SupportStatus, SupportTicketStatus
 from app.services.support_service import SupportService
 from app.services.notification_service import NotificationService
 from bot.states.support_states import SupportStates
-from bot.keyboards.main_keyboard import get_main_keyboard
+from bot.keyboards.inline import main_menu_keyboard
 
 
 router = Router(name="support")
@@ -47,9 +47,11 @@ def get_status_name(status: SupportStatus) -> str:
     return status_names.get(status, str(status))
 
 
+@router.message(F.text == "✉️ Создать обращение")
+@router.callback_query(F.data == "support:create")
 @router.callback_query(F.data == "support")
-async def handle_support_menu(
-    callback: CallbackQuery,
+async def handle_support_create(
+    event: Message | CallbackQuery,
     state: FSMContext,
     session: AsyncSession,
     user_id: int,
@@ -61,17 +63,23 @@ async def handle_support_menu(
     active_ticket = await support_service.get_user_active_ticket(user_id)
 
     if active_ticket:
+        category_enum = SupportCategory(active_ticket.category) if isinstance(active_ticket.category, str) else active_ticket.category
+        status_enum = SupportTicketStatus(active_ticket.status) if isinstance(active_ticket.status, str) else active_ticket.status
         message = (
             f"📝 У вас уже есть активное обращение #{active_ticket.id}\n\n"
-            f"Категория: {get_category_name(active_ticket.category)}\n"
-            f"Статус: {get_status_name(active_ticket.status)}\n\n"
+            f"Категория: {get_category_name(category_enum)}\n"
+            f"Статус: {get_status_name(status_enum)}\n\n"
             "Пожалуйста, дождитесь ответа администратора или закрытия "
             "обращения."
         )
-        await callback.message.edit_text(
-            message, reply_markup=get_main_keyboard()
-        )
-        await callback.answer()
+        if isinstance(event, Message):
+            from bot.keyboards.reply import support_keyboard
+            await event.answer(message, reply_markup=support_keyboard())
+        else:
+            await event.message.edit_text(
+                message, reply_markup=main_menu_keyboard()
+            )
+            await event.answer()
         return
 
     # Show category selection
@@ -100,15 +108,24 @@ async def handle_support_menu(
                 text="❓ Другое", callback_data="support_cat_other"
             ),
         ],
-        [InlineKeyboardButton(text="◀️ Назад", callback_data="main_menu")],
+        [InlineKeyboardButton(text="◀️ Назад", callback_data="menu:main")],
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
-    await callback.message.edit_text(
-        "🆘 Техподдержка\n\nВыберите категорию вашего обращения:",
-        reply_markup=keyboard,
-    )
-    await callback.answer()
+    text = "🆘 Техподдержка\n\nВыберите категорию вашего обращения:"
+    
+    if isinstance(event, Message):
+        from bot.keyboards.reply import support_keyboard
+        await event.answer(
+            text + "\n\nВыберите категорию:",
+            reply_markup=keyboard
+        )
+    else:
+        await event.message.edit_text(
+            text,
+            reply_markup=keyboard,
+        )
+        await event.answer()
 
 
 @router.callback_query(F.data.startswith("support_cat_"))
@@ -173,6 +190,12 @@ async def capture_support_input(
     Capture support input (text, photo, voice, audio, document)
     PART5 CRITICAL: Multimedia support
     """
+    # Check if message is a menu button - if so, clear state and ignore
+    from bot.utils.menu_buttons import is_menu_button
+    if message.text and is_menu_button(message.text):
+        await state.clear()
+        return  # Let menu handlers process this
+    
     data = await state.get_data()
     support_messages = data.get("support_messages", [])
 
@@ -322,15 +345,16 @@ async def handle_support_submit(
         await state.clear()
 
         # Notify user
+        category_enum = SupportCategory(ticket.category) if isinstance(ticket.category, str) else ticket.category
         message = (
             f"✅ Ваше обращение #{ticket.id} успешно создано!\n\n"
-            f"Категория: {get_category_name(ticket.category)}\n\n"
+            f"Категория: {get_category_name(category_enum)}\n\n"
             "Администратор ответит вам в ближайшее время. "
             "Вы получите уведомление, когда придёт ответ."
         )
 
         await callback.message.edit_text(
-            message, reply_markup=get_main_keyboard()
+            message, reply_markup=main_menu_keyboard()
         )
         await callback.answer()
 
@@ -340,6 +364,108 @@ async def handle_support_submit(
     except Exception as e:
         await callback.message.edit_text(
             f"❌ Ошибка при создании обращения: {str(e)}",
-            reply_markup=get_main_keyboard(),
+            reply_markup=main_menu_keyboard(),
         )
         await callback.answer()
+
+
+@router.message(F.text == "📋 Мои обращения")
+@router.callback_query(F.data == "support:list")
+async def handle_support_list(
+    event: Message | CallbackQuery,
+    session: AsyncSession,
+    user_id: int,
+) -> None:
+    """Show user's support tickets"""
+    support_service = SupportService(session)
+    
+    tickets = await support_service.get_user_tickets(user_id, limit=10)
+    
+    if not tickets:
+        text = "📋 У вас пока нет обращений.\n\nСоздайте новое обращение, если у вас есть вопросы."
+    else:
+        text = "📋 Ваши обращения:\n\n"
+        for ticket in tickets:
+            status_emoji = {
+                "open": "🔵",
+                "in_progress": "🟡",
+                "answered": "🟢",
+                "closed": "⚫",
+            }.get(ticket.status, "❓")
+            
+            text += (
+                f"{status_emoji} #{ticket.id} - {get_category_name(ticket.category)}\n"
+                f"   Статус: {get_status_name(ticket.status)}\n"
+                f"   Дата: {ticket.created_at.strftime('%d.%m.%Y %H:%M')}\n\n"
+            )
+    
+    if isinstance(event, Message):
+        from bot.keyboards.reply import support_keyboard
+        await event.answer(text, reply_markup=support_keyboard())
+    else:
+        await event.message.edit_text(
+            text, reply_markup=main_menu_keyboard()
+        )
+        await event.answer()
+
+
+@router.message(F.text == "❓ FAQ")
+@router.callback_query(F.data == "support:faq")
+async def handle_support_faq(
+    event: Message | CallbackQuery,
+) -> None:
+    """Show FAQ with comprehensive information from TZ"""
+    text = (
+        "❓ **Часто задаваемые вопросы**\n\n"
+        "**📌 Что такое SigmaTrade?**\n"
+        "SigmaTrade — это платформа для инвестиций в USDT на сети "
+        "Binance Smart Chain (BEP-20). Бот позволяет управлять депозитами, "
+        "отслеживать начисления и участвовать в партнерской программе.\n\n"
+        "🌐 **Официальный сайт:**\n"
+        "[sigmatrade.org](https://sigmatrade.org/index.html#exchange)\n\n"
+        "**📌 Как создать депозит?**\n"
+        "1. Выберите '💰 Депозит' в главном меню\n"
+        "2. Выберите доступный уровень депозита (10/50/100/150/300 USDT)\n"
+        "3. Отправьте USDT на указанный адрес в сети BSC (BEP-20)\n"
+        "4. Введите hash транзакции\n"
+        "5. Депозит будет активирован после подтверждения (обычно 1-3 минуты)\n\n"
+        "**📌 Правила покупки депозитов:**\n"
+        "• Депозиты можно покупать только по возрастающей (1→2→3→4→5)\n"
+        "• Нельзя пропустить уровень (например, купить уровень 3 без уровня 2)\n"
+        "• Для уровней 2+ требуется наличие активных партнеров уровня 1\n"
+        "• Уровень 1 (10 USDT) можно купить без партнеров\n\n"
+        "**📌 Как работает партнерская программа?**\n"
+        "• Приглашайте друзей по вашей реферальной ссылке\n"
+        "• Новый пользователь автоматически становится вашим партнером уровня L1\n"
+        "• Вы получаете вознаграждения за активность ваших партнеров\n"
+        "• Партнеры влияют на возможность покупки более высоких уровней депозитов\n"
+        "• Статистику можно посмотреть в разделе '👥 Рефералы'\n\n"
+        "**📌 Как вывести средства?**\n"
+        "1. Пройдите верификацию (кнопка '✅ Пройти верификацию')\n"
+        "2. Выберите '💸 Вывод' в главном меню\n"
+        "3. Укажите сумму (минимум 5 USDT) или выберите 'Вывести все'\n"
+        "4. Введите финансовый пароль для подтверждения\n"
+        "5. Заявка будет обработана в течение 1-24 часов\n\n"
+        "**📌 Как восстановить финансовый пароль?**\n"
+        "Обратитесь в поддержку, выбрав категорию '🔑 Финпароль'. "
+        "Администратор поможет восстановить доступ.\n\n"
+        "**📌 Риски и ограничения:**\n"
+        "• Работа ведется только с сетью BSC (BEP-20)\n"
+        "• Базовая валюта — USDT BEP-20\n"
+        "• Для уровня 1 действует ROI cap 500% (максимум 5x от депозита)\n"
+        "• Вывод средств доступен только после верификации\n"
+        "• Все транзакции отслеживаются в блокчейне\n\n"
+        "**📌 Дополнительная информация:**\n"
+        "Подробную информацию о платформе, условиях и правилах можно найти на "
+        "[официальном сайте](https://sigmatrade.org/index.html#exchange).\n\n"
+        "Если у вас остались вопросы, создайте обращение в поддержку!"
+    )
+    
+    if isinstance(event, Message):
+        from bot.keyboards.reply import support_keyboard
+        await event.answer(text, reply_markup=support_keyboard(), parse_mode="Markdown")
+    else:
+        await event.message.edit_text(
+            text, reply_markup=main_menu_keyboard(), parse_mode="Markdown"
+        )
+        await event.answer()

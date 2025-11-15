@@ -10,7 +10,9 @@ class AdminStates(StatesGroup):
     """States for admin operations"""
 
     # User management
-    awaiting_user_to_ban = State()
+    awaiting_user_to_ban = State()  # Legacy, kept for compatibility
+    awaiting_user_to_block = State()  # Block user (with appeal)
+    awaiting_user_to_terminate = State()  # Terminate user (no appeal)
     awaiting_user_to_unban = State()
 
     # Broadcast

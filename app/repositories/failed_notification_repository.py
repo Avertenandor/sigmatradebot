@@ -86,3 +86,26 @@ class FailedNotificationRepository(
         return await self.find_by(
             notification_type=notification_type
         )
+
+    async def get_pending_for_retry(
+        self, max_attempts: int = 5, limit: int = 100
+    ) -> List[FailedNotification]:
+        """
+        Get failed notifications ready for retry.
+
+        Args:
+            max_attempts: Maximum retry attempts
+            limit: Maximum number of results
+
+        Returns:
+            List of pending notifications
+        """
+        stmt = (
+            select(FailedNotification)
+            .where(FailedNotification.resolved == False)
+            .where(FailedNotification.attempt_count < max_attempts)
+            .order_by(FailedNotification.created_at.asc())
+            .limit(limit)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())

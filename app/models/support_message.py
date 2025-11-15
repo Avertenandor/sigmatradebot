@@ -4,9 +4,10 @@ SupportMessage model.
 Represents individual messages in support tickets.
 """
 
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from sqlalchemy import Index, Integer, String, Text, ForeignKey, JSON
+from sqlalchemy import DateTime, Index, Integer, String, Text, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -37,6 +38,11 @@ class SupportMessage(Base):
 
     __tablename__ = "support_messages"
 
+    # Primary key
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
     # Ticket
     ticket_id: Mapped[int] = mapped_column(
         Integer,
@@ -61,6 +67,11 @@ class SupportMessage(Base):
     #           file_id: str, caption?: str}]
     attachments: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(
         JSON, nullable=True
+    )
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
     )
 
     # Relationships

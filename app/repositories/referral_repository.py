@@ -52,8 +52,22 @@ class ReferralRepository(BaseRepository[Referral]):
             List of referrals
         """
         return await self.find_by(
-            referral_user_id=referral_user_id
+            referral_id=referral_user_id
         )
+    
+    async def get_referrals_for_user(
+        self, user_id: int
+    ) -> List[Referral]:
+        """
+        Get all referral relationships where user is the referral.
+
+        Args:
+            user_id: User ID (who was referred)
+
+        Returns:
+            List of referral relationships
+        """
+        return await self.find_by(referral_id=user_id)
 
     async def get_level_1_referrals(
         self, referrer_id: int

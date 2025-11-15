@@ -23,6 +23,8 @@
 #   DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE
 #   BACKUP_DIR (optional, default: ./backups)
 #   ADMIN_EMAIL (optional, for failure notifications)
+#   TELEGRAM_BOT_TOKEN (optional, for Telegram admin notifications)
+#   DATABASE_URL (optional, for Telegram admin notifications)
 ################################################################################
 
 set -euo pipefail  # Exit on error, undefined vars, pipe failures
@@ -114,13 +116,27 @@ send_alert() {
 
   log_error "${message}"
 
+  # Get script directory for notify_admin.py
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
   # Send email if admin email is configured
   if [ -n "${ADMIN_EMAIL:-}" ]; then
     echo "${message}" | mail -s "${subject}" "${ADMIN_EMAIL}" 2>/dev/null || true
   fi
 
-  # TODO: Send Telegram notification to admin
-  # Integrate with NotificationService when available
+  # Send Telegram notification to admin
+  if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${DATABASE_URL:-}" ]; then
+    # Use Python utility to send admin notification
+    if command -v python3 &> /dev/null; then
+      python3 "${SCRIPT_DIR}/notify_admin.py" "${message}" --critical 2>/dev/null || true
+    elif command -v python &> /dev/null; then
+      python "${SCRIPT_DIR}/notify_admin.py" "${message}" --critical 2>/dev/null || true
+    else
+      log_error "Python not found, skipping Telegram notification"
+    fi
+  else
+    log_info "Telegram bot token or database URL not configured, skipping Telegram notification"
+  fi
 }
 
 handle_error() {

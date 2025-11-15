@@ -14,3 +14,6 @@ class RegistrationStates(StatesGroup):
     waiting_for_financial_password = State()
     waiting_for_password_confirmation = State()
     waiting_for_referrer = State()
+    waiting_for_contacts_choice = State()
+    waiting_for_phone = State()
+    waiting_for_email = State()

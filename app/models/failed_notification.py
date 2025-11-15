@@ -51,6 +51,11 @@ class FailedNotification(Base):
 
     __tablename__ = "failed_notifications"
 
+    # Primary key
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
     # User (no FK - user may not exist or be deleted)
     user_telegram_id: Mapped[int] = mapped_column(
         BigInteger, nullable=False, index=True
@@ -62,8 +67,8 @@ class FailedNotification(Base):
     )
     message: Mapped[str] = mapped_column(Text, nullable=False)
 
-    # Metadata (JSON)
-    metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+    # Metadata (JSON) - using notification_metadata to avoid SQLAlchemy reserved word conflict
+    notification_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(
         JSONB, nullable=True
     )
 
@@ -84,6 +89,15 @@ class FailedNotification(Base):
     )
 
     # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )
     last_attempt_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

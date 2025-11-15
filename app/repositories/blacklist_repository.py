@@ -32,6 +32,20 @@ class BlacklistRepository(BaseRepository[Blacklist]):
             Blacklist entry or None
         """
         return await self.get_by(telegram_id=telegram_id)
+    
+    async def find_by_telegram_id(
+        self, telegram_id: int
+    ) -> Optional[Blacklist]:
+        """
+        Find blacklist entry by Telegram ID (alias for get_by_telegram_id).
+
+        Args:
+            telegram_id: Telegram user ID
+
+        Returns:
+            Blacklist entry or None
+        """
+        return await self.get_by_telegram_id(telegram_id)
 
     async def is_blacklisted(
         self, telegram_id: int
@@ -45,4 +59,57 @@ class BlacklistRepository(BaseRepository[Blacklist]):
         Returns:
             True if blacklisted, False otherwise
         """
-        return await self.exists(telegram_id=telegram_id)
+        entry = await self.get_by_telegram_id(telegram_id)
+        return entry is not None and entry.is_active
+    
+    async def find_by_wallet(
+        self, wallet_address: str
+    ) -> Optional[Blacklist]:
+        """
+        Find blacklist entry by wallet address.
+
+        Args:
+            wallet_address: Wallet address
+
+        Returns:
+            Blacklist entry or None
+        """
+        # Note: Blacklist model doesn't have wallet_address field in current schema
+        # This method is for compatibility with BlacklistService
+        return None
+    
+    async def get_active_blacklist(
+        self, limit: int = 100, offset: int = 0
+    ) -> list[Blacklist]:
+        """
+        Get active blacklist entries.
+
+        Args:
+            limit: Maximum entries to return
+            offset: Offset for pagination
+
+        Returns:
+            List of active Blacklist entries
+        """
+        from sqlalchemy import select
+        stmt = (
+            select(Blacklist)
+            .where(Blacklist.is_active == True)
+            .limit(limit)
+            .offset(offset)
+            .order_by(Blacklist.created_at.desc())
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+    
+    async def count_active(self) -> int:
+        """
+        Count active blacklist entries.
+
+        Returns:
+            Number of active entries
+        """
+        from sqlalchemy import select, func
+        stmt = select(func.count(Blacklist.id)).where(Blacklist.is_active == True)
+        result = await self.session.execute(stmt)
+        return result.scalar() or 0

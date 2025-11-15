@@ -4,12 +4,21 @@ Blacklist model.
 Tracks banned users with reason and admin who banned them.
 """
 
+from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import BigInteger, Index, Integer, Text
+from sqlalchemy import BigInteger, DateTime, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
+
+
+class BlacklistActionType(str):
+    """Blacklist action types."""
+    
+    REGISTRATION_DENIED = "registration_denied"  # Отказ в регистрации
+    TERMINATED = "terminated"  # Терминация аккаунта
+    BLOCKED = "blocked"  # Блокировка аккаунта (с возможностью апелляции)
 
 
 class Blacklist(Base):
@@ -18,22 +27,37 @@ class Blacklist(Base):
 
     Represents a banned user:
     - Telegram ID of banned user
+    - Action type (registration_denied, terminated, blocked)
     - Ban reason
     - Admin who banned them
+    - Appeal deadline (for blocked users)
 
     Attributes:
         id: Primary key
         telegram_id: Banned user's Telegram ID
+        action_type: Type of action (registration_denied, terminated, blocked)
         reason: Ban reason (optional)
         created_by_admin_id: Admin ID who created ban
+        appeal_deadline: Deadline for appeal (for blocked users, 3 working days)
         created_at: Ban timestamp
+        is_active: Whether the blacklist entry is active
     """
 
     __tablename__ = "blacklist"
 
+    # Primary key
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
     # Banned user
     telegram_id: Mapped[int] = mapped_column(
         BigInteger, unique=True, nullable=False, index=True
+    )
+
+    # Action type
+    action_type: Mapped[str] = mapped_column(
+        String(50), nullable=False, default=BlacklistActionType.REGISTRATION_DENIED, index=True
     )
 
     # Ban details
@@ -44,6 +68,21 @@ class Blacklist(Base):
         Integer, nullable=True
     )
 
+    # Appeal deadline for blocked users (3 working days from creation)
+    appeal_deadline: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    # Active status
+    is_active: Mapped[bool] = mapped_column(
+        Integer, nullable=False, default=1, index=True
+    )
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+    )
+
     def __repr__(self) -> str:
         """String representation."""
-        return f"Blacklist(id={self.id}, telegram_id={self.telegram_id})"
+        return f"Blacklist(id={self.id}, telegram_id={self.telegram_id}, action_type={self.action_type})"

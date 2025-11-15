@@ -124,7 +124,7 @@ class NotificationService:
             message=message,
             last_error=error,
             critical=critical,
-            metadata=metadata,
+            notification_metadata=metadata,
         )
 
     async def notify_admins_new_ticket(
@@ -195,3 +195,64 @@ class NotificationService:
                     str(e),
                     critical=True,
                 )
+
+    async def notify_admins(
+        self,
+        bot: Bot,
+        message: str,
+        critical: bool = False,
+    ) -> int:
+        """
+        Notify all admins with a message.
+
+        Args:
+            bot: Bot instance
+            message: Message text to send
+            critical: Mark as critical notification
+
+        Returns:
+            Number of admins successfully notified
+        """
+        # Get all admins
+        all_admins = await self.admin_repo.find_by()
+
+        if not all_admins:
+            logger.warning("No admins found to notify")
+            return 0
+
+        success_count = 0
+
+        # Send to all admins
+        for admin in all_admins:
+            try:
+                await bot.send_message(
+                    chat_id=admin.telegram_id,
+                    text=message,
+                    parse_mode="Markdown",
+                )
+                success_count += 1
+                logger.info(
+                    "Admin notified",
+                    extra={
+                        "admin_id": admin.id,
+                        "telegram_id": admin.telegram_id,
+                        "critical": critical,
+                    },
+                )
+            except Exception as e:
+                logger.error(
+                    f"Failed to notify admin: {e}",
+                    extra={
+                        "admin_id": admin.id,
+                        "telegram_id": admin.telegram_id,
+                    },
+                )
+                await self._save_failed_notification(
+                    admin.telegram_id,
+                    "admin_notification",
+                    message,
+                    str(e),
+                    critical=critical,
+                )
+
+        return success_count

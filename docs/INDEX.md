@@ -1,58 +1,111 @@
-# 📚 Документация SigmaTrade Bot
+# 📚 SigmaTrade Bot - Документация
 
-## 📂 Структура документации
-
-### 🏗️ Архитектура (`architecture/`)
-- [ARCHITECTURE.md](architecture/ARCHITECTURE.md) - Общая архитектура системы
-
-### 🚀 Деплой и операции (`deployment/`)
-- [DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md) - Руководство по деплою
-- [OPERATIONS.md](deployment/OPERATIONS.md) - Операционные процедуры
-- [ROLLBACK_PROCEDURES.md](deployment/ROLLBACK_PROCEDURES.md) - Процедуры отката
-- [SIGMATRADE_SERVER_SETUP.md](deployment/SIGMATRADE_SERVER_SETUP.md) - Настройка сервера
-
-### 💻 Разработка (`development/`)
-- [REFACTORING_MASTER_PLAN.md](development/REFACTORING_MASTER_PLAN.md) - Мастер-план рефакторинга
-- [REFACTORING_PROGRESS.md](development/REFACTORING_PROGRESS.md) - Прогресс рефакторинга
-- [IMPLEMENTATION_PLAN.md](development/IMPLEMENTATION_PLAN.md) - План реализации
-- [P0_CRITICAL_FIXES.md](development/P0_CRITICAL_FIXES.md) - Критические исправления P0
-- [QUICK_FIXES.md](development/QUICK_FIXES.md) - Быстрые исправления
-- [FIX_ERRORS_TZ.md](development/FIX_ERRORS_TZ.md) - Инструкции для Claude Code
-
-### 🧪 Тестирование (`testing/`)
-- [TEST_COVERAGE_REPORT.md](testing/TEST_COVERAGE_REPORT.md) - Отчет о покрытии тестами
-- [README.md](../tests/README.md) - Инструкции по тестированию (в папке tests/)
-
-### 📖 Гайды и инструкции (`guides/`)
-- [AUDIT_LOGGING_GUIDE.md](guides/AUDIT_LOGGING_GUIDE.md) - Гайд по аудит-логированию
-- [MIGRATION_GUIDE.md](guides/MIGRATION_GUIDE.md) - Руководство по миграциям
-- [MIGRATIONS.md](guides/MIGRATIONS.md) - Документация миграций БД
-- [MONITORING.md](guides/MONITORING.md) - Мониторинг системы
-- [POST_AUDIT_CHECKLIST.md](guides/POST_AUDIT_CHECKLIST.md) - Чеклист после аудита
-- [PRODUCTION_READINESS.md](guides/PRODUCTION_READINESS.md) - Готовность к продакшену
-- [TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md) - Решение проблем
-- [ROI_SYSTEM_ADMIN_GUIDE.md](ROI_SYSTEM_ADMIN_GUIDE.md) - Гайд администратора ROI
-- [ROI_SYSTEM_USER_GUIDE.md](ROI_SYSTEM_USER_GUIDE.md) - Гайд пользователя ROI
-
-### 📊 Отчеты (`reports/`)
-- [CHANGELOG.md](reports/CHANGELOG.md) - История изменений
+Полная документация проекта SigmaTrade Bot.
 
 ---
 
-## 🔍 Быстрый поиск
+## 🚀 Быстрый старт
 
-### Если вы хотите...
-
-- **Развернуть бота** → [DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md)
-- **Понять архитектуру** → [ARCHITECTURE.md](architecture/ARCHITECTURE.md)
-- **Исправить ошибки** → [TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md)
-- **Запустить тесты** → [Тестирование](../tests/README.md)
-- **Откатить изменения** → [ROLLBACK_PROCEDURES.md](deployment/ROLLBACK_PROCEDURES.md)
-- **Настроить сервер** → [SIGMATRADE_SERVER_SETUP.md](deployment/SIGMATRADE_SERVER_SETUP.md)
-- **Провести миграцию БД** → [MIGRATION_GUIDE.md](guides/MIGRATION_GUIDE.md)
-- **Подготовить к продакшену** → [PRODUCTION_READINESS.md](guides/PRODUCTION_READINESS.md)
+- **[START_HERE_CLAUDE.md](guides/START_HERE_CLAUDE.md)** - Начните отсюда для новых разработчиков
+- **[README.md](../README.md)** - Основной README проекта
 
 ---
 
-**Последнее обновление:** 2025-11-13
+## 📁 Структура документации
 
+### 🎯 Production & Deployment
+Документы по развертыванию и production готовности:
+
+- **[PRODUCTION_READINESS_REPORT.md](production/PRODUCTION_READINESS_REPORT.md)** - Отчет о готовности к production
+- **[PRODUCTION_CHECK_COMPLETE.md](production/PRODUCTION_CHECK_COMPLETE.md)** - Финальная проверка готовности
+- **[DEPLOYMENT.md](production/DEPLOYMENT.md)** - Полное руководство по деплою
+- **[DEPLOY_CHECKLIST.md](production/DEPLOY_CHECKLIST.md)** - Чеклист для деплоя
+- **[FINAL_STATUS.md](production/FINAL_STATUS.md)** - Финальный статус проекта
+- **[PRODUCTION_READY_SUMMARY.md](production/PRODUCTION_READY_SUMMARY.md)** - Резюме готовности
+- **[PRODUCTION_COMPLETE.md](production/PRODUCTION_COMPLETE.md)** - Завершение production подготовки
+
+### 🐳 Docker
+- **[DOCKER_README.md](docker/DOCKER_README.md)** - Docker документация
+
+### 🔄 Migration
+Документы по миграции с TypeScript на Python:
+
+- **[PYTHON_MIGRATION_README.md](migration/PYTHON_MIGRATION_README.md)** - Основной README миграции
+- **[PYTHON_MIGRATION_CHECKLIST.md](migration/PYTHON_MIGRATION_CHECKLIST.md)** - Чеклист миграции
+- **[MIGRATION_SUMMARY.md](migration/MIGRATION_SUMMARY.md)** - Резюме миграции
+- **[MIGRATION_COMPLETE.md](migration/MIGRATION_COMPLETE.md)** - Завершение миграции
+- **[CLOUD_CODE_PYTHON_MIGRATION.md](migration/CLOUD_CODE_PYTHON_MIGRATION.md)** - Детали миграции (часть 1)
+- **[CLOUD_CODE_PYTHON_MIGRATION_PART2.md](migration/CLOUD_CODE_PYTHON_MIGRATION_PART2.md)** - Часть 2
+- **[CLOUD_CODE_PYTHON_MIGRATION_PART3.md](migration/CLOUD_CODE_PYTHON_MIGRATION_PART3.md)** - Часть 3
+- **[CLOUD_CODE_PYTHON_MIGRATION_PART4.md](migration/CLOUD_CODE_PYTHON_MIGRATION_PART4.md)** - Часть 4
+- **[CLOUD_CODE_PYTHON_MIGRATION_PART5.md](migration/CLOUD_CODE_PYTHON_MIGRATION_PART5.md)** - Часть 5
+- **[MIGRATION_BRANCH_CREATED.md](migration/MIGRATION_BRANCH_CREATED.md)** - Создание ветки миграции
+- **[MIGRATION_GAP_ANALYSIS.md](migration/MIGRATION_GAP_ANALYSIS.md)** - Анализ пробелов
+- **[MIGRATION_FIXES_REQUIRED.md](migration/MIGRATION_FIXES_REQUIRED.md)** - Требуемые исправления
+
+### 🔍 Audit & Reports
+Отчеты и аудиты:
+
+- **[AUDIT_REPORT.md](audit/AUDIT_REPORT.md)** - Полный отчет аудита
+- **[BOT_CONNECTIONS_CHECK.md](audit/BOT_CONNECTIONS_CHECK.md)** - Проверка связей бота
+- **[SERVICES_ANALYSIS.md](audit/SERVICES_ANALYSIS.md)** - Анализ сервисов
+- **[CHANGELOG.md](reports/CHANGELOG.md)** - История изменений
+- **[ORGANIZATION_2025-11-13.md](reports/ORGANIZATION_2025-11-13.md)** - Организация проекта
+
+### 📖 Guides
+Руководства и инструкции:
+
+- **[START_HERE_CLAUDE.md](guides/START_HERE_CLAUDE.md)** - Начните отсюда
+- **[MIGRATION_GUIDE.md](guides/MIGRATION_GUIDE.md)** - Руководство по миграции
+- **[PRODUCTION_READINESS.md](guides/PRODUCTION_READINESS.md)** - Готовность к production
+- **[TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md)** - Решение проблем
+- **[MONITORING.md](guides/MONITORING.md)** - Мониторинг
+- **[AUDIT_LOGGING_GUIDE.md](guides/AUDIT_LOGGING_GUIDE.md)** - Аудит и логирование
+- **[POST_AUDIT_CHECKLIST.md](guides/POST_AUDIT_CHECKLIST.md)** - Чеклист после аудита
+- **[MIGRATIONS.md](guides/MIGRATIONS.md)** - Миграции базы данных
+
+### 🏗️ Architecture & Development
+Архитектура и разработка:
+
+- **[ARCHITECTURE.md](architecture/ARCHITECTURE.md)** - Архитектура системы
+- **[IMPLEMENTATION_PLAN.md](development/IMPLEMENTATION_PLAN.md)** - План реализации
+- **[REFACTORING_MASTER_PLAN.md](development/REFACTORING_MASTER_PLAN.md)** - Мастер-план рефакторинга
+- **[REFACTORING_PROGRESS.md](development/REFACTORING_PROGRESS.md)** - Прогресс рефакторинга
+- **[P0_CRITICAL_FIXES.md](development/P0_CRITICAL_FIXES.md)** - Критические исправления
+- **[QUICK_FIXES.md](development/QUICK_FIXES.md)** - Быстрые исправления
+- **[FIX_ERRORS_TZ.md](development/FIX_ERRORS_TZ.md)** - Исправление ошибок ТЗ
+
+### 🚀 Deployment
+Документы по развертыванию:
+
+- **[DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md)** - Руководство по деплою
+- **[ROLLBACK_PROCEDURES.md](deployment/ROLLBACK_PROCEDURES.md)** - Процедуры отката
+- **[OPERATIONS.md](deployment/OPERATIONS.md)** - Операции
+- **[SIGMATRADE_SERVER_SETUP.md](deployment/SIGMATRADE_SERVER_SETUP.md)** - Настройка сервера
+
+### 🧪 Testing
+Тестирование:
+
+- **[TEST_COVERAGE_REPORT.md](testing/TEST_COVERAGE_REPORT.md)** - Отчет о покрытии тестами
+
+### 💰 ROI System
+Система ROI:
+
+- **[ROI_SYSTEM_ADMIN_GUIDE.md](ROI_SYSTEM_ADMIN_GUIDE.md)** - Руководство для админов
+- **[ROI_SYSTEM_USER_GUIDE.md](ROI_SYSTEM_USER_GUIDE.md)** - Руководство для пользователей
+
+---
+
+## 📝 Примечания
+
+- Все документы в формате Markdown
+- Для редактирования используйте любой Markdown редактор
+- Документы обновляются по мере развития проекта
+
+---
+
+## 🔗 Полезные ссылки
+
+- [Основной README](../README.md)
+- [TypeScript README](../README.typescript.md) - для справки по старой версии
+- [Makefile](../Makefile) - команды для разработки

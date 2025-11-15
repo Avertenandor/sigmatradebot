@@ -51,6 +51,11 @@ class FinancialPasswordRecovery(Base):
 
     __tablename__ = "financial_password_recovery"
 
+    # Primary key
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
     # User
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=False, index=True

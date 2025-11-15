@@ -12,6 +12,22 @@ from loguru import logger
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Initialize settings and blockchain service
+from app.config.settings import settings
+from app.services.blockchain_service import init_blockchain_service
+
+# Initialize BlockchainService for worker tasks
+try:
+    init_blockchain_service(
+        rpc_url=settings.rpc_url,
+        usdt_contract=settings.usdt_contract_address,
+        wallet_private_key=settings.wallet_private_key,
+    )
+    logger.info("BlockchainService initialized for worker")
+except Exception as e:
+    logger.error(f"Failed to initialize BlockchainService: {e}")
+    logger.warning("Worker will continue, but blockchain operations may fail")
+
 # Import broker to initialize
 from jobs.broker import broker  # noqa: F401
 

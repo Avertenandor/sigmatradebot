@@ -15,6 +15,7 @@ from app.repositories.user_repository import UserRepository
 from app.repositories.blacklist_repository import (
     BlacklistRepository,
 )
+from app.services.referral_service import ReferralService
 
 
 class UserService:
@@ -34,6 +35,7 @@ class UserService:
         self.session = session
         self.user_repo = UserRepository(session)
         self.blacklist_repo = BlacklistRepository(session)
+        self.referral_service = ReferralService(session)
 
     async def get_by_id(self, user_id: int) -> Optional[User]:
         """
@@ -88,11 +90,15 @@ class UserService:
             ValueError: If user already exists or blacklisted
         """
         # Check if blacklisted
-        is_blacklisted = await self.blacklist_repo.is_blacklisted(
+        blacklist_entry = await self.blacklist_repo.get_by_telegram_id(
             telegram_id
         )
-        if is_blacklisted:
-            raise ValueError("User is blacklisted")
+        if blacklist_entry and blacklist_entry.is_active:
+            # Raise specific error with action type for proper message handling
+            from app.models.blacklist import BlacklistActionType
+            raise ValueError(
+                f"BLACKLISTED:{blacklist_entry.action_type or BlacklistActionType.REGISTRATION_DENIED}"
+            )
 
         # Check if already exists
         existing = await self.user_repo.get_by_telegram_id(
@@ -120,6 +126,30 @@ class UserService:
         )
 
         await self.session.commit()
+
+        # Create referral relationships if referrer exists
+        if referrer_id:
+            success, error_msg = await self.referral_service.create_referral_relationships(
+                new_user_id=user.id,
+                direct_referrer_id=referrer_id,
+            )
+            if not success:
+                logger.warning(
+                    "Failed to create referral relationships",
+                    extra={
+                        "new_user_id": user.id,
+                        "referrer_id": referrer_id,
+                        "error": error_msg,
+                    },
+                )
+            else:
+                logger.info(
+                    "Referral relationships created",
+                    extra={
+                        "new_user_id": user.id,
+                        "referrer_id": referrer_id,
+                    },
+                )
 
         logger.info(
             "User registered",
@@ -288,31 +318,83 @@ class UserService:
 
     async def get_user_balance(self, user_id: int) -> dict:
         """
-        Get user balance.
+        Get user balance with detailed statistics.
 
         Args:
             user_id: User ID
 
         Returns:
-            Balance dict
+            Balance dict with all statistics
         """
+        from app.repositories.deposit_repository import DepositRepository
+        from app.repositories.transaction_repository import TransactionRepository
+        from app.models.enums import TransactionType, TransactionStatus
+        
         user = await self.user_repo.get_by_id(user_id)
         if not user:
             return {
                 "available_balance": Decimal("0.00"),
+                "total_balance": Decimal("0.00"),
                 "total_earned": Decimal("0.00"),
                 "pending_earnings": Decimal("0.00"),
                 "pending_withdrawals": Decimal("0.00"),
-                "total_paid": Decimal("0.00"),
+                "total_deposits": Decimal("0.00"),
+                "total_withdrawals": Decimal("0.00"),
+                "total_earnings": Decimal("0.00"),
             }
 
-        # Return user balance fields
+        # Get deposits total
+        deposit_repo = DepositRepository(self.session)
+        total_deposits = await deposit_repo.get_total_deposited(user_id)
+
+        # Get withdrawals total
+        transaction_repo = TransactionRepository(self.session)
+        withdrawals = await transaction_repo.get_by_user(
+            user_id=user_id,
+            type=TransactionType.WITHDRAWAL.value,
+            status=TransactionStatus.CONFIRMED.value,
+        )
+        total_withdrawals = sum(w.amount for w in withdrawals) if withdrawals else Decimal("0.00")
+        
+        # Get pending withdrawals
+        pending_withdrawals_list = await transaction_repo.get_by_user(
+            user_id=user_id,
+            type=TransactionType.WITHDRAWAL.value,
+            status=TransactionStatus.PENDING.value,
+        )
+        pending_withdrawals = sum(w.amount for w in pending_withdrawals_list) if pending_withdrawals_list else Decimal("0.00")
+
+        # Get earnings (deposit rewards + referral earnings)
+        earnings_transactions = await transaction_repo.get_by_user(
+            user_id=user_id,
+            type=TransactionType.DEPOSIT_REWARD.value,
+            status=TransactionStatus.CONFIRMED.value,
+        )
+        total_earnings = sum(e.amount for e in earnings_transactions) if earnings_transactions else Decimal("0.00")
+        
+        # Add referral earnings if any
+        referral_earnings = await transaction_repo.get_by_user(
+            user_id=user_id,
+            type=TransactionType.REFERRAL_REWARD.value,
+            status=TransactionStatus.CONFIRMED.value,
+        )
+        if referral_earnings:
+            total_earnings += sum(e.amount for e in referral_earnings)
+
+        # Calculate total balance (available + pending earnings)
+        available_balance = getattr(user, "balance", Decimal("0.00"))
+        pending_earnings = getattr(user, "pending_earnings", Decimal("0.00"))
+        total_balance = available_balance + pending_earnings
+
         return {
-            "available_balance": getattr(user, "balance", Decimal("0.00")),
+            "available_balance": available_balance,
+            "total_balance": total_balance,
             "total_earned": getattr(user, "total_earned", Decimal("0.00")),
-            "pending_earnings": getattr(user, "pending_earnings", Decimal("0.00")),
-            "pending_withdrawals": Decimal("0.00"),  # Should query withdrawals
-            "total_paid": Decimal("0.00"),  # Should query transactions
+            "pending_earnings": pending_earnings,
+            "pending_withdrawals": pending_withdrawals,
+            "total_deposits": total_deposits,
+            "total_withdrawals": total_withdrawals,
+            "total_earnings": total_earnings,
         }
 
     def generate_referral_link(self, user_id: int, bot_username: str) -> str:
@@ -365,3 +447,15 @@ class UserService:
         """
         users = await self.user_repo.find_by(telegram_id=telegram_id)
         return users[0] if users else None
+
+    async def get_by_wallet(self, wallet_address: str) -> Optional[User]:
+        """
+        Get user by wallet address.
+
+        Args:
+            wallet_address: Wallet address
+
+        Returns:
+            User or None
+        """
+        return await self.user_repo.get_by_wallet_address(wallet_address)

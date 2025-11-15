@@ -27,6 +27,7 @@ from app.repositories.blacklist_repository import (
 from app.repositories.financial_password_recovery_repository import (
     FinancialPasswordRecoveryRepository,
 )
+from app.repositories.appeal_repository import AppealRepository
 
 # Reward Repositories
 from app.repositories.reward_session_repository import (
@@ -80,6 +81,7 @@ __all__ = [
     # Security
     "BlacklistRepository",
     "FinancialPasswordRecoveryRepository",
+    "AppealRepository",
     # Rewards
     "RewardSessionRepository",
     "DepositRewardRepository",

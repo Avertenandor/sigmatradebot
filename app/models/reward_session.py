@@ -52,6 +52,11 @@ class RewardSession(Base):
 
     __tablename__ = "reward_sessions"
 
+    # Primary key
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
     # Session Info
     name: Mapped[str] = mapped_column(String(255), nullable=False)
 

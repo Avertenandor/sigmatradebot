@@ -48,6 +48,11 @@ class AdminSession(Base):
 
     __tablename__ = "admin_sessions"
 
+    # Primary key
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
     # Admin relationship
     admin_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("admins.id"), nullable=False, index=True

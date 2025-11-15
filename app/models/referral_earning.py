@@ -7,8 +7,11 @@ Tracks individual referral earnings for payment.
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
 
+from datetime import datetime
+
 from sqlalchemy import (
     Boolean,
+    DateTime,
     Index,
     Integer,
     Numeric,
@@ -45,6 +48,11 @@ class ReferralEarning(Base):
 
     __tablename__ = "referral_earnings"
 
+    # Primary key
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
     # Referral relationship
     referral_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("referrals.id"), nullable=False, index=True
@@ -66,6 +74,11 @@ class ReferralEarning(Base):
     )
     paid: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, index=True
+    )
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
     )
 
     # Relationships

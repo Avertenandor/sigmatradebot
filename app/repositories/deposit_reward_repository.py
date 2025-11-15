@@ -4,7 +4,7 @@ DepositReward repository.
 Data access layer for DepositReward model.
 """
 
-from typing import List
+from typing import List, Optional
 from decimal import Decimal
 
 from sqlalchemy import select, func

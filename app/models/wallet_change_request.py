@@ -45,6 +45,11 @@ class WalletChangeRequest(Base):
 
     __tablename__ = "wallet_change_requests"
 
+    # Primary key
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
     # Request details
     type: Mapped[str] = mapped_column(
         String(50), nullable=False, index=True
@@ -76,6 +81,9 @@ class WalletChangeRequest(Base):
     reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+    )
     approved_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

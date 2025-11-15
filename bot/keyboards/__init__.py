@@ -9,10 +9,14 @@ from bot.keyboards.inline import (
     deposit_keyboard,
     main_menu_keyboard,
     referral_keyboard,
+    settings_keyboard,
     support_keyboard,
     withdrawal_keyboard,
 )
-from bot.keyboards.reply import main_menu_reply_keyboard
+from bot.keyboards.reply import (
+    main_menu_reply_keyboard,
+    support_keyboard as support_reply_keyboard,
+)
 
 __all__ = [
     # Inline keyboards
@@ -20,8 +24,10 @@ __all__ = [
     "deposit_keyboard",
     "main_menu_keyboard",
     "referral_keyboard",
+    "settings_keyboard",
     "support_keyboard",
     "withdrawal_keyboard",
     # Reply keyboards
     "main_menu_reply_keyboard",
+    "support_reply_keyboard",
 ]

@@ -4,7 +4,9 @@ SystemSetting model.
 Stores runtime configuration settings.
 """
 
-from sqlalchemy import String, Text
+from datetime import datetime
+
+from sqlalchemy import DateTime, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -27,10 +29,7 @@ class SystemSetting(Base):
 
     __tablename__ = "system_settings"
 
-    # Override id from Base - using key as primary key
-    id: Mapped[int] = mapped_column(init=False)  # type: ignore
-
-    # Primary Key
+    # Primary Key (using key instead of id)
     key: Mapped[str] = mapped_column(
         String(100), primary_key=True, nullable=False
     )
@@ -38,7 +37,13 @@ class SystemSetting(Base):
     # Value
     value: Mapped[str] = mapped_column(Text, nullable=False)
 
-    # Note: updated_at inherited from Base
+    # Timestamps
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )
 
     def __repr__(self) -> str:
         """String representation."""

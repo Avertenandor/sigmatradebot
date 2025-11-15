@@ -66,6 +66,11 @@ class PaymentRetry(Base):
 
     __tablename__ = "payment_retries"
 
+    # Primary key
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
     # User
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=False, index=True
@@ -118,6 +123,17 @@ class PaymentRetry(Base):
     # Payment result
     tx_hash: Mapped[Optional[str]] = mapped_column(
         String(100), nullable=True
+    )
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
     )
 
     # Relationships

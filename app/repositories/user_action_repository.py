@@ -4,7 +4,7 @@ UserAction repository.
 Data access layer for UserAction model.
 """
 
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timedelta
 
 from sqlalchemy import select

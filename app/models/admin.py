@@ -38,6 +38,11 @@ class Admin(Base):
 
     __tablename__ = "admins"
 
+    # Primary Key
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
     # Telegram Info
     telegram_id: Mapped[int] = mapped_column(
         BigInteger, unique=True, nullable=False, index=True

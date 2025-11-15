@@ -42,6 +42,14 @@ class User(Base):
     financial_password: Mapped[str] = mapped_column(
         String(255), nullable=False
     )
+    
+    # Optional contacts (from TZ)
+    phone: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True
+    )
+    email: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True
+    )
 
     # Balances
     balance: Mapped[Decimal] = mapped_column(
@@ -118,6 +126,18 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+
+    @property
+    def masked_wallet(self) -> str:
+        """
+        Get masked wallet address for display.
+        
+        Returns:
+            Masked wallet address (first 10 + ... + last 8 chars)
+        """
+        if len(self.wallet_address) > 20:
+            return f"{self.wallet_address[:10]}...{self.wallet_address[-8:]}"
+        return self.wallet_address
 
     def __repr__(self) -> str:
         """String representation."""

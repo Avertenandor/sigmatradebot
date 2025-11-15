@@ -224,3 +224,44 @@ def admin_keyboard() -> InlineKeyboardMarkup:
     )
 
     return builder.as_markup()
+
+
+def settings_keyboard() -> InlineKeyboardMarkup:
+    """
+    User settings keyboard.
+
+    Returns:
+        InlineKeyboardMarkup with settings options
+    """
+    builder = InlineKeyboardBuilder()
+
+    builder.row(
+        InlineKeyboardButton(
+            text="👤 Профиль", callback_data="settings:profile"
+        ),
+        InlineKeyboardButton(
+            text="💳 Кошелек", callback_data="settings:wallet"
+        ),
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text="🔔 Уведомления", callback_data="settings:notifications"
+        ),
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text="📝 Обновить контакты", callback_data="settings:update_contacts"
+        ),
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text="✅ Пройти верификацию", callback_data="verification:start"
+        ),
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text="◀️ Главное меню", callback_data="menu:main"
+        ),
+    )
+
+    return builder.as_markup()

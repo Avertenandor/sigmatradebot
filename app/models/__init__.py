@@ -31,6 +31,7 @@ from app.models.blacklist import Blacklist
 from app.models.financial_password_recovery import (
     FinancialPasswordRecovery,
 )
+from app.models.appeal import Appeal, AppealStatus
 
 # Reward Models
 from app.models.reward_session import RewardSession
@@ -74,6 +75,8 @@ __all__ = [
     # Security Models
     "Blacklist",
     "FinancialPasswordRecovery",
+    "Appeal",
+    "AppealStatus",
     # Reward Models
     "RewardSession",
     "DepositReward",

@@ -37,6 +37,15 @@ async def withdraw_all(
         user: Current user
         state: FSM state
     """
+    # Check verification status (from TZ: withdrawals require verification)
+    if not user.is_verified:
+        await callback.answer(
+            "❌ Для вывода средств необходимо пройти верификацию!\n\n"
+            "Используйте кнопку '✅ Пройти верификацию' в настройках.",
+            show_alert=True,
+        )
+        return
+    
     # Get balance
     user_service = UserService(session)
     balance = await user_service.get_user_balance(user.id)
@@ -114,6 +123,21 @@ async def process_withdrawal_amount(
         user: Current user
         state: FSM state
     """
+    # Check verification status (from TZ: withdrawals require verification)
+    if not user.is_verified:
+        await message.answer(
+            "❌ Для вывода средств необходимо пройти верификацию!\n\n"
+            "Используйте кнопку '✅ Пройти верификацию' в настройках."
+        )
+        await state.clear()
+        return
+    
+    # Check if message is a menu button - if so, clear state and ignore
+    from bot.utils.menu_buttons import is_menu_button
+    if is_menu_button(message.text):
+        await state.clear()
+        return  # Let menu handlers process this
+    
     try:
         amount = Decimal(message.text.strip())
     except (ValueError, ArithmeticError):
@@ -167,13 +191,18 @@ async def process_financial_password(
 ) -> None:
     """
     Process financial password and create withdrawal.
-
+    
     Args:
         message: Telegram message
         session: Database session
         user: Current user
         state: FSM state
     """
+    # Check if message is a menu button - if so, clear state and ignore
+    from bot.utils.menu_buttons import is_menu_button
+    if is_menu_button(message.text):
+        await state.clear()
+        return  # Let menu handlers process this
     password = message.text.strip()
 
     # Delete message with password
@@ -204,9 +233,10 @@ async def process_financial_password(
     )
 
     if error:
+        from bot.keyboards.reply import main_menu_reply_keyboard
         await message.answer(
             f"❌ Ошибка создания заявки:\n{error}",
-            reply_markup=main_menu_keyboard(),
+            reply_markup=main_menu_reply_keyboard(),
         )
         await state.clear()
         return
@@ -230,7 +260,8 @@ async def process_financial_password(
         f"Вы получите уведомление после обработки."
     )
 
-    await message.answer(text, reply_markup=main_menu_keyboard())
+    from bot.keyboards.reply import main_menu_reply_keyboard
+    await message.answer(text, reply_markup=main_menu_reply_keyboard())
     await state.clear()
 
 

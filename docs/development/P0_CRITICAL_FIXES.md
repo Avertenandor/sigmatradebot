@@ -211,10 +211,73 @@ NODE_ENV=production npm start
 # В deposit-processor.test.ts добавить тесты на точность
 ```
 
-### Автоматические тесты (TODO)
-- [ ] Unit тесты для money.util.ts (все 25+ функций)
-- [ ] Integration тесты для deposit-processor с bigint
-- [ ] E2E тест: deposit с tolerance boundary
+### Автоматические тесты
+
+**Статус:** Базовая структура тестов создана. Требуется расширение покрытия.
+
+**Существующие тесты:**
+- ✅ E2E тесты для бота (`tests/e2e/test_bot_e2e.py`, `test_bot_with_client.py`)
+- ✅ Базовые unit тесты (`tests/test_imports.py`, `test_bot_simple.py`)
+- ✅ Test fixtures и helpers (`tests/conftest.py`, `helpers/bot_test_client.py`)
+
+**Рекомендуемые тесты для добавления:**
+
+1. **Unit тесты для сервисов:**
+   - [ ] `DepositValidationService` - проверка порядка депозитов и партнерских условий
+   - [ ] `ReferralService` - создание цепочек, начисление вознаграждений
+   - [ ] `WithdrawalService` - валидация баланса, создание заявок
+   - [ ] `UserService` - регистрация, верификация, баланс
+   - [ ] `NotificationService` - отправка уведомлений, обработка ошибок
+
+2. **Integration тесты:**
+   - [ ] Депозиты: полный цикл от создания до подтверждения
+   - [ ] Выводы: создание заявки, админ-обработка
+   - [ ] Рефералы: создание цепочки, начисление вознаграждений
+   - [ ] Blacklist: блокировка, терминация, апелляции
+
+3. **E2E тесты:**
+   - [ ] Регистрация пользователя с реферальной ссылкой
+   - [ ] Депозит с валидацией уровня и партнеров
+   - [ ] Вывод средств с верификацией
+   - [ ] Админ-панель: блокировка пользователя, обработка апелляций
+
+**Пример структуры теста:**
+```python
+# tests/unit/test_deposit_validation_service.py
+import pytest
+from app.services.deposit_validation_service import DepositValidationService
+
+@pytest.mark.asyncio
+async def test_can_purchase_level_1_without_partners(session):
+    """Test that level 1 can be purchased without partners."""
+    service = DepositValidationService(session)
+    can_purchase, error = await service.can_purchase_level(user_id=1, level=1)
+    assert can_purchase is True
+    assert error is None
+
+@pytest.mark.asyncio
+async def test_cannot_skip_levels(session):
+    """Test that levels must be purchased in order."""
+    service = DepositValidationService(session)
+    can_purchase, error = await service.can_purchase_level(user_id=1, level=3)
+    assert can_purchase is False
+    assert "уровень 2" in error
+```
+
+**Запуск тестов:**
+```bash
+# Все тесты
+pytest
+
+# Только unit тесты
+pytest tests/unit/
+
+# Только integration тесты
+pytest tests/integration/
+
+# С покрытием
+pytest --cov=app --cov=bot tests/
+```
 
 ---
 
