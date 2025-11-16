@@ -242,7 +242,8 @@ class SettingsService:
         if not setting:
             return False
 
-        await self.repository.delete(setting.id)
+        # SystemSetting uses 'key' as primary key, not 'id'
+        await self.repository.delete(setting.key)
 
         # Invalidate cache
         if self.redis_client:

@@ -112,7 +112,33 @@ class BlockchainService:
             )
         except Exception as e:
             logger.error(f"Failed to initialize BlockchainService: {e}")
+            # Cleanup executor if initialization fails
+            if hasattr(self, '_executor'):
+                self._executor.shutdown(wait=True)
             raise
+
+    def __del__(self) -> None:
+        """
+        Cleanup ThreadPoolExecutor on garbage collection.
+        
+        This ensures resources are properly released even if close() is not called.
+        """
+        if hasattr(self, '_executor') and self._executor:
+            try:
+                self._executor.shutdown(wait=False)  # Don't wait in __del__ to avoid blocking
+            except Exception:
+                pass  # Ignore errors during cleanup
+
+    def close(self) -> None:
+        """
+        Explicitly close ThreadPoolExecutor and release resources.
+        
+        Should be called when BlockchainService is no longer needed.
+        """
+        if hasattr(self, '_executor') and self._executor:
+            logger.debug("Shutting down BlockchainService ThreadPoolExecutor")
+            self._executor.shutdown(wait=True)
+            self._executor = None
 
     async def send_payment(
         self, to_address: str, amount: float
