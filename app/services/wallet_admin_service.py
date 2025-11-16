@@ -1,1 +1,124 @@
-∢ഢ圊污敬⁴摁業⁮敓癲捩⹥਍਍慍慮敧⁳潨⁴慷汬瑥挠慨杮獥眠瑩⁨摡業⁮灡牰癯污眠牯晫潬⹷਍∢ഢഊ昊潲⁭慤整楴敭椠灭牯⁴慤整楴敭਍牦浯琠灹湩⁧浩潰瑲传瑰潩慮൬ഊ昊潲⁭潬畧畲椠灭牯⁴潬杧牥਍牦浯猠汱污档浥⹹硥⹴獡湹楣⁯浩潰瑲䄠祳据敓獳潩൮ഊ昊潲⁭灡⹰潭敤獬眮污敬彴档湡敧牟煥敵瑳椠灭牯⁴慗汬瑥桃湡敧敒畱獥൴昊潲⁭灡⹰敲潰楳潴楲獥眮污敬彴档湡敧牟煥敵瑳牟灥獯瑩牯⁹浩潰瑲⠠਍††慗汬瑥桃湡敧敒畱獥剴灥獯瑩牯ⱹ਍ഩഊഊ挊慬獳圠污敬䅴浤湩敓癲捩㩥਍††∢ഢ †匠牥楶散映牯洠湡条湩⁧慷汬瑥挠慨杮⁥敲畱獥獴മഊ †䘠慥畴敲㩳਍††‭祓瑳浥眠污敬⁴档湡敧൳ †ⴠ倠祡畯⁴慷汬瑥挠慨杮獥⠠楷桴瀠楲慶整欠祥ഩ †ⴠ䐠慵⁬摡業⁮灡牰癯污⠠潦⁲敳畣楲祴ഩ †ⴠ䄠摵瑩氠杯楧杮਍††∢ഢഊ †搠晥张楟楮彴⡟敳晬‬敳獳潩㩮䄠祳据敓獳潩⥮ⴠ‾潎敮ഺ †††∠∢਍††††湉瑩慩楬敺眠污敬⁴摡業⁮敳癲捩⹥਍਍††††牁獧ഺ †††††猠獥楳湯›慄慴慢敳猠獥楳湯਍††††∢ഢ †††猠汥⹦敳獳潩⁮‽敳獳潩൮ †††猠汥⹦敲潰楳潴祲㴠圠污敬䍴慨杮剥煥敵瑳敒潰楳潴祲猨獥楳湯ഩഊ †愠祳据搠晥爠煥敵瑳獟獹整彭慷汬瑥损慨杮⡥਍††††敳晬ബ †††渠睥慟摤敲獳›瑳Ⱳ਍††††敲畱獥整彤祢慟浤湩楟㩤椠瑮ബ †††爠慥潳㩮传瑰潩慮孬瑳嵲㴠丠湯ⱥ਍†† 㸭圠污敬䍴慨杮剥煥敵瑳ഺ †††∠∢਍††††敒畱獥⁴祳瑳浥眠污敬⁴摡牤獥⁳档湡敧മഊ †††䄠杲㩳਍††††††敮彷摡牤獥㩳丠睥眠污敬⁴摡牤獥൳ †††††爠煥敵瑳摥扟役摡業彮摩›摁業⁮桷⁯敲畱獥整൤ †††††爠慥潳㩮䌠慨杮⁥敲獡湯਍਍††††敒畴湲㩳਍††††††慗汬瑥桃湡敧敒畱獥⁴湩瑳湡散਍਍††††慒獩獥ഺ †††††嘠污敵牅潲㩲䤠⁦数摮湩⁧敲畱獥⁴硥獩獴਍††††∢ഢ †††⌠䌠敨正映牯瀠湥楤杮爠煥敵瑳൳ †††瀠湥楤杮㴠愠慷瑩猠汥⹦敲潰楳潴祲朮瑥灟湥楤杮牟煥敵瑳⡳ഩഊ †††映牯爠煥椠⁮数摮湩㩧਍††††††晩爠煥眮污敬彴祴数㴠‽猢獹整≭ഺ †††††††爠楡敳嘠污敵牅潲⡲਍††††††††††倢湥楤杮猠獹整⁭慷汬瑥挠慨杮⁥敲畱獥⁴污敲摡⁹硥獩獴ഢ †††††††⤠਍਍††††‣牃慥整爠煥敵瑳਍††††敲畱獥⁴‽睡楡⁴敳晬爮灥獯瑩牯⹹牣慥整ന †††††笠਍††††††††眢污敬彴祴数㨢∠祳瑳浥Ⱒ਍††††††††渢睥慟摤敲獳㨢渠睥慟摤敲獳氮睯牥⤨ബ †††††††∠敲畱獥整彤祢慟浤湩楟≤›敲畱獥整彤祢慟浤湩楟Ɽ਍††††††††爢慥潳≮›敲獡湯漠⁲匢獹整⁭慷汬瑥愠摤敲獳甠摰瑡≥ബ †††††††∠瑳瑡獵㨢∠数摮湩≧ബ †††††素਍††††ഩഊ †††氠杯敧⹲湩潦ന †††††映匢獹整⁭慷汬瑥挠慨杮⁥敲畱獥整㩤∠਍††††††≦敮彷摡牤獥㵳湻睥慟摤敲獳ⱽ∠਍††††††≦摡業彮摩笽敲畱獥整彤祢慟浤湩楟絤ഢ †††⤠਍਍††††敲畴湲爠煥敵瑳਍਍††獡湹⁣敤⁦敲畱獥彴慰潹瑵睟污敬彴档湡敧ന †††猠汥ⱦ਍††††敮彷摡牤獥㩳猠牴ബ †††渠睥灟楲慶整歟祥›瑳Ⱳ਍††††敲畱獥整彤祢慟浤湩楟㩤椠瑮ബ †††爠慥潳㩮传瑰潩慮孬瑳嵲㴠丠湯ⱥ਍†† 㸭圠污敬䍴慨杮剥煥敵瑳ഺ †††∠∢਍††††敒畱獥⁴慰潹瑵眠污敬⁴档湡敧⠠楷桴瀠楲慶整欠祥⸩਍਍††††牁獧ഺ †††††渠睥慟摤敲獳›敎⁷慷汬瑥愠摤敲獳਍††††††敮彷牰癩瑡彥敫㩹丠睥瀠楲慶整欠祥਍††††††敲畱獥整彤祢慟浤湩楟㩤䄠浤湩眠潨爠煥敵瑳摥਍††††††敲獡湯›桃湡敧爠慥潳൮ഊ †††删瑥牵獮ഺ †††††圠污敬䍴慨杮剥煥敵瑳椠獮慴据൥ഊ †††删楡敳㩳਍††††††慖畬䕥牲牯›晉瀠湥楤杮爠煥敵瑳攠楸瑳൳ †††∠∢਍††††‣桃捥⁫潦⁲数摮湩⁧敲畱獥獴਍††††数摮湩⁧‽睡楡⁴敳晬爮灥獯瑩牯⹹敧彴数摮湩彧敲畱獥獴⤨਍਍††††潦⁲敲ⁱ湩瀠湥楤杮ഺ †††††椠⁦敲⹱慷汬瑥瑟灹⁥㴽∠慰潹瑵㨢਍††††††††慲獩⁥慖畬䕥牲牯ന †††††††††∠敐摮湩⁧慰潹瑵眠污敬⁴档湡敧爠煥敵瑳愠牬慥祤攠楸瑳≳਍††††††††ഩഊ †††⌠䌠敲瑡⁥敲畱獥⁴瀨楲慶整欠祥眠汩⁬敢攠据祲瑰摥椠⁮敲潰楳潴祲ഩ †††爠煥敵瑳㴠愠慷瑩猠汥⹦敲潰楳潴祲挮敲瑡⡥਍††††††ൻ †††††††∠慷汬瑥瑟灹≥›瀢祡畯≴ബ †††††††∠敮彷摡牤獥≳›敮彷摡牤獥⹳潬敷⡲Ⱙ਍††††††††渢睥灟楲慶整歟祥㨢渠睥灟楲慶整歟祥‬⌠䔠据祲瑰摥椠⁮敲潰਍††††††††爢煥敵瑳摥扟役摡業彮摩㨢爠煥敵瑳摥扟役摡業彮摩ബ †††††††∠敲獡湯㨢爠慥潳⁮牯∠慐潹瑵眠污敬⁴灵慤整Ⱒ਍††††††††猢慴畴≳›瀢湥楤杮Ⱒ਍††††††ൽ †††⤠਍਍††††潬杧牥椮普⡯਍††††††≦慐潹瑵眠污敬⁴档湡敧爠煥敵瑳摥›ഢ †††††映渢睥慟摤敲獳笽敮彷摡牤獥絳‬ഢ †††††映愢浤湩楟㵤牻煥敵瑳摥扟役摡業彮摩≽਍††††ഩഊ †††爠瑥牵⁮敲畱獥൴ഊ †愠祳据搠晥愠灰潲敶牟煥敵瑳ന †††猠汥ⱦ਍††††敲畱獥彴摩›湩ⱴ਍††††摡業彮摩›湩ⱴ਍††††摡業彮潮整㩳传瑰潩慮孬瑳嵲㴠丠湯ⱥ਍†† 㸭圠污敬䍴慨杮剥煥敵瑳ഺ †††∠∢਍††††灁牰癯⁥慷汬瑥挠慨杮⁥敲畱獥⹴਍਍††††牁獧ഺ †††††爠煥敵瑳楟㩤删煥敵瑳䤠ൄ †††††愠浤湩楟㩤䄠浤湩䤠⁄桷⁯灡牰癯摥਍††††††摡業彮潮整㩳䄠灰潲慶⁬潮整൳ഊ †††删瑥牵獮ഺ †††††唠摰瑡摥圠污敬䍴慨杮剥煥敵瑳਍਍††††慒獩獥ഺ †††††嘠污敵牅潲㩲䤠⁦敲畱獥⁴潮⁴潦湵Ɽ渠瑯瀠湥楤杮‬牯猠浡⁥摡業൮ †††∠∢਍††††敲畱獥⁴‽睡楡⁴敳晬爮灥獯瑩牯⹹敧彴祢楟⡤敲畱獥彴摩ഩഊ †††椠⁦潮⁴敲畱獥㩴਍††††††慲獩⁥慖畬䕥牲牯∨慗汬瑥挠慨杮⁥敲畱獥⁴潮⁴潦湵≤ഩഊ †††椠⁦敲畱獥⹴瑳瑡獵℠‽瀢湥楤杮㨢਍††††††慲獩⁥慖畬䕥牲牯ന †††††††映刢煥敵瑳椠⁳潮⁴数摮湩⁧猨慴畴㩳笠敲畱獥⹴瑳瑡獵⥽ഢ †††††⤠਍਍††††‣牐癥湥⁴敳晬愭灰潲慶⁬猨捥牵瑩⥹਍††††晩爠煥敵瑳爮煥敵瑳摥扟役摡業彮摩㴠‽摡業彮摩ഺ †††††爠楡敳嘠污敵牅潲⡲਍††††††††䄢浤湩挠湡潮⁴灡牰癯⁥桴楥⁲睯⁮慷汬瑥挠慨杮⁥敲畱獥≴਍††††††ഩഊ †††⌠唠摰瑡⁥敲畱獥൴ †††爠煥敵瑳献慴畴⁳‽愢灰潲敶≤਍††††敲畱獥⹴灡牰癯摥扟役摡業彮摩㴠愠浤湩楟൤ †††爠煥敵瑳愮灰潲敶彤瑡㴠搠瑡瑥浩⹥瑵湣睯⤨਍††††敲畱獥⹴摡業彮潮整⁳‽摡業彮潮整൳ഊ †††愠慷瑩猠汥⹦敲潰楳潴祲甮摰瑡⡥敲畱獥⥴਍਍††††潬杧牥椮普⡯਍††††††≦慗汬瑥挠慨杮⁥敲畱獥⁴灡牰癯摥›ഢ †††††映爢煥敵瑳楟㵤牻煥敵瑳楟絤‬ഢ †††††映愢浤湩楟㵤慻浤湩楟絤‬ഢ †††††映眢污敬彴祴数笽敲畱獥⹴慷汬瑥瑟灹絥ഢ †††⤠਍਍††††敲畴湲爠煥敵瑳਍਍††獡湹⁣敤⁦敲敪瑣牟煥敵瑳ന †††猠汥ⱦ਍††††敲畱獥彴摩›湩ⱴ਍††††摡業彮摩›湩ⱴ਍††††摡業彮潮整㩳传瑰潩慮孬瑳嵲㴠丠湯ⱥ਍†† 㸭圠污敬䍴慨杮剥煥敵瑳ഺ †††∠∢਍††††敒敪瑣眠污敬⁴档湡敧爠煥敵瑳മഊ †††䄠杲㩳਍††††††敲畱獥彴摩›敒畱獥⁴䑉਍††††††摡業彮摩›摁業⁮䑉眠潨爠橥捥整൤ †††††愠浤湩湟瑯獥›敒敪瑣潩⁮敲獡湯਍਍††††敒畴湲㩳਍††††††灕慤整⁤慗汬瑥桃湡敧敒畱獥൴ †††∠∢਍††††敲畱獥⁴‽睡楡⁴敳晬爮灥獯瑩牯⹹敧彴祢楟⡤敲畱獥彴摩ഩഊ †††椠⁦潮⁴敲畱獥㩴਍††††††慲獩⁥慖畬䕥牲牯∨慗汬瑥挠慨杮⁥敲畱獥⁴潮⁴潦湵≤ഩഊ †††椠⁦敲畱獥⹴瑳瑡獵℠‽瀢湥楤杮㨢਍††††††慲獩⁥慖畬䕥牲牯ന †††††††映刢煥敵瑳椠⁳潮⁴数摮湩⁧猨慴畴㩳笠敲畱獥⹴瑳瑡獵⥽ഢ †††††⤠਍਍††††‣灕慤整爠煥敵瑳਍††††敲畱獥⹴瑳瑡獵㴠∠敲敪瑣摥ഢ †††爠煥敵瑳愮灰潲敶彤祢慟浤湩楟⁤‽摡業彮摩਍††††敲畱獥⹴灡牰癯摥慟⁴‽慤整楴敭甮捴潮⡷ഩ †††爠煥敵瑳愮浤湩湟瑯獥㴠愠浤湩湟瑯獥漠⁲刢煥敵瑳爠橥捥整≤਍਍††††睡楡⁴敳晬爮灥獯瑩牯⹹灵慤整爨煥敵瑳ഩഊ †††氠杯敧⹲湩潦ന †††††映圢污敬⁴档湡敧爠煥敵瑳爠橥捥整㩤∠਍††††††≦敲畱獥彴摩笽敲畱獥彴摩ⱽ∠਍††††††≦摡業彮摩笽摡業彮摩≽਍††††ഩഊ †††爠瑥牵⁮敲畱獥൴ഊ †愠祳据搠晥洠牡彫獡慟灰楬摥ന †††猠汥ⱦ਍††††敲畱獥彴摩›湩ⱴ਍†† 㸭圠污敬䍴慨杮剥煥敵瑳ഺ †††∠∢਍††††慍歲眠污敬⁴档湡敧愠⁳灡汰敩⹤਍਍††††牁獧ഺ †††††爠煥敵瑳楟㩤删煥敵瑳䤠ൄഊ †††删瑥牵獮ഺ †††††唠摰瑡摥圠污敬䍴慨杮剥煥敵瑳਍††††∢ഢ †††爠煥敵瑳㴠愠慷瑩猠汥⹦敲潰楳潴祲朮瑥扟役摩爨煥敵瑳楟⥤਍਍††††晩渠瑯爠煥敵瑳ഺ †††††爠楡敳嘠污敵牅潲⡲圢污敬⁴档湡敧爠煥敵瑳渠瑯映畯摮⤢਍਍††††晩爠煥敵瑳献慴畴⁳㴡∠灡牰癯摥㨢਍††††††慲獩⁥慖畬䕥牲牯ന †††††††映刢煥敵瑳椠⁳潮⁴灡牰癯摥⠠瑳瑡獵›牻煥敵瑳献慴畴絳∩਍††††††ഩഊ †††⌠䴠牡⁫獡愠灰楬摥਍††††敲畱獥⹴灡汰敩彤瑡㴠搠瑡瑥浩⹥瑵湣睯⤨਍਍††††睡楡⁴敳晬爮灥獯瑩牯⹹灵慤整爨煥敵瑳ഩഊ †††氠杯敧⹲湩潦ന †††††映圢污敬⁴档湡敧愠灰楬摥›ഢ †††††映爢煥敵瑳楟㵤牻煥敵瑳楟絤‬ഢ †††††映眢污敬彴祴数笽敲畱獥⹴慷汬瑥瑟灹絥ഢ †††⤠਍਍††††敲畴湲爠煥敵瑳਍਍††獡湹⁣敤⁦敧彴数摮湩彧敲畱獥獴猨汥⥦ⴠ‾楬瑳坛污敬䍴慨杮剥煥敵瑳㩝਍††††∢ഢ †††䜠瑥愠汬瀠湥楤杮眠污敬⁴档湡敧爠煥敵瑳⹳਍਍††††敒畴湲㩳਍††††††楌瑳漠⁦数摮湩⁧敲畱獥獴਍††††∢ഢ †††爠瑥牵⁮睡楡⁴敳晬爮灥獯瑩牯⹹敧彴数摮湩彧敲畱獥獴⤨਍਍††獡湹⁣敤⁦敧彴敲畱獥彴楨瑳牯⡹਍††††敳晬ബ †††氠浩瑩›湩⁴‽〲ബ †⤠ⴠ‾楬瑳坛污敬䍴慨杮剥煥敵瑳㩝਍††††∢ഢ †††䜠瑥眠污敬⁴档湡敧爠煥敵瑳栠獩潴祲മഊ †††䄠杲㩳਍††††††楬業㩴䴠硡浩浵爠煥敵瑳⁳潴爠瑥牵൮ഊ †††删瑥牵獮ഺ †††††䰠獩⁴景爠煥敵瑳൳ †††∠∢਍††††敲畴湲愠慷瑩猠汥⹦敲潰楳潴祲朮瑥牟捥湥彴敲畱獥獴氨浩瑩氽浩瑩ഩഊ †愠祳据搠晥挠畯瑮灟湥楤杮猨汥⥦ⴠ‾湩㩴਍††††∢ഢ †††䌠畯瑮瀠湥楤杮眠污敬⁴档湡敧爠煥敵瑳⹳਍਍††††敒畴湲㩳਍††††††畎扭牥漠⁦数摮湩⁧敲畱獥獴਍††††∢ഢ †††爠瑥牵⁮睡楡⁴敳晬爮灥獯瑩牯⹹潣湵彴数摮湩⡧ഩ
+"""
+Wallet admin service.
+
+Service for managing wallet change requests and approvals.
+"""
+
+from datetime import datetime
+from typing import List, Optional
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.wallet_change_request import WalletChangeRequest
+from app.models.enums import WalletChangeStatus
+from app.repositories.wallet_change_request_repository import (
+    WalletChangeRequestRepository,
+)
+
+
+class WalletAdminService:
+    """Service for wallet administration."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        """Initialize wallet admin service."""
+        self.session = session
+        self.repository = WalletChangeRequestRepository(session)
+
+    async def get_pending_requests(self) -> List[WalletChangeRequest]:
+        """
+        Get all pending wallet change requests.
+
+        Returns:
+            List of pending requests
+        """
+        return await self.repository.get_pending_requests()
+
+    async def approve_request(
+        self,
+        request_id: int,
+        admin_id: int,
+        admin_notes: Optional[str] = None,
+    ) -> WalletChangeRequest:
+        """
+        Approve a wallet change request.
+
+        Args:
+            request_id: Request ID to approve
+            admin_id: Admin ID who is approving
+            admin_notes: Optional admin notes
+
+        Returns:
+            Approved request
+
+        Raises:
+            ValueError: If request not found or cannot be approved
+        """
+        request = await self.repository.get_by_id(request_id)
+
+        if not request:
+            raise ValueError(f"Request {request_id} not found")
+
+        if request.status != WalletChangeStatus.PENDING.value:
+            raise ValueError(
+                f"Request {request_id} is not pending (status: {request.status})"
+            )
+
+        # Update request
+        request.status = WalletChangeStatus.APPROVED.value
+        request.approved_by_admin_id = admin_id
+        request.approved_at = datetime.utcnow()
+
+        # Save changes
+        await self.repository.update(request)
+
+        return request
+
+    async def reject_request(
+        self,
+        request_id: int,
+        admin_id: int,
+        admin_notes: Optional[str] = None,
+    ) -> WalletChangeRequest:
+        """
+        Reject a wallet change request.
+
+        Args:
+            request_id: Request ID to reject
+            admin_id: Admin ID who is rejecting
+            admin_notes: Optional admin notes (stored in reason field if provided)
+
+        Returns:
+            Rejected request
+
+        Raises:
+            ValueError: If request not found or cannot be rejected
+        """
+        request = await self.repository.get_by_id(request_id)
+
+        if not request:
+            raise ValueError(f"Request {request_id} not found")
+
+        if request.status not in (
+            WalletChangeStatus.PENDING.value,
+            WalletChangeStatus.APPROVED.value,
+        ):
+            raise ValueError(
+                f"Request {request_id} cannot be rejected (status: {request.status})"
+            )
+
+        # Update request
+        request.status = WalletChangeStatus.REJECTED.value
+        request.approved_by_admin_id = admin_id
+        request.approved_at = datetime.utcnow()
+
+        # Update reason if admin notes provided
+        if admin_notes:
+            if request.reason:
+                request.reason = f"{request.reason}\n\nRejection notes: {admin_notes}"
+            else:
+                request.reason = f"Rejection notes: {admin_notes}"
+
+        # Save changes
+        await self.repository.update(request)
+
+        return request
