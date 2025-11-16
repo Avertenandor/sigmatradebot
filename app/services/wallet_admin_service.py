@@ -68,13 +68,11 @@ class WalletAdminService:
 
         # Create request
         request = await self.repository.create(
-            {
-                "wallet_type": "system",
-                "new_address": new_address.lower(),
-                "requested_by_admin_id": requested_by_admin_id,
-                "reason": reason or "System wallet address update",
-                "status": "pending",
-            }
+            wallet_type="system",
+            new_address=new_address.lower(),
+            requested_by_admin_id=requested_by_admin_id,
+            reason=reason or "System wallet address update",
+            status="pending",
         )
 
         logger.info(
@@ -118,14 +116,12 @@ class WalletAdminService:
 
         # Create request (private key will be encrypted in repository)
         request = await self.repository.create(
-            {
-                "wallet_type": "payout",
-                "new_address": new_address.lower(),
-                "new_private_key": new_private_key,  # Encrypted in repo
-                "requested_by_admin_id": requested_by_admin_id,
-                "reason": reason or "Payout wallet update",
-                "status": "pending",
-            }
+            wallet_type="payout",
+            new_address=new_address.lower(),
+            new_private_key=new_private_key,  # Encrypted in repo
+            requested_by_admin_id=requested_by_admin_id,
+            reason=reason or "Payout wallet update",
+            status="pending",
         )
 
         logger.info(
@@ -173,12 +169,13 @@ class WalletAdminService:
             )
 
         # Update request
-        request.status = "approved"
-        request.approved_by_admin_id = admin_id
-        request.approved_at = datetime.utcnow()
-        request.admin_notes = admin_notes
-
-        await self.repository.update(request)
+        request = await self.repository.update(
+            request.id,
+            status="approved",
+            approved_by_admin_id=admin_id,
+            approved_at=datetime.utcnow(),
+            admin_notes=admin_notes,
+        )
 
         logger.info(
             f"Wallet change request approved: "
@@ -217,12 +214,13 @@ class WalletAdminService:
             )
 
         # Update request
-        request.status = "rejected"
-        request.approved_by_admin_id = admin_id
-        request.approved_at = datetime.utcnow()
-        request.admin_notes = admin_notes or "Request rejected"
-
-        await self.repository.update(request)
+        request = await self.repository.update(
+            request.id,
+            status="rejected",
+            approved_by_admin_id=admin_id,
+            approved_at=datetime.utcnow(),
+            admin_notes=admin_notes or "Request rejected",
+        )
 
         logger.info(
             f"Wallet change request rejected: "
@@ -256,9 +254,10 @@ class WalletAdminService:
             )
 
         # Mark as applied
-        request.applied_at = datetime.utcnow()
-
-        await self.repository.update(request)
+        request = await self.repository.update(
+            request.id,
+            applied_at=datetime.utcnow(),
+        )
 
         logger.info(
             f"Wallet change applied: "

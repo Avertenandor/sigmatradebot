@@ -107,12 +107,13 @@ class BlacklistService:
         if existing:
             # Reactivate if inactive
             if not existing.is_active:
-                existing.is_active = True
-                existing.reason = reason
-                existing.added_by_admin_id = added_by_admin_id
-                existing.added_at = datetime.utcnow()
-
-                await self.repository.update(existing)
+                existing = await self.repository.update(
+                    existing.id,
+                    is_active=True,
+                    reason=reason,
+                    added_by_admin_id=added_by_admin_id,
+                    added_at=datetime.utcnow(),
+                )
 
                 logger.info(
                     f"Reactivated blacklist entry: "
@@ -132,13 +133,11 @@ class BlacklistService:
 
         # Create new entry
         entry = await self.repository.create(
-            {
-                "telegram_id": telegram_id,
-                "wallet_address": wallet_address,
-                "reason": reason,
-                "added_by_admin_id": added_by_admin_id,
-                "is_active": True,
-            }
+            telegram_id=telegram_id,
+            wallet_address=wallet_address,
+            reason=reason,
+            added_by_admin_id=added_by_admin_id,
+            is_active=True,
         )
 
         logger.info(
@@ -190,8 +189,10 @@ class BlacklistService:
             return False
 
         # Deactivate instead of delete
-        entry.is_active = False
-        await self.repository.update(entry)
+        entry = await self.repository.update(
+            entry.id,
+            is_active=False,
+        )
 
         logger.info(
             f"Removed from blacklist: "
