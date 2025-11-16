@@ -2,6 +2,8 @@
 User Support Handler - УПРОЩЕННАЯ ВЕРСИЯ с Reply Keyboards
 """
 
+from typing import Any
+
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
@@ -18,9 +20,10 @@ router = Router(name="support")
 async def handle_support_menu(
     message: Message,
     state: FSMContext,
-    user: User,
+    **data: Any,
 ) -> None:
     """Show support menu."""
+    user: User = data.get("user")
     await state.clear()
 
     text = "💬 *Служба поддержки*\n\nВыберите действие из меню ниже:"
@@ -34,9 +37,10 @@ async def handle_support_menu(
 async def handle_create_ticket(
     message: Message,
     state: FSMContext,
-    user: User,
+    **data: Any,
 ) -> None:
     """Start ticket creation."""
+    user: User = data.get("user")
     text = (
         "✉️ *Создать обращение*\n\n"
         "Опишите вашу проблему или вопрос.\n"
@@ -53,9 +57,10 @@ async def process_ticket_message(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    user: User,
+    **data: Any,
 ) -> None:
     """Process ticket message."""
+    user: User = data.get("user")
     from bot.utils.menu_buttons import is_menu_button
 
     # Check if user pressed menu button
@@ -124,9 +129,10 @@ async def process_ticket_message(
 async def handle_my_tickets(
     message: Message,
     session: AsyncSession,
-    user: User,
+    **data: Any,
 ) -> None:
     """Show user's tickets."""
+    user: User = data.get("user")
     from app.services.support_service import SupportService
 
     support_service = SupportService(session)
