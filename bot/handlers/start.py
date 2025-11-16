@@ -7,14 +7,18 @@ Handles /start command and user registration.
 from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import (
+    Message,
+    CallbackQuery,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 from app.services.user_service import UserService
-from bot.keyboards.inline import main_menu_keyboard
-from bot.keyboards.reply import main_menu_reply_keyboard
+from bot.keyboards.reply import main_menu_reply_keyboard, confirmation_keyboard
 from bot.states.registration import RegistrationStates
 
 router = Router()
