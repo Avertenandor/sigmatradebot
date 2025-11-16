@@ -4,9 +4,12 @@ Application settings.
 Loads configuration from environment variables using pydantic-settings.
 """
 
+import re
 from typing import Optional
 
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from loguru import logger
 
 
 class Settings(BaseSettings):
@@ -32,11 +35,11 @@ class Settings(BaseSettings):
     payout_wallet_address: Optional[str] = None  # Payout wallet (optional, defaults to wallet_address)
 
     # Deposit levels (USDT amounts)
-    deposit_level_1: float = 50.0
-    deposit_level_2: float = 100.0
-    deposit_level_3: float = 250.0
-    deposit_level_4: float = 500.0
-    deposit_level_5: float = 1000.0
+    deposit_level_1: float = Field(default=50.0, gt=0, description="Deposit level 1 amount")
+    deposit_level_2: float = Field(default=100.0, gt=0, description="Deposit level 2 amount")
+    deposit_level_3: float = Field(default=250.0, gt=0, description="Deposit level 3 amount")
+    deposit_level_4: float = Field(default=500.0, gt=0, description="Deposit level 4 amount")
+    deposit_level_5: float = Field(default=1000.0, gt=0, description="Deposit level 5 amount")
 
     # Redis (for FSM storage and Dramatiq)
     redis_host: str = "localhost"
@@ -58,8 +61,8 @@ class Settings(BaseSettings):
     broadcast_cooldown: int = 900  # 15 minutes in seconds
 
     # ROI settings
-    roi_daily_percent: float = 0.02  # 2% daily
-    roi_cap_multiplier: float = 5.0  # 500% cap
+    roi_daily_percent: float = Field(default=0.02, gt=0, le=1.0, description="Daily ROI percentage (0-100%)")
+    roi_cap_multiplier: float = Field(default=5.0, gt=0, le=10.0, description="ROI cap multiplier")
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -68,15 +71,67 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    @field_validator('telegram_bot_token')
+    @classmethod
+    def validate_bot_token(cls, v: str) -> str:
+        """Validate Telegram bot token format."""
+        pattern = r'^\d+:[A-Za-z0-9_-]{35}$'
+        if not re.match(pattern, v):
+            raise ValueError(
+                'Invalid Telegram bot token format. '
+                'Expected format: 123456789:ABCdefGHIjklMNOpqrsTUVwxyz'
+            )
+        return v
+
+    @field_validator('wallet_address', 'system_wallet_address')
+    @classmethod
+    def validate_eth_address(cls, v: str) -> str:
+        """Validate Ethereum address format."""
+        if not v.startswith('0x') or len(v) != 42:
+            raise ValueError(
+                f'Invalid Ethereum address: {v}. '
+                'Must start with 0x and be 42 characters long.'
+            )
+        try:
+            int(v[2:], 16)
+        except ValueError:
+            raise ValueError(f'Invalid Ethereum address format: {v}')
+        return v.lower()
+
+    @field_validator('usdt_contract_address')
+    @classmethod
+    def validate_contract_address(cls, v: str) -> str:
+        """Validate USDT contract address."""
+        if not v.startswith('0x') or len(v) != 42:
+            raise ValueError('Invalid contract address format')
+        return v.lower()
+
+    @field_validator('database_url')
+    @classmethod
+    def validate_database_url(cls, v: str) -> str:
+        """Validate database URL."""
+        if not v.startswith(('postgresql://', 'postgresql+asyncpg://')):
+            raise ValueError(
+                'DATABASE_URL must start with postgresql:// or postgresql+asyncpg://'
+            )
+        return v
+
     def get_admin_ids(self) -> list[int]:
-        """Parse admin IDs from comma-separated string."""
+        """Parse admin IDs from comma-separated string with error handling."""
         if not self.admin_telegram_ids:
             return []
-        return [
-            int(id_.strip())
-            for id_ in self.admin_telegram_ids.split(",")
-            if id_.strip()
-        ]
+        
+        result = []
+        for id_ in self.admin_telegram_ids.split(","):
+            id_stripped = id_.strip()
+            if not id_stripped:
+                continue
+            try:
+                result.append(int(id_stripped))
+            except ValueError:
+                logger.warning(f"Invalid admin ID: {id_stripped}")
+                continue
+        return result
 
 
 # Global settings instance

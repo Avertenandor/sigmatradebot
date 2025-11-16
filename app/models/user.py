@@ -4,11 +4,11 @@ User model.
 Represents a registered Telegram user in the system.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import List, Optional, TYPE_CHECKING
 
-from sqlalchemy import BigInteger, Boolean, DateTime, DECIMAL, ForeignKey, String
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, DateTime, DECIMAL, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -23,6 +23,11 @@ class User(Base):
     """User model - registered Telegram users."""
 
     __tablename__ = "users"
+    __table_args__ = (
+        CheckConstraint('balance >= 0', name='check_user_balance_non_negative'),
+        CheckConstraint('total_earned >= 0', name='check_user_total_earned_non_negative'),
+        CheckConstraint('pending_earnings >= 0', name='check_user_pending_earnings_non_negative'),
+    )
 
     # Primary key
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -88,12 +93,12 @@ class User(Base):
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, nullable=False
+        DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         nullable=False
     )
     last_active: Mapped[Optional[datetime]] = mapped_column(

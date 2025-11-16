@@ -33,7 +33,7 @@ class DepositService:
         tx_hash: Optional[str] = None,
     ) -> Deposit:
         """
-        Create new deposit.
+        Create new deposit with proper error handling.
 
         Args:
             user_id: User ID
@@ -43,28 +43,42 @@ class DepositService:
 
         Returns:
             Created deposit
+
+        Raises:
+            ValueError: If level or amount is invalid
         """
         # Validate level
         if not 1 <= level <= 5:
             raise ValueError("Level must be 1-5")
+        
+        # Validate amount
+        if amount <= 0:
+            raise ValueError("Amount must be positive")
 
-        # Calculate ROI cap (500% for level 1, varies by level)
-        roi_multiplier = Decimal("5.0")  # 500%
-        roi_cap = amount * roi_multiplier
+        try:
+            # Calculate ROI cap from settings
+            from app.config.settings import settings
+            roi_multiplier = Decimal(str(settings.roi_cap_multiplier))
+            roi_cap = amount * roi_multiplier
 
-        deposit = await self.deposit_repo.create(
-            user_id=user_id,
-            level=level,
-            amount=amount,
-            tx_hash=tx_hash,
-            roi_cap_amount=roi_cap,
-            status=TransactionStatus.PENDING.value,
-        )
+            deposit = await self.deposit_repo.create(
+                user_id=user_id,
+                level=level,
+                amount=amount,
+                tx_hash=tx_hash,
+                roi_cap_amount=roi_cap,
+                status=TransactionStatus.PENDING.value,
+            )
 
-        await self.session.commit()
-        logger.info(f"Deposit created", extra={"deposit_id": deposit.id})
+            await self.session.commit()
+            logger.info(f"Deposit created", extra={"deposit_id": deposit.id})
 
-        return deposit
+            return deposit
+        
+        except Exception as e:
+            await self.session.rollback()
+            logger.error(f"Failed to create deposit: {e}")
+            raise
 
     async def confirm_deposit(
         self, deposit_id: int, block_number: int
@@ -79,17 +93,23 @@ class DepositService:
         Returns:
             Updated deposit
         """
-        deposit = await self.deposit_repo.update(
-            deposit_id,
-            status=TransactionStatus.CONFIRMED.value,
-            block_number=block_number,
-        )
+        try:
+            deposit = await self.deposit_repo.update(
+                deposit_id,
+                status=TransactionStatus.CONFIRMED.value,
+                block_number=block_number,
+            )
 
-        if deposit:
-            await self.session.commit()
-            logger.info(f"Deposit confirmed", extra={"deposit_id": deposit_id})
+            if deposit:
+                await self.session.commit()
+                logger.info(f"Deposit confirmed", extra={"deposit_id": deposit_id})
 
-        return deposit
+            return deposit
+        
+        except Exception as e:
+            await self.session.rollback()
+            logger.error(f"Failed to confirm deposit: {e}")
+            raise
 
     async def get_active_deposits(
         self, user_id: int

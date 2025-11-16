@@ -73,6 +73,7 @@ temp/
 *.tmp
 *.bak
 *.swp
+fix_*.py
 
 # PM2
 .pm2/
@@ -102,3 +103,9 @@ ENV/
 env/
 pip-log.txt
 pip-delete-this-directory.txt
+
+# Project specific
+backups/*.sql
+backups/*.dump
+test_*.py
+*_test.py

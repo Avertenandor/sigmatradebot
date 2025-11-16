@@ -4,11 +4,11 @@ Transaction model.
 Represents all financial transactions in the system.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
 
-from sqlalchemy import DateTime, DECIMAL, ForeignKey, String, Text
+from sqlalchemy import CheckConstraint, DateTime, DECIMAL, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -21,6 +21,11 @@ class Transaction(Base):
     """Transaction model - all financial operations."""
 
     __tablename__ = "transactions"
+    __table_args__ = (
+        CheckConstraint('amount > 0', name='check_transaction_amount_positive'),
+        CheckConstraint('balance_before >= 0', name='check_transaction_balance_before_non_negative'),
+        CheckConstraint('balance_after >= 0', name='check_transaction_balance_after_non_negative'),
+    )
 
     # Primary key
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -75,12 +80,12 @@ class Transaction(Base):
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, nullable=False, index=True
+        DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         nullable=False
     )
 

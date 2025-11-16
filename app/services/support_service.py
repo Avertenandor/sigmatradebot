@@ -4,7 +4,7 @@ Support service.
 Manages support ticket system for users.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from loguru import logger
@@ -64,7 +64,7 @@ class SupportService:
             user_id=user_id,
             category=category,
             status=SupportStatus.OPEN.value,
-            last_user_message_at=datetime.utcnow(),
+            last_user_message_at=datetime.now(timezone.utc),
         )
 
         # Add initial message if provided
@@ -116,7 +116,7 @@ class SupportService:
         # Update ticket timestamp and reset to open
         await self.ticket_repo.update(
             ticket_id,
-            last_user_message_at=datetime.utcnow(),
+            last_user_message_at=datetime.now(timezone.utc),
             status=SupportStatus.OPEN.value,
         )
 
@@ -155,7 +155,7 @@ class SupportService:
         # Update ticket timestamp and mark as answered
         await self.ticket_repo.update(
             ticket_id,
-            last_admin_message_at=datetime.utcnow(),
+            last_admin_message_at=datetime.now(timezone.utc),
             status=SupportStatus.ANSWERED.value,
         )
 

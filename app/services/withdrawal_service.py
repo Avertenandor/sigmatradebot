@@ -36,7 +36,7 @@ class WithdrawalService:
         available_balance: Decimal,
     ) -> tuple[Optional[Transaction], Optional[str]]:
         """
-        Request withdrawal.
+        Request withdrawal with balance deduction.
 
         Args:
             user_id: User ID
@@ -53,42 +53,57 @@ class WithdrawalService:
                 f"{MIN_WITHDRAWAL_AMOUNT} USDT"
             )
 
-        # Get user with wallet address (with row lock)
-        stmt = select(User).where(User.id == user_id).with_for_update()
-        result = await self.session.execute(stmt)
-        user = result.scalar_one_or_none()
+        try:
+            # Get user with wallet address (with row lock)
+            stmt = select(User).where(User.id == user_id).with_for_update()
+            result = await self.session.execute(stmt)
+            user = result.scalar_one_or_none()
 
-        if not user:
-            return None, "Пользователь не найден"
+            if not user:
+                return None, "Пользователь не найден"
 
-        # Check balance
-        if available_balance < amount:
-            return None, (
-                f"Недостаточно средств. Доступно: "
-                f"{available_balance:.2f} USDT"
+            # Check balance
+            if available_balance < amount:
+                return None, (
+                    f"Недостаточно средств. Доступно: "
+                    f"{available_balance:.2f} USDT"
+                )
+
+            # CRITICAL: Deduct balance BEFORE creating transaction
+            balance_before = user.balance
+            user.balance = user.balance - amount
+            balance_after = user.balance
+
+            # Create withdrawal transaction
+            transaction = await self.transaction_repo.create(
+                user_id=user_id,
+                type=TransactionType.WITHDRAWAL.value,
+                amount=amount,
+                balance_before=balance_before,
+                balance_after=balance_after,
+                to_address=user.wallet_address,
+                status=TransactionStatus.PENDING.value,
             )
 
-        # Create withdrawal transaction
-        transaction = await self.transaction_repo.create(
-            user_id=user_id,
-            type=TransactionType.WITHDRAWAL.value,
-            amount=amount,
-            to_address=user.wallet_address,
-            status=TransactionStatus.PENDING.value,
-        )
+            await self.session.commit()
 
-        await self.session.commit()
+            logger.info(
+                "Withdrawal request created and balance deducted",
+                extra={
+                    "transaction_id": transaction.id,
+                    "user_id": user_id,
+                    "amount": str(amount),
+                    "balance_before": str(balance_before),
+                    "balance_after": str(balance_after),
+                },
+            )
 
-        logger.info(
-            "Withdrawal request created",
-            extra={
-                "transaction_id": transaction.id,
-                "user_id": user_id,
-                "amount": str(amount),
-            },
-        )
+            return transaction, None
 
-        return transaction, None
+        except Exception as e:
+            await self.session.rollback()
+            logger.error(f"Failed to create withdrawal: {e}")
+            return None, "Ошибка создания заявки на вывод"
 
     async def get_pending_withdrawals(
         self,
@@ -166,7 +181,7 @@ class WithdrawalService:
         self, transaction_id: int, user_id: int
     ) -> tuple[bool, Optional[str]]:
         """
-        Cancel withdrawal (by user, only if pending).
+        Cancel withdrawal and RETURN BALANCE to user.
 
         Args:
             transaction_id: Transaction ID
@@ -175,28 +190,53 @@ class WithdrawalService:
         Returns:
             Tuple of (success, error_message)
         """
-        stmt = select(Transaction).where(
-            Transaction.id == transaction_id,
-            Transaction.user_id == user_id,
-            Transaction.type == TransactionType.WITHDRAWAL.value,
-            Transaction.status == TransactionStatus.PENDING.value,
-        )
+        try:
+            # Get transaction with lock
+            stmt_tx = select(Transaction).where(
+                Transaction.id == transaction_id,
+                Transaction.user_id == user_id,
+                Transaction.type == TransactionType.WITHDRAWAL.value,
+                Transaction.status == TransactionStatus.PENDING.value,
+            ).with_for_update()
 
-        result = await self.session.execute(stmt)
-        transaction = result.scalar_one_or_none()
+            result_tx = await self.session.execute(stmt_tx)
+            transaction = result_tx.scalar_one_or_none()
 
-        if not transaction:
-            return False, "Заявка не найдена или не может быть отменена"
+            if not transaction:
+                return False, "Заявка не найдена или не может быть отменена"
 
-        transaction.status = TransactionStatus.FAILED.value
-        await self.session.commit()
+            # Get user with lock
+            stmt_user = select(User).where(User.id == user_id).with_for_update()
+            result_user = await self.session.execute(stmt_user)
+            user = result_user.scalar_one_or_none()
 
-        logger.info(
-            "Withdrawal cancelled by user",
-            extra={"transaction_id": transaction_id, "user_id": user_id},
-        )
+            if not user:
+                return False, "Пользователь не найден"
 
-        return True, None
+            # CRITICAL: Return balance to user
+            user.balance = user.balance + transaction.amount
+
+            # Update transaction status
+            transaction.status = TransactionStatus.FAILED.value
+            
+            await self.session.commit()
+
+            logger.info(
+                "Withdrawal cancelled and balance returned",
+                extra={
+                    "transaction_id": transaction_id,
+                    "user_id": user_id,
+                    "amount": str(transaction.amount),
+                    "new_balance": str(user.balance),
+                },
+            )
+
+            return True, None
+
+        except Exception as e:
+            await self.session.rollback()
+            logger.error(f"Failed to cancel withdrawal: {e}")
+            return False, "Ошибка отмены заявки"
 
     async def approve_withdrawal(
         self, transaction_id: int, tx_hash: str
@@ -211,43 +251,49 @@ class WithdrawalService:
         Returns:
             Tuple of (success, error_message)
         """
-        stmt = select(Transaction).where(
-            Transaction.id == transaction_id,
-            Transaction.type == TransactionType.WITHDRAWAL.value,
-            Transaction.status == TransactionStatus.PENDING.value,
-        )
+        try:
+            stmt = select(Transaction).where(
+                Transaction.id == transaction_id,
+                Transaction.type == TransactionType.WITHDRAWAL.value,
+                Transaction.status == TransactionStatus.PENDING.value,
+            ).with_for_update()
 
-        result = await self.session.execute(stmt)
-        withdrawal = result.scalar_one_or_none()
+            result = await self.session.execute(stmt)
+            withdrawal = result.scalar_one_or_none()
 
-        if not withdrawal:
-            return (
-                False,
-                "Заявка на вывод не найдена или уже обработана",
+            if not withdrawal:
+                return (
+                    False,
+                    "Заявка на вывод не найдена или уже обработана",
+                )
+
+            # Update withdrawal status
+            withdrawal.status = TransactionStatus.CONFIRMED.value
+            withdrawal.tx_hash = tx_hash
+            await self.session.commit()
+
+            logger.info(
+                "Withdrawal approved",
+                extra={
+                    "transaction_id": transaction_id,
+                    "user_id": withdrawal.user_id,
+                    "amount": str(withdrawal.amount),
+                    "tx_hash": tx_hash,
+                },
             )
 
-        # Update withdrawal status
-        withdrawal.status = TransactionStatus.CONFIRMED.value
-        withdrawal.tx_hash = tx_hash
-        await self.session.commit()
+            return True, None
 
-        logger.info(
-            "Withdrawal approved",
-            extra={
-                "transaction_id": transaction_id,
-                "user_id": withdrawal.user_id,
-                "amount": withdrawal.amount,
-                "tx_hash": tx_hash,
-            },
-        )
-
-        return True, None
+        except Exception as e:
+            await self.session.rollback()
+            logger.error(f"Failed to approve withdrawal: {e}")
+            return False, "Ошибка подтверждения заявки"
 
     async def reject_withdrawal(
         self, transaction_id: int, reason: Optional[str] = None
     ) -> tuple[bool, Optional[str]]:
         """
-        Reject withdrawal (admin only).
+        Reject withdrawal and RETURN BALANCE to user (admin only).
 
         Args:
             transaction_id: Transaction ID
@@ -256,36 +302,53 @@ class WithdrawalService:
         Returns:
             Tuple of (success, error_message)
         """
-        stmt = select(Transaction).where(
-            Transaction.id == transaction_id,
-            Transaction.type == TransactionType.WITHDRAWAL.value,
-            Transaction.status == TransactionStatus.PENDING.value,
-        )
+        try:
+            # Get transaction with lock
+            stmt_tx = select(Transaction).where(
+                Transaction.id == transaction_id,
+                Transaction.type == TransactionType.WITHDRAWAL.value,
+                Transaction.status == TransactionStatus.PENDING.value,
+            ).with_for_update()
 
-        result = await self.session.execute(stmt)
-        withdrawal = result.scalar_one_or_none()
+            result_tx = await self.session.execute(stmt_tx)
+            withdrawal = result_tx.scalar_one_or_none()
 
-        if not withdrawal:
-            return (
-                False,
-                "Заявка на вывод не найдена или уже обработана",
+            if not withdrawal:
+                return (
+                    False,
+                    "Заявка на вывод не найдена или уже обработана",
+                )
+
+            # Get user with lock
+            stmt_user = select(User).where(User.id == withdrawal.user_id).with_for_update()
+            result_user = await self.session.execute(stmt_user)
+            user = result_user.scalar_one_or_none()
+
+            if user:
+                # CRITICAL: Return balance to user
+                user.balance = user.balance + withdrawal.amount
+
+            # Update withdrawal status
+            withdrawal.status = TransactionStatus.FAILED.value
+            await self.session.commit()
+
+            logger.info(
+                "Withdrawal rejected and balance returned",
+                extra={
+                    "transaction_id": transaction_id,
+                    "user_id": withdrawal.user_id,
+                    "amount": str(withdrawal.amount),
+                    "new_balance": str(user.balance) if user else "N/A",
+                    "reason": reason,
+                },
             )
 
-        # Update withdrawal status
-        withdrawal.status = TransactionStatus.FAILED.value
-        await self.session.commit()
+            return True, None
 
-        logger.info(
-            "Withdrawal rejected",
-            extra={
-                "transaction_id": transaction_id,
-                "user_id": withdrawal.user_id,
-                "amount": withdrawal.amount,
-                "reason": reason,
-            },
-        )
-
-        return True, None
+        except Exception as e:
+            await self.session.rollback()
+            logger.error(f"Failed to reject withdrawal: {e}")
+            return False, "Ошибка отклонения заявки"
 
     async def get_withdrawal_by_id(
         self, transaction_id: int

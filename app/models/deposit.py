@@ -4,13 +4,14 @@ Deposit model.
 Represents user deposits into the platform.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Optional, TYPE_CHECKING
 
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    CheckConstraint,
     DateTime,
     DECIMAL,
     ForeignKey,
@@ -29,6 +30,13 @@ class Deposit(Base):
     """Deposit model - user deposits."""
 
     __tablename__ = "deposits"
+    __table_args__ = (
+        CheckConstraint('level >= 1 AND level <= 5', name='check_deposit_level_range'),
+        CheckConstraint('amount > 0', name='check_deposit_amount_positive'),
+        CheckConstraint('roi_cap_amount >= 0', name='check_deposit_roi_cap_non_negative'),
+        CheckConstraint('roi_paid_amount >= 0', name='check_deposit_roi_paid_non_negative'),
+        CheckConstraint('roi_paid_amount <= roi_cap_amount', name='check_deposit_roi_paid_not_exceeds_cap'),
+    )
 
     # Primary key
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -77,15 +85,15 @@ class Deposit(Base):
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, nullable=False
+        DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
     )
     confirmed_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime, nullable=True
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         nullable=False
     )
 

@@ -5,7 +5,7 @@ Handles admin authentication and session management.
 """
 
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import bcrypt
@@ -199,7 +199,7 @@ class AdminService:
 
         # Create new session
         session_token = self.generate_session_token()
-        expires_at = datetime.utcnow() + timedelta(
+        expires_at = datetime.now(timezone.utc) + timedelta(
             hours=SESSION_DURATION_HOURS
         )
 
@@ -292,7 +292,7 @@ class AdminService:
 
         # Update activity
         await self.session_repo.update(
-            session.id, last_activity_at=datetime.utcnow()
+            session.id, last_activity_at=datetime.now(timezone.utc)
         )
 
         # Load admin

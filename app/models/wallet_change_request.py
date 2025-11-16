@@ -4,7 +4,7 @@ WalletChangeRequest model.
 Tracks admin-initiated wallet change requests with approval workflow.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import DateTime, Index, Integer, String, Text, ForeignKey
@@ -82,7 +82,7 @@ class WalletChangeRequest(Base):
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
     )
     approved_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True

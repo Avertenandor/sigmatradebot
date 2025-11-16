@@ -131,6 +131,26 @@ async def main() -> None:
         except Exception as e:
             logger.warning(f"Rate limiting disabled: {e}")
 
+    # Register error handler (MUST BE FIRST)
+    @dp.error()
+    async def error_handler(event, exc: Exception) -> bool:
+        """Global error handler for unhandled exceptions."""
+        logger.exception(
+            f"Unhandled error in bot: {exc.__class__.__name__}: {exc}",
+            extra={"update": str(event.update) if hasattr(event, 'update') else None}
+        )
+        
+        # Try to send error message to user
+        try:
+            if hasattr(event, 'update') and event.update.message:
+                await event.update.message.answer(
+                    "⚠️ Произошла ошибка. Пожалуйста, попробуйте позже или обратитесь в поддержку."
+                )
+        except Exception as send_error:
+            logger.error(f"Failed to send error message: {send_error}")
+        
+        return True  # Mark error as handled
+    
     # Register handlers
     from bot.handlers import (
         appeal,

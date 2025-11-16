@@ -4,7 +4,7 @@ Blacklist model.
 Tracks banned users with reason and admin who banned them.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import BigInteger, DateTime, Index, Integer, String, Text
@@ -80,7 +80,7 @@ class Blacklist(Base):
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
     )
 
     def __repr__(self) -> str:
