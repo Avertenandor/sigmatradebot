@@ -117,11 +117,17 @@ class BlacklistService:
 
                 # Update appeal deadline for blocked users
                 if action_type == BlacklistActionType.BLOCKED:
-                    existing.appeal_deadline = datetime.now(timezone.utc) + timedelta(days=3)
+                    appeal_deadline = datetime.now(timezone.utc) + timedelta(days=3)
                 else:
-                    existing.appeal_deadline = None
+                    appeal_deadline = None
 
-                await self.repository.update(existing)
+                await self.repository.update(
+                    existing.id,
+                    action_type=action_type,
+                    created_at=datetime.now(timezone.utc),
+                    appeal_deadline=appeal_deadline,
+                    is_active=True,
+                )
 
                 logger.info(
                     f"Reactivated blacklist entry: "
@@ -143,18 +149,18 @@ class BlacklistService:
         appeal_deadline = None
         if action_type == BlacklistActionType.BLOCKED:
             # 3 working days = 3 calendar days (simplified)
-            appeal_deadline = datetime.now(timezone.utc) + timedelta(days=3)
+            appeal_deadline = (
+                datetime.now(timezone.utc) + timedelta(days=3)
+            )
 
-        # Create new entry (wallet_address not stored in Blacklist model, only telegram_id)
+        # Create new entry
         entry = await self.repository.create(
-            {
-                "telegram_id": telegram_id,
-                "reason": reason,
-                "created_by_admin_id": added_by_admin_id,
-                "action_type": action_type,
-                "appeal_deadline": appeal_deadline,
-                "is_active": True,
-            }
+            telegram_id=telegram_id,
+            reason=reason,
+            created_by_admin_id=added_by_admin_id,
+            action_type=action_type,
+            appeal_deadline=appeal_deadline,
+            is_active=True,
         )
 
         logger.info(
@@ -206,8 +212,10 @@ class BlacklistService:
             return False
 
         # Deactivate instead of delete
-        entry.is_active = False
-        await self.repository.update(entry)
+        await self.repository.update(
+            entry.id,
+            is_active=False,
+        )
 
         logger.info(
             f"Removed from blacklist: "

@@ -201,19 +201,17 @@ class SettingsService:
 
         if existing:
             # Update
-            existing.value = value_str
+            update_data = {"value": value_str}
             if description:
-                existing.description = description
-            await self.repository.update(existing)
+                update_data["description"] = description
+            await self.repository.update(existing.id, **update_data)
             setting = existing
         else:
             # Create
             setting = await self.repository.create(
-                {
-                    "key": key,
-                    "value": value_str,
-                    "description": description or f"Setting: {key}",
-                }
+                key=key,
+                value=value_str,
+                description=description or f"Setting: {key}",
             )
 
         # Invalidate cache

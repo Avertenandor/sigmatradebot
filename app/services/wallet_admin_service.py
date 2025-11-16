@@ -64,12 +64,12 @@ class WalletAdminService:
             )
 
         # Update request
-        request.status = WalletChangeStatus.APPROVED.value
-        request.approved_by_admin_id = admin_id
-        request.approved_at = datetime.utcnow()
-
-        # Save changes
-        await self.repository.update(request)
+        await self.repository.update(
+            request.id,
+            status=WalletChangeStatus.APPROVED.value,
+            approved_by_admin_id=admin_id,
+            approved_at=datetime.utcnow(),
+        )
 
         return request
 
@@ -107,18 +107,22 @@ class WalletAdminService:
             )
 
         # Update request
-        request.status = WalletChangeStatus.REJECTED.value
-        request.approved_by_admin_id = admin_id
-        request.approved_at = datetime.utcnow()
+        update_data = {
+            "status": WalletChangeStatus.REJECTED.value,
+            "approved_by_admin_id": admin_id,
+            "approved_at": datetime.utcnow(),
+        }
 
         # Update reason if admin notes provided
         if admin_notes:
             if request.reason:
-                request.reason = f"{request.reason}\n\nRejection notes: {admin_notes}"
+                update_data["reason"] = (
+                    f"{request.reason}\n\nRejection notes: {admin_notes}"
+                )
             else:
-                request.reason = f"Rejection notes: {admin_notes}"
+                update_data["reason"] = f"Rejection notes: {admin_notes}"
 
         # Save changes
-        await self.repository.update(request)
+        await self.repository.update(request.id, **update_data)
 
         return request
