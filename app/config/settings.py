@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     admin_telegram_ids: str = ""  # Comma-separated list
 
     # Wallet
-    wallet_private_key: str
+    wallet_private_key: Optional[str] = None
     wallet_address: str
     usdt_contract_address: str
     rpc_url: str
