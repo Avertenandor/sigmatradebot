@@ -5,6 +5,7 @@ Manages HTTP and WebSocket providers with fallback logic and health monitoring.
 """
 
 import asyncio
+from typing import Any
 
 from loguru import logger
 from web3 import AsyncHTTPProvider, AsyncWeb3
@@ -203,7 +204,7 @@ class ProviderManager:
         """Check if WebSocket provider is connected."""
         return self._ws_connected
 
-    async def health_check(self) -> dict[str, any]:
+    async def health_check(self) -> dict[str, Any]:
         """
         Perform health check on providers.
 

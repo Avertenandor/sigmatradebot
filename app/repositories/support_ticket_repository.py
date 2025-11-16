@@ -33,7 +33,7 @@ class SupportTicketRepository(BaseRepository[SupportTicket]):
         Returns:
             List of tickets
         """
-        filters = {"user_id": user_id}
+        filters: dict[str, int | str] = {"user_id": user_id}
         if status:
             filters["status"] = status
 
@@ -86,3 +86,21 @@ class SupportTicketRepository(BaseRepository[SupportTicket]):
             List of assigned tickets
         """
         return await self.find_by(assigned_admin_id=admin_id)
+
+    async def get_active_by_user(
+        self, user_id: int
+    ) -> SupportTicket | None:
+        """
+        Get active (open) ticket for user.
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            Active ticket or None
+        """
+        from app.models.enums import SupportTicketStatus
+
+        return await self.get_by(
+            user_id=user_id, status=SupportTicketStatus.OPEN.value
+        )

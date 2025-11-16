@@ -34,7 +34,7 @@ class DepositRepository(BaseRepository[Deposit]):
         Returns:
             List of deposits
         """
-        filters = {"user_id": user_id}
+        filters: dict[str, int | str] = {"user_id": user_id}
         if status:
             filters["status"] = status
 
@@ -122,4 +122,4 @@ class DepositRepository(BaseRepository[Deposit]):
         if not deposits:
             return Decimal("0")
 
-        return sum(d.amount for d in deposits)
+        return sum((d.amount for d in deposits), Decimal("0"))

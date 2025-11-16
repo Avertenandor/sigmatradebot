@@ -34,6 +34,29 @@ class SystemSettingRepository(BaseRepository[SystemSetting]):
         setting = await self.get_by(key=key)
         return setting.value if setting else default
 
+    async def get_by_key(
+        self, key: str
+    ) -> SystemSetting | None:
+        """
+        Get setting by key.
+
+        Args:
+            key: Setting key
+
+        Returns:
+            Setting or None
+        """
+        return await self.get_by(key=key)
+
+    async def get_all(self) -> list[SystemSetting]:
+        """
+        Get all settings.
+
+        Returns:
+            List of all settings
+        """
+        return await self.find_all()
+
     async def set_value(
         self, key: str, value: str
     ) -> SystemSetting:

@@ -43,7 +43,7 @@ async def show_main_menu(
 
     # Get blacklist status
     blacklist_repo = BlacklistRepository(session)
-    blacklist_entry = await blacklist_repo.get_active_blacklist(
+    blacklist_entry = await blacklist_repo.find_by_telegram_id(
         user.telegram_id
     )
 

@@ -70,12 +70,19 @@ async def process_ticket_message(
     support_service = SupportService(session)
 
     try:
-        ticket = await support_service.create_ticket(
+        ticket, error = await support_service.create_ticket(
             user_id=user.id,
             category=SupportCategory.OTHER,
-            subject="Обращение от пользователя",
-            message=message.text,
+            initial_message=message.text,
         )
+
+        if error or not ticket:
+            await message.answer(
+                f"❌ Ошибка при создании обращения:\n{error}",
+                parse_mode="Markdown",
+            )
+            await state.clear()
+            return
 
         await state.clear()
 

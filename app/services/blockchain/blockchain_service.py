@@ -6,6 +6,7 @@ Orchestrates all blockchain operations using component services.
 
 from collections.abc import Callable
 from decimal import Decimal
+from typing import Any
 
 from loguru import logger
 
@@ -168,7 +169,7 @@ class BlockchainService:
         tx_hash: str,
         expected_amount: Decimal | None = None,
         tolerance_percent: float = 0.05,
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """
         Check deposit transaction status.
 
@@ -209,7 +210,7 @@ class BlockchainService:
         to_address: str,
         amount_usdt: Decimal,
         max_retries: int = 5,
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """
         Send USDT payment.
 
@@ -233,7 +234,7 @@ class BlockchainService:
         self,
         to_address: str,
         amount_usdt: Decimal,
-    ) -> dict[str, any] | None:
+    ) -> dict[str, Any] | None:
         """
         Estimate gas cost for payment.
 
@@ -315,7 +316,7 @@ class BlockchainService:
 
     # === Health & Status ===
 
-    async def health_check(self) -> dict[str, any]:
+    async def health_check(self) -> dict[str, Any]:
         """
         Perform health check on blockchain service.
 

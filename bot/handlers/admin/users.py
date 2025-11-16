@@ -408,11 +408,12 @@ async def handle_ban_user_input(
     # Ban user
     result = await user_service.ban_user(user.id)
 
-    if result["success"]:
+    if result and result.get("success"):
         display_name = user.username or f"ID {user.telegram_id}"
         await message.reply(f"✅ Пользователь {display_name} заблокирован")
     else:
-        await message.reply(f"❌ Ошибка: {result.get('error', 'Unknown')}")
+        error = result.get("error", "Unknown") if result else "Unknown error"
+        await message.reply(f"❌ Ошибка: {error}")
 
     # Reset state
     await state.clear()

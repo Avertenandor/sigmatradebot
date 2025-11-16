@@ -138,7 +138,7 @@ class WalletChangeRequest(Base):
         )
 
     @property
-    def type_display(self) -> str:
+    def type_display(self) -> str | None:
         """Get formatted type name."""
         type_map = {
             WalletChangeType.SYSTEM_DEPOSIT.value: "System Deposit",
@@ -147,7 +147,7 @@ class WalletChangeRequest(Base):
         return type_map.get(self.type, self.type)
 
     @property
-    def status_display(self) -> str:
+    def status_display(self) -> str | None:
         """Get formatted status name."""
         status_map = {
             WalletChangeStatus.PENDING.value: "Pending",

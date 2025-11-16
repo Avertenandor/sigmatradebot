@@ -51,11 +51,25 @@ class DepositRewardRepository(BaseRepository[DepositReward]):
         Returns:
             List of unpaid rewards
         """
-        filters = {"paid": False}
+        filters: dict[str, bool | int] = {"paid": False}
         if user_id:
             filters["user_id"] = user_id
 
         return await self.find_by(**filters)
+
+    async def get_unpaid_by_user(
+        self, user_id: int
+    ) -> list[DepositReward]:
+        """
+        Get unpaid rewards for a specific user.
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            List of unpaid rewards
+        """
+        return await self.find_by(user_id=user_id, paid=False)
 
     async def get_by_session(
         self, reward_session_id: int

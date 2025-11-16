@@ -36,7 +36,7 @@ class TransactionRepository(BaseRepository[Transaction]):
         Returns:
             List of transactions
         """
-        filters = {"user_id": user_id}
+        filters: dict[str, int | str] = {"user_id": user_id}
         if type:
             filters["type"] = type
         if status:

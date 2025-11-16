@@ -141,7 +141,7 @@ class Admin(Base):
         return self.username or f"Admin{self.telegram_id}"
 
     @property
-    def role_display(self) -> str:
+    def role_display(self) -> str | None:
         """Get formatted role name."""
         role_map = {
             "admin": "Admin",

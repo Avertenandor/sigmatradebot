@@ -6,6 +6,7 @@ Handles USDT payment sending with gas estimation and error handling.
 
 import asyncio
 from decimal import Decimal
+from typing import Any
 
 from eth_account import Account
 from loguru import logger
@@ -81,7 +82,7 @@ class PaymentSender:
         to_address: str,
         amount_usdt: Decimal,
         max_retries: int = MAX_RETRIES,
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """
         Send USDT payment.
 
@@ -161,7 +162,7 @@ class PaymentSender:
         self,
         to_address: str,
         amount_wei: int,
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """
         Send a single USDT transaction.
 
@@ -275,7 +276,7 @@ class PaymentSender:
         self,
         to_address: str,
         amount_usdt: Decimal,
-    ) -> dict[str, any] | None:
+    ) -> dict[str, Any] | None:
         """
         Estimate gas cost for USDT transfer.
 
