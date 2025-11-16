@@ -5,19 +5,29 @@ Bot command and message handlers.
 """
 
 from bot.handlers import (
+    appeal,
     deposit,
-    finpass_recovery,
     instructions,
     menu,
     start,
+    verification,
     withdrawal,
+    referral,
+    profile,
+    transaction,
+    support,
 )
 
 __all__ = [
+    "appeal",
     "deposit",
-    "finpass_recovery",
     "instructions",
     "menu",
     "start",
+    "verification",
     "withdrawal",
+    "referral",
+    "profile",
+    "transaction",
+    "support",
 ]
