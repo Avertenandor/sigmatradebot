@@ -24,17 +24,17 @@ except ImportError:
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.config.database import async_session_maker
-from app.config.settings import settings
-from app.services.blockchain_service import init_blockchain_service
-from app.utils.admin_init import ensure_default_super_admin
-from bot.middlewares.auth import AuthMiddleware
-from bot.middlewares.ban_middleware import BanMiddleware
-from bot.middlewares.database import DatabaseMiddleware
-from bot.middlewares.logger_middleware import LoggerMiddleware
-from bot.middlewares.menu_state_clear import MenuStateClearMiddleware
-from bot.middlewares.rate_limit_middleware import RateLimitMiddleware
-from bot.middlewares.request_id import RequestIDMiddleware
+from app.config.database import async_session_maker  # noqa: E402
+from app.config.settings import settings  # noqa: E402
+from app.services.blockchain_service import init_blockchain_service  # noqa: E402
+from app.utils.admin_init import ensure_default_super_admin  # noqa: E402
+from bot.middlewares.auth import AuthMiddleware  # noqa: E402
+from bot.middlewares.ban_middleware import BanMiddleware  # noqa: E402
+from bot.middlewares.database import DatabaseMiddleware  # noqa: E402
+from bot.middlewares.logger_middleware import LoggerMiddleware  # noqa: E402
+from bot.middlewares.menu_state_clear import MenuStateClearMiddleware  # noqa: E402
+from bot.middlewares.rate_limit_middleware import RateLimitMiddleware  # noqa: E402
+from bot.middlewares.request_id import RequestIDMiddleware  # noqa: E402
 
 
 async def main() -> None:

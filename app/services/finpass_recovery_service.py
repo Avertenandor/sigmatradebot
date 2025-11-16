@@ -1,1 +1,273 @@
-∢ഢ䘊湩湡楣污倠獡睳牯⁤敒潣敶祲匠牥楶散മഊ䴊湡条獥映湩湡楣污瀠獡睳牯⁤敲潣敶祲爠煥敵瑳⁳楷桴愠浤湩愠灰潲慶⁬潷歲汦睯മ∊∢਍਍牦浯搠瑡瑥浩⁥浩潰瑲搠瑡瑥浩൥昊潲⁭祴楰杮椠灭牯⁴灏楴湯污਍਍牦浯氠杯牵⁵浩潰瑲氠杯敧൲昊潲⁭煳慬捬敨祭攮瑸愮祳据潩椠灭牯⁴獁湹卣獥楳湯਍਍牦浯愠灰洮摯汥⹳楦慮据慩彬慰獳潷摲牟捥癯牥⁹浩潰瑲䘠湩湡楣污慐獳潷摲敒潣敶祲਍牦浯愠灰爮灥獯瑩牯敩⹳楦慮据慩彬慰獳潷摲牟捥癯牥役敲潰楳潴祲椠灭牯⁴ന †䘠湩湡楣污慐獳潷摲敒潣敶祲敒潰楳潴祲ബ⤊਍਍਍汣獡⁳楆灮獡剳捥癯牥卹牥楶散ഺ †∠∢਍††敓癲捩⁥潦⁲慭慮楧杮映湩湡楣污瀠獡睳牯⁤敲潣敶祲മഊ †䘠慥畴敲㩳਍††‭獕牥爠煥敵瑳猠扵業獳潩൮ †ⴠ䄠浤湩愠灰潲慶⽬敲敪瑣潩൮ †ⴠ䔠牡楮杮⁳汢捯楫杮搠牵湩⁧敲潣敶祲਍††‭畁潴甭扮潬正愠瑦牥瘠牥晩捩瑡潩൮ †∠∢਍਍††敤⁦彟湩瑩彟猨汥ⱦ猠獥楳湯›獁湹卣獥楳湯 㸭丠湯㩥਍††††∢ഢ †††䤠楮楴污穩⁥楦灮獡⁳敲潣敶祲猠牥楶散മഊ †††䄠杲㩳਍††††††敳獳潩㩮䐠瑡扡獡⁥敳獳潩൮ †††∠∢਍††††敳晬献獥楳湯㴠猠獥楳湯਍††††敳晬爮灥獯瑩牯⁹‽楆慮据慩偬獡睳牯剤捥癯牥剹灥獯瑩牯⡹敳獳潩⥮਍਍††獡湹⁣敤⁦牣慥整牟捥癯牥役敲畱獥⡴਍††††敳晬ബ †††甠敳彲摩›湩ⱴ਍††††敲獡湯›灏楴湯污獛牴⁝‽潎敮ബ †⤠ⴠ‾楆慮据慩偬獡睳牯剤捥癯牥㩹਍††††∢ഢ †††䌠敲瑡⁥楦慮据慩⁬慰獳潷摲爠捥癯牥⁹敲畱獥⹴਍਍††††牁獧ഺ †††††甠敳彲摩›獕牥䤠ൄ †††††爠慥潳㩮删捥癯牥⁹敲獡湯਍਍††††敒畴湲㩳਍††††††楆慮据慩偬獡睳牯剤捥癯牥⁹湩瑳湡散਍਍††††慒獩獥ഺ †††††嘠污敵牅潲㩲䤠⁦捡楴敶爠煥敵瑳愠牬慥祤攠楸瑳൳ †††∠∢਍††††‣桃捥⁫潦⁲硥獩楴杮瀠湥楤杮爠煥敵瑳਍††††硥獩楴杮㴠愠慷瑩猠汥⹦敲潰楳潴祲昮湩彤数摮湩彧祢畟敳⡲獵牥楟⥤਍਍††††晩攠楸瑳湩㩧਍††††††慲獩⁥慖畬䕥牲牯ന †††††††∠捁楴敶爠捥癯牥⁹敲畱獥⁴污敲摡⁹硥獩獴映牯琠楨⁳獵牥ഢ †††††⤠਍਍††††‣牃慥整爠煥敵瑳਍††††敲畱獥⁴‽睡楡⁴敳晬爮灥獯瑩牯⹹牣慥整ന †††††笠਍††††††††產敳彲摩㨢甠敳彲摩ബ †††††††∠敲獡湯㨢爠慥潳⁮牯∠獕牥爠煥敵瑳摥瀠獡睳牯⁤敲潣敶祲Ⱒ਍††††††††猢慴畴≳›瀢湥楤杮Ⱒ਍††††††ൽ †††⤠਍਍††††潬杧牥椮普⡯਍††††††≦楆慮据慩⁬慰獳潷摲爠捥癯牥⁹敲畱獥⁴牣慥整㩤∠਍††††††≦獵牥楟㵤畻敳彲摩ⱽ爠煥敵瑳楟㵤牻煥敵瑳椮絤ഢ †††⤠਍਍††††敲畴湲爠煥敵瑳਍਍††獡湹⁣敤⁦灡牰癯彥敲畱獥⡴਍††††敳晬ബ †††爠煥敵瑳楟㩤椠瑮ബ †††愠浤湩楟㩤椠瑮ബ †††愠浤湩湟瑯獥›灏楴湯污獛牴⁝‽潎敮ബ †⤠ⴠ‾楆慮据慩偬獡睳牯剤捥癯牥㩹਍††††∢ഢ †††䄠灰潲敶爠捥癯牥⁹敲畱獥⹴਍਍††††牁獧ഺ †††††爠煥敵瑳楟㩤删煥敵瑳䤠ൄ †††††愠浤湩楟㩤䄠浤湩䤠⁄桷⁯灡牰癯摥਍††††††摡業彮潮整㩳䄠浤湩渠瑯獥਍਍††††敒畴湲㩳਍††††††灕慤整⁤楆慮据慩偬獡睳牯剤捥癯牥൹ഊ †††删楡敳㩳਍††††††慖畬䕥牲牯›晉爠煥敵瑳渠瑯映畯摮漠⁲潮⁴数摮湩൧ †††∠∢਍††††敲畱獥⁴‽睡楡⁴敳晬爮灥獯瑩牯⹹敧彴祢楟⡤敲畱獥彴摩ഩഊ †††椠⁦潮⁴敲畱獥㩴਍††††††慲獩⁥慖畬䕥牲牯∨敒潣敶祲爠煥敵瑳渠瑯映畯摮⤢਍਍††††晩爠煥敵瑳献慴畴⁳㴡∠数摮湩≧ഺ †††††爠楡敳嘠污敵牅潲⡲਍††††††††≦敒畱獥⁴獩渠瑯瀠湥楤杮⠠瑳瑡獵›牻煥敵瑳献慴畴絳∩਍††††††ഩഊ †††⌠唠摰瑡⁥敲畱獥൴ †††爠煥敵瑳献慴畴⁳‽愢灰潲敶≤਍††††敲畱獥⹴敲楶睥摥扟役摡業彮摩㴠愠浤湩楟൤ †††爠煥敵瑳爮癥敩敷彤瑡㴠搠瑡瑥浩⹥瑵湣睯⤨਍††††敲畱獥⹴摡業彮潮整⁳‽摡業彮潮整൳ഊ †††愠慷瑩猠汥⹦敲潰楳潴祲甮摰瑡⡥敲畱獥⥴਍਍††††潬杧牥椮普⡯਍††††††≦楆慮据慩⁬慰獳潷摲爠捥癯牥⁹灡牰癯摥›ഢ †††††映爢煥敵瑳楟㵤牻煥敵瑳楟絤‬摡業彮摩笽摡業彮摩≽਍††††ഩഊ †††爠瑥牵⁮敲畱獥൴ഊ †愠祳据搠晥爠橥捥彴敲畱獥⡴਍††††敳晬ബ †††爠煥敵瑳楟㩤椠瑮ബ †††愠浤湩楟㩤椠瑮ബ †††愠浤湩湟瑯獥›灏楴湯污獛牴⁝‽潎敮ബ †⤠ⴠ‾楆慮据慩偬獡睳牯剤捥癯牥㩹਍††††∢ഢ †††删橥捥⁴敲潣敶祲爠煥敵瑳മഊ †††䄠杲㩳਍††††††敲畱獥彴摩›敒畱獥⁴䑉਍††††††摡業彮摩›摁業⁮䑉眠潨爠橥捥整൤ †††††愠浤湩湟瑯獥›敒敪瑣潩⁮敲獡湯਍਍††††敒畴湲㩳਍††††††灕慤整⁤楆慮据慩偬獡睳牯剤捥癯牥൹ഊ †††删楡敳㩳਍††††††慖畬䕥牲牯›晉爠煥敵瑳渠瑯映畯摮漠⁲潮⁴数摮湩൧ †††∠∢਍††††敲畱獥⁴‽睡楡⁴敳晬爮灥獯瑩牯⹹敧彴祢楟⡤敲畱獥彴摩ഩഊ †††椠⁦潮⁴敲畱獥㩴਍††††††慲獩⁥慖畬䕥牲牯∨敒潣敶祲爠煥敵瑳渠瑯映畯摮⤢਍਍††††晩爠煥敵瑳献慴畴⁳㴡∠数摮湩≧ഺ †††††爠楡敳嘠污敵牅潲⡲਍††††††††≦敒畱獥⁴獩渠瑯瀠湥楤杮⠠瑳瑡獵›牻煥敵瑳献慴畴絳∩਍††††††ഩഊ †††⌠唠摰瑡⁥敲畱獥൴ †††爠煥敵瑳献慴畴⁳‽爢橥捥整≤਍††††敲畱獥⹴敲楶睥摥扟役摡業彮摩㴠愠浤湩楟൤ †††爠煥敵瑳爮癥敩敷彤瑡㴠搠瑡瑥浩⹥瑵湣睯⤨਍††††敲畱獥⹴摡業彮潮整⁳‽摡業彮潮整⁳牯∠敒畱獥⁴敲敪瑣摥ഢഊ †††愠慷瑩猠汥⹦敲潰楳潴祲甮摰瑡⡥敲畱獥⥴਍਍††††潬杧牥椮普⡯਍††††††≦楆慮据慩⁬慰獳潷摲爠捥癯牥⁹敲敪瑣摥›ഢ †††††映爢煥敵瑳楟㵤牻煥敵瑳楟絤‬摡業彮摩笽摡業彮摩≽਍††††ഩഊ †††爠瑥牵⁮敲畱獥൴ഊ †愠祳据搠晥洠牡彫獡癟牥晩敩⡤਍††††敳晬ബ †††爠煥敵瑳楟㩤椠瑮ബ †⤠ⴠ‾楆慮据慩偬獡睳牯剤捥癯牥㩹਍††††∢ഢ †††䴠牡⁫敲潣敶祲爠煥敵瑳愠⁳敶楲楦摥⠠獵牥甠敳⁤敮⁷慰獳潷摲⸩਍਍††††牁獧ഺ †††††爠煥敵瑳楟㩤删煥敵瑳䤠ൄഊ †††删瑥牵獮ഺ †††††唠摰瑡摥䘠湩湡楣污慐獳潷摲敒潣敶祲਍਍††††慒獩獥ഺ †††††嘠污敵牅潲㩲䤠⁦敲畱獥⁴潮⁴潦湵⁤牯渠瑯愠灰潲敶൤ †††∠∢਍††††敲畱獥⁴‽睡楡⁴敳晬爮灥獯瑩牯⹹敧彴祢楟⡤敲畱獥彴摩ഩഊ †††椠⁦潮⁴敲畱獥㩴਍††††††慲獩⁥慖畬䕥牲牯∨敒潣敶祲爠煥敵瑳渠瑯映畯摮⤢਍਍††††晩爠煥敵瑳献慴畴⁳㴡∠灡牰癯摥㨢਍††††††慲獩⁥慖畬䕥牲牯ന †††††††映刢煥敵瑳椠⁳潮⁴灡牰癯摥⠠瑳瑡獵›牻煥敵瑳献慴畴絳∩਍††††††ഩഊ †††⌠䴠牡⁫獡瘠牥晩敩൤ †††爠煥敵瑳瘮牥晩敩彤瑡㴠搠瑡瑥浩⹥瑵湣睯⤨਍਍††††睡楡⁴敳晬爮灥獯瑩牯⹹灵慤整爨煥敵瑳ഩഊ †††氠杯敧⹲湩潦ന †††††映䘢湩湡楣污瀠獡睳牯⁤敲潣敶祲瘠牥晩敩㩤∠਍††††††≦敲畱獥彴摩笽敲畱獥彴摩≽਍††††ഩഊ †††爠瑥牵⁮敲畱獥൴ഊ †愠祳据搠晥朠瑥灟湥楤杮扟役獵牥ന †††猠汥ⱦ਍††††獵牥楟㩤椠瑮ബ †⤠ⴠ‾灏楴湯污䙛湩湡楣污慐獳潷摲敒潣敶祲㩝਍††††∢ഢ †††䜠瑥瀠湥楤杮爠捥癯牥⁹敲畱獥⁴潦⁲獵牥മഊ †††䄠杲㩳਍††††††獵牥楟㩤唠敳⁲䑉਍਍††††敒畴湲㩳਍††††††楆慮据慩偬獡睳牯剤捥癯牥⁹牯丠湯൥ †††∠∢਍††††敲畴湲愠慷瑩猠汥⹦敲潰楳潴祲昮湩彤数摮湩彧祢畟敳⡲獵牥楟⥤਍਍††獡湹⁣敤⁦敧彴污彬数摮湩⡧਍††††敳晬ബ †††氠浩瑩›湩⁴‽〵ബ †††漠晦敳㩴椠瑮㴠〠ബ †⤠ⴠ‾楬瑳䙛湩湡楣污慐獳潷摲敒潣敶祲㩝਍††††∢ഢ †††䜠瑥愠汬瀠湥楤杮爠捥癯牥⁹敲畱獥獴മഊ †††䄠杲㩳਍††††††楬業㩴䴠硡浩浵爠煥敵瑳⁳潴爠瑥牵൮ †††††漠晦敳㩴传晦敳⁴潦⁲慰楧慮楴湯਍਍††††敒畴湲㩳਍††††††楌瑳漠⁦数摮湩⁧敲畱獥獴਍††††∢ഢ †††爠瑥牵⁮睡楡⁴敳晬爮灥獯瑩牯⹹敧彴数摮湩彧敲畱獥獴ന †††††氠浩瑩氽浩瑩ബ †††††漠晦敳㵴景獦瑥ബ †††⤠਍਍††獡湹⁣敤⁦敧彴獵牥牟煥敵瑳⡳਍††††敳晬ബ †††甠敳彲摩›湩ⱴ਍††††楬業㩴椠瑮㴠ㄠⰰ਍†† 㸭氠獩孴楆慮据慩偬獡睳牯剤捥癯牥嵹ഺ †††∠∢਍††††敇⁴污⁬敲潣敶祲爠煥敵瑳⁳潦⁲獵牥മഊ †††䄠杲㩳਍††††††獵牥楟㩤唠敳⁲䑉਍††††††楬業㩴䴠硡浩浵爠煥敵瑳⁳潴爠瑥牵൮ഊ †††删瑥牵獮ഺ †††††䰠獩⁴景爠煥敵瑳൳ †††∠∢਍††††敲畴湲愠慷瑩猠汥⹦敲潰楳潴祲朮瑥扟役獵牥楟⡤਍††††††獵牥楟㵤獵牥楟Ɽ਍††††††楬業㵴楬業ⱴ਍††††ഩഊ †愠祳据搠晥栠獡慟瑣癩彥敲潣敶祲ന †††猠汥ⱦ਍††††獵牥楟㩤椠瑮ബ †⤠ⴠ‾潢汯ഺ †††∠∢਍††††桃捥⁫晩甠敳⁲慨⁳捡楴敶爠捥癯牥⁹愨灰潲敶⁤畢⁴潮⁴敶楲楦摥⸩਍਍††††牁獧ഺ †††††甠敳彲摩›獕牥䤠ൄഊ †††删瑥牵獮ഺ †††††吠畲⁥晩愠瑣癩⁥敲潣敶祲攠楸瑳൳ †††∠∢਍††††敲畱獥⁴‽睡楡⁴敳晬爮灥獯瑩牯⹹楦摮慟瑣癩彥敲潣敶祲用敳彲摩ഩ †††爠瑥牵⁮敲畱獥⁴獩渠瑯丠湯൥ഊ †愠祳据搠晥挠畯瑮灟湥楤杮猨汥⥦ⴠ‾湩㩴਍††††∢ഢ †††䌠畯瑮瀠湥楤杮爠捥癯牥⁹敲畱獥獴മഊ †††删瑥牵獮ഺ †††††丠浵敢⁲景瀠湥楤杮爠煥敵瑳൳ †††∠∢਍††††敲畴湲愠慷瑩猠汥⹦敲潰楳潴祲挮畯瑮灟湥楤杮⤨਍
+# MCP-MARKER:CREATE:FINPASS_RECOVERY_SERVICE
+# MCP-ANCHOR: finpass-recovery-service
+# MCP-DEPS: [sqlalchemy, loguru]
+# MCP-PROVIDES: FinpassRecoveryService, FinancialRecoveryStatus
+# MCP-SUMMARY: Service layer for handling financial password recovery workflow.
+"""Finpass recovery service.
+
+Business logic for managing financial password recovery requests.
+"""
+
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Iterable, List, Optional
+
+from loguru import logger
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.financial_password_recovery import (
+    FinancialPasswordRecovery,
+)
+from app.repositories.financial_password_recovery_repository import (
+    FinancialPasswordRecoveryRepository,
+)
+from app.repositories.user_repository import UserRepository
+
+
+class FinancialRecoveryStatus(str, Enum):
+    """Lifecycle states for a financial password recovery request."""
+
+    PENDING = "pending"
+    IN_REVIEW = "in_review"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    SENT = "sent"
+
+
+ACTIVE_USER_STATUSES: tuple[FinancialRecoveryStatus, ...] = (
+    FinancialRecoveryStatus.IN_REVIEW,
+    FinancialRecoveryStatus.APPROVED,
+    FinancialRecoveryStatus.SENT,
+)
+
+
+class FinpassRecoveryService:
+    """Service wrapper around financial password recovery workflow."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        """Initialize the service with required repositories."""
+        self.session = session
+        self.repository = FinancialPasswordRecoveryRepository(session)
+        self.user_repository = UserRepository(session)
+
+    async def get_pending_by_user(
+        self, user_id: int
+    ) -> Optional[FinancialPasswordRecovery]:
+        """Return the pending request for a user, if any."""
+        requests = await self.repository.get_by_user(
+            user_id=user_id,
+            status=FinancialRecoveryStatus.PENDING.value,
+        )
+        return requests[0] if requests else None
+
+    async def has_active_recovery(self, user_id: int) -> bool:
+        """Check whether a user already has an active recovery process."""
+        stmt = (
+            select(FinancialPasswordRecovery.id)
+            .where(FinancialPasswordRecovery.user_id == user_id)
+            .where(
+                FinancialPasswordRecovery.status.in_(
+                    [status.value for status in ACTIVE_USER_STATUSES]
+                )
+            )
+            .limit(1)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none() is not None
+
+    async def create_recovery_request(
+        self,
+        *,
+        user_id: int,
+        reason: str,
+        video_required: bool = True,
+    ) -> FinancialPasswordRecovery:
+        """Create a new financial password recovery request."""
+        normalized_reason = reason.strip()
+        if len(normalized_reason) < 10:
+            raise ValueError(
+                "Recovery reason must contain at least 10 characters"
+            )
+
+        user = await self.user_repository.get_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+
+        if await self.get_pending_by_user(user_id):
+            raise ValueError(
+                "A pending recovery request already exists for this user"
+            )
+
+        if await self.has_active_recovery(user_id):
+            raise ValueError(
+                "You already have an active recovery request awaiting "
+                "completion"
+            )
+
+        request = await self.repository.create(
+            user_id=user_id,
+            reason=normalized_reason,
+            status=FinancialRecoveryStatus.PENDING.value,
+            video_required=video_required,
+            video_verified=not video_required,
+        )
+
+        logger.info(
+            "Created financial password recovery request",
+            extra={
+                "user_id": user_id,
+                "request_id": request.id,
+                "video_required": video_required,
+            },
+        )
+
+        return request
+
+    async def get_all_pending(
+        self, limit: Optional[int] = None
+    ) -> List[FinancialPasswordRecovery]:
+        """Fetch pending requests, optionally limited for admin UI."""
+        if limit is None:
+            return await self.repository.get_pending_requests()
+
+        stmt = (
+            select(FinancialPasswordRecovery)
+            .where(
+                FinancialPasswordRecovery.status
+                == FinancialRecoveryStatus.PENDING.value
+            )
+            .order_by(FinancialPasswordRecovery.created_at.asc())
+            .limit(limit)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def approve_request(
+        self,
+        *,
+        request_id: int,
+        admin_id: int,
+        admin_notes: Optional[str] = None,
+    ) -> FinancialPasswordRecovery:
+        """Approve a recovery request."""
+        request = await self._get_request(request_id)
+        self._ensure_status(
+            request,
+            allowed={
+                FinancialRecoveryStatus.PENDING,
+                FinancialRecoveryStatus.IN_REVIEW,
+            },
+            action="approve",
+        )
+
+        updated = await self.repository.update(
+            request.id,
+            status=FinancialRecoveryStatus.APPROVED.value,
+            processed_by_admin_id=admin_id,
+            processed_at=datetime.now(timezone.utc),
+            admin_comment=admin_notes,
+        )
+
+        logger.info(
+            "Approved financial password recovery request",
+            extra={
+                "request_id": request_id,
+                "admin_id": admin_id,
+            },
+        )
+        return updated or request
+
+    async def reject_request(
+        self,
+        *,
+        request_id: int,
+        admin_id: int,
+        admin_notes: Optional[str] = None,
+    ) -> FinancialPasswordRecovery:
+        """Reject a recovery request."""
+        request = await self._get_request(request_id)
+        self._ensure_status(
+            request,
+            allowed={
+                FinancialRecoveryStatus.PENDING,
+                FinancialRecoveryStatus.IN_REVIEW,
+                FinancialRecoveryStatus.APPROVED,
+            },
+            action="reject",
+        )
+
+        updated = await self.repository.update(
+            request.id,
+            status=FinancialRecoveryStatus.REJECTED.value,
+            processed_by_admin_id=admin_id,
+            processed_at=datetime.now(timezone.utc),
+            admin_comment=admin_notes,
+        )
+
+        logger.info(
+            "Rejected financial password recovery request",
+            extra={
+                "request_id": request_id,
+                "admin_id": admin_id,
+            },
+        )
+        return updated or request
+
+    async def mark_sent(
+        self,
+        *,
+        request_id: int,
+        admin_id: int,
+        admin_notes: Optional[str] = None,
+    ) -> FinancialPasswordRecovery:
+        """Mark an approved request as sent to the user."""
+        request = await self._get_request(request_id)
+        self._ensure_status(
+            request,
+            allowed={FinancialRecoveryStatus.APPROVED},
+            action="mark as sent",
+        )
+
+        updated = await self.repository.update(
+            request.id,
+            status=FinancialRecoveryStatus.SENT.value,
+            processed_by_admin_id=admin_id,
+            processed_at=datetime.now(timezone.utc),
+            admin_comment=admin_notes,
+        )
+
+        logger.info(
+            "Marked financial password recovery request as sent",
+            extra={
+                "request_id": request_id,
+                "admin_id": admin_id,
+            },
+        )
+        return updated or request
+
+    async def _get_request(
+        self, request_id: int
+    ) -> FinancialPasswordRecovery:
+        request = await self.repository.get_by_id(request_id)
+        if not request:
+            raise ValueError(f"Recovery request {request_id} not found")
+        return request
+
+    @staticmethod
+    def _ensure_status(
+        request: FinancialPasswordRecovery,
+        *,
+        allowed: Iterable[FinancialRecoveryStatus],
+        action: str,
+    ) -> None:
+        allowed_values = {status.value for status in allowed}
+        if request.status not in allowed_values:
+            raise ValueError(
+                (
+                    f"Cannot {action} request {request.id} "
+                    f"in status {request.status}"
+                )
+            )

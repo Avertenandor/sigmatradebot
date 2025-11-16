@@ -144,8 +144,17 @@ alembic downgrade -1
 
 ### Testing
 ```bash
-# Run tests
+# Run all tests
 pytest
+
+# Run specific test types
+pytest tests/unit/ -v              # Unit tests
+pytest tests/integration/ -v       # Integration tests
+pytest tests/e2e/ -v              # End-to-end tests
+pytest tests/load/ -v -m load     # Load tests
+
+# With coverage
+pytest --cov=app --cov=bot --cov-report=html
 
 # Type checking
 mypy bot/ app/
@@ -153,6 +162,12 @@ mypy bot/ app/
 # Format code
 black bot/ app/
 ```
+
+**Testing Documentation:**
+- **[tests/TESTING_SYSTEM_DOCUMENTATION.md](tests/TESTING_SYSTEM_DOCUMENTATION.md)**: Complete testing system
+- **[tests/LOAD_TESTING_SCENARIOS.md](tests/LOAD_TESTING_SCENARIOS.md)**: Load testing scenarios
+- **[tests/TEST_COVERAGE_MAP.md](tests/TEST_COVERAGE_MAP.md)**: Coverage map
+- **[tests/README.md](tests/README.md)**: Quick start guide
 
 ## 📊 Key Components
 

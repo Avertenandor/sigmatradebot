@@ -7,9 +7,9 @@ Loads configuration from environment variables using pydantic-settings.
 import re
 from typing import Optional
 
-from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from loguru import logger
+from pydantic import Field, field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -71,6 +71,44 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    @model_validator(mode='after')
+    def validate_production(self) -> 'Settings':
+        """Validate production-specific requirements."""
+        if self.environment == 'production':
+            # DEBUG must be False in production
+            if self.debug:
+                raise ValueError(
+                    'DEBUG must be False in production environment. '
+                    'Set DEBUG=false in your .env file.'
+                )
+
+            # Ensure secure keys are set
+            if not self.secret_key or len(self.secret_key) < 32:
+                raise ValueError(
+                    'SECRET_KEY must be at least 32 characters in production. '
+                    'Generate one with: openssl rand -hex 32'
+                )
+
+            if not self.encryption_key or len(self.encryption_key) < 32:
+                raise ValueError(
+                    'ENCRYPTION_KEY must be at least 32 characters in production. '
+                    'Generate one with: openssl rand -hex 32'
+                )
+
+            # Ensure wallet private key is not placeholder
+            if not self.wallet_private_key or 'your_' in self.wallet_private_key.lower():
+                raise ValueError(
+                    'WALLET_PRIVATE_KEY must be set with a real value in production'
+                )
+
+            # Ensure database URL is not using default passwords
+            if 'password' in self.database_url.lower() or 'changeme' in self.database_url.lower():
+                raise ValueError(
+                    'DATABASE_URL must not use default passwords in production'
+                )
+
+        return self
+
     @field_validator('telegram_bot_token')
     @classmethod
     def validate_bot_token(cls, v: str) -> str:
@@ -94,8 +132,8 @@ class Settings(BaseSettings):
             )
         try:
             int(v[2:], 16)
-        except ValueError:
-            raise ValueError(f'Invalid Ethereum address format: {v}')
+        except ValueError as exc:
+            raise ValueError(f'Invalid Ethereum address format: {v}') from exc
         return v.lower()
 
     @field_validator('usdt_contract_address')
@@ -120,7 +158,7 @@ class Settings(BaseSettings):
         """Parse admin IDs from comma-separated string with error handling."""
         if not self.admin_telegram_ids:
             return []
-        
+
         result = []
         for id_ in self.admin_telegram_ids.split(","):
             id_stripped = id_.strip()

@@ -4,13 +4,12 @@ FinancialPasswordRecovery model.
 Tracks financial password recovery requests with video verification.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import (
     Boolean,
     DateTime,
-    Index,
     Integer,
     String,
     Text,
@@ -42,7 +41,8 @@ class FinancialPasswordRecovery(Base):
         status: Recovery status
         video_required: Video verification required
         video_verified: Video verification completed
-        processed_by_admin_id: Admin who processed request
+    reason: User-provided recovery reason
+    processed_by_admin_id: Admin who processed request
         processed_at: Processing timestamp
         admin_comment: Admin notes
         created_at: Request creation timestamp
@@ -59,6 +59,11 @@ class FinancialPasswordRecovery(Base):
     # User
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=False, index=True
+    )
+
+    # User reason
+    reason: Mapped[str] = mapped_column(
+        Text, nullable=False
     )
 
     # Status
@@ -83,6 +88,19 @@ class FinancialPasswordRecovery(Base):
     )
     admin_comment: Mapped[Optional[str]] = mapped_column(
         Text, nullable=True
+    )
+
+    # Audit timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
     )
 
     # Relationships

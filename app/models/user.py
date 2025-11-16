@@ -6,7 +6,7 @@ Represents a registered Telegram user in the system.
 
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import BigInteger, Boolean, CheckConstraint, DateTime, DECIMAL, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -15,7 +15,6 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.deposit import Deposit
-    from app.models.referral import Referral
     from app.models.transaction import Transaction
 
 
@@ -47,7 +46,7 @@ class User(Base):
     financial_password: Mapped[str] = mapped_column(
         String(255), nullable=False
     )
-    
+
     # Optional contacts (from TZ)
     phone: Mapped[Optional[str]] = mapped_column(
         String(50), nullable=True

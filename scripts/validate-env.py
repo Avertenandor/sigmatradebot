@@ -6,6 +6,7 @@ Validates that all required environment variables are set and have valid values.
 """
 
 import os
+import re
 import sys
 from pathlib import Path
 from typing import List, Tuple
@@ -14,6 +15,37 @@ from typing import List, Tuple
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.config.settings import Settings
+
+
+def validate_telegram_token(token: str) -> tuple[bool, str]:
+    """Validate Telegram bot token format."""
+    pattern = r'^\d+:[A-Za-z0-9_-]{35}$'
+    if not re.match(pattern, token):
+        return False, "Invalid format. Expected: 123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+    return True, "OK"
+
+
+def validate_wallet_address(address: str) -> tuple[bool, str]:
+    """Validate Ethereum wallet address."""
+    if not address or not address.startswith('0x') or len(address) != 42:
+        return False, "Must start with 0x and be 42 characters"
+    try:
+        # Validate hex format
+        int(address[2:], 16)
+    except ValueError:
+        return False, "Invalid hexadecimal format"
+    return True, "OK"
+
+
+def validate_database_url(url: str) -> tuple[bool, str]:
+    """Validate database URL."""
+    if not url.startswith('postgresql+asyncpg://'):
+        return False, "Must use postgresql+asyncpg:// driver"
+    if 'changeme' in url.lower():
+        return False, "Password cannot be 'changeme'"
+    if 'your_' in url.lower() or 'placeholder' in url.lower():
+        return False, "Contains placeholder values"
+    return True, "OK"
 
 
 def validate_env() -> Tuple[bool, List[str]]:
@@ -50,24 +82,35 @@ def validate_env() -> Tuple[bool, List[str]]:
         elif "your_" in value.lower() or "placeholder" in value.lower():
             errors.append(f"{env_name} contains placeholder value")
     
-    # Validate wallet address format (basic check)
-    if settings.wallet_address and not settings.wallet_address.startswith("0x"):
-        errors.append("WALLET_ADDRESS should start with '0x'")
+    # Use detailed validation functions
+    if settings.telegram_bot_token:
+        is_valid, msg = validate_telegram_token(settings.telegram_bot_token)
+        if not is_valid:
+            errors.append(f"TELEGRAM_BOT_TOKEN: {msg}")
     
-    if settings.system_wallet_address and not settings.system_wallet_address.startswith("0x"):
-        errors.append("SYSTEM_WALLET_ADDRESS should start with '0x'")
+    if settings.wallet_address:
+        is_valid, msg = validate_wallet_address(settings.wallet_address)
+        if not is_valid:
+            errors.append(f"WALLET_ADDRESS: {msg}")
     
-    # Validate USDT contract address
-    if settings.usdt_contract_address and not settings.usdt_contract_address.startswith("0x"):
-        errors.append("USDT_CONTRACT_ADDRESS should start with '0x'")
+    if settings.system_wallet_address:
+        is_valid, msg = validate_wallet_address(settings.system_wallet_address)
+        if not is_valid:
+            errors.append(f"SYSTEM_WALLET_ADDRESS: {msg}")
+    
+    if settings.usdt_contract_address:
+        is_valid, msg = validate_wallet_address(settings.usdt_contract_address)
+        if not is_valid:
+            errors.append(f"USDT_CONTRACT_ADDRESS: {msg}")
+    
+    if settings.database_url:
+        is_valid, msg = validate_database_url(settings.database_url)
+        if not is_valid:
+            errors.append(f"DATABASE_URL: {msg}")
     
     # Validate RPC URL
     if settings.rpc_url and not (settings.rpc_url.startswith("http://") or settings.rpc_url.startswith("https://")):
         errors.append("RPC_URL should be a valid HTTP/HTTPS URL")
-    
-    # Validate database URL
-    if settings.database_url and "postgresql" not in settings.database_url.lower():
-        errors.append("DATABASE_URL should be a PostgreSQL connection string")
     
     # Validate admin IDs (warning only, not blocking)
     admin_ids = settings.get_admin_ids()
@@ -80,6 +123,13 @@ def validate_env() -> Tuple[bool, List[str]]:
     
     if settings.redis_port <= 0 or settings.redis_port > 65535:
         errors.append("REDIS_PORT should be between 1 and 65535")
+    
+    # Validate secret keys length
+    if settings.secret_key and len(settings.secret_key) < 32:
+        errors.append("SECRET_KEY should be at least 32 characters")
+    
+    if settings.encryption_key and len(settings.encryption_key) < 32:
+        errors.append("ENCRYPTION_KEY should be at least 32 characters")
     
     return len(errors) == 0, errors
 
@@ -112,4 +162,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

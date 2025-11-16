@@ -6,9 +6,9 @@ Represents all financial transactions in the system.
 
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import CheckConstraint, DateTime, DECIMAL, ForeignKey, String, Text
+from sqlalchemy import DECIMAL, CheckConstraint, DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base

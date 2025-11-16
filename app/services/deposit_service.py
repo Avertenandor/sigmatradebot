@@ -7,9 +7,10 @@ Business logic for deposit management and ROI tracking.
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config.settings import settings
 from app.models.deposit import Deposit
 from app.models.enums import TransactionStatus
 from app.repositories.deposit_repository import DepositRepository
@@ -57,7 +58,6 @@ class DepositService:
 
         try:
             # Calculate ROI cap from settings
-            from app.config.settings import settings
             roi_multiplier = Decimal(str(settings.roi_cap_multiplier))
             roi_cap = amount * roi_multiplier
 

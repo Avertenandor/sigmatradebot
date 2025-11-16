@@ -6,14 +6,14 @@ Represents user deposits into the platform.
 
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import (
+    DECIMAL,
     BigInteger,
     Boolean,
     CheckConstraint,
     DateTime,
-    DECIMAL,
     ForeignKey,
     Integer,
     String,

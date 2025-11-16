@@ -6,6 +6,7 @@ Data access layer for FinancialPasswordRecovery model.
 
 from typing import List, Optional
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.financial_password_recovery import (
@@ -51,7 +52,13 @@ class FinancialPasswordRecoveryRepository(
         Returns:
             List of pending requests
         """
-        return await self.find_by(status="pending")
+        stmt = (
+            select(FinancialPasswordRecovery)
+            .where(FinancialPasswordRecovery.status == "pending")
+            .order_by(FinancialPasswordRecovery.created_at.asc())
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
 
     async def has_active_request(
         self, user_id: int

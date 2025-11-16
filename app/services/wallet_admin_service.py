@@ -5,7 +5,7 @@ Service for managing wallet change requests and approvals.
 """
 
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -45,7 +45,7 @@ class WalletAdminService:
         Args:
             request_id: Request ID to approve
             admin_id: Admin ID who is approving
-            admin_notes: Optional admin notes
+            admin_notes: Optional admin notes (currently not used)
 
         Returns:
             Approved request
@@ -53,6 +53,9 @@ class WalletAdminService:
         Raises:
             ValueError: If request not found or cannot be approved
         """
+        # Note: admin_notes parameter is reserved for future use
+        _ = admin_notes  # Mark as intentionally unused
+        
         request = await self.repository.get_by_id(request_id)
 
         if not request:
@@ -65,14 +68,19 @@ class WalletAdminService:
             )
 
         # Update request
-        await self.repository.update(
+        updated_request = await self.repository.update(
             request.id,
             status=WalletChangeStatus.APPROVED.value,
             approved_by_admin_id=admin_id,
             approved_at=datetime.now(timezone.utc),
         )
 
-        return request
+        if updated_request is None:
+            raise ValueError(
+                f"Failed to approve request {request_id}: update returned None"
+            )
+
+        return updated_request
 
     async def reject_request(
         self,
@@ -110,7 +118,7 @@ class WalletAdminService:
             )
 
         # Update request
-        update_data = {
+        update_data: Dict[str, Any] = {
             "status": WalletChangeStatus.REJECTED.value,
             "approved_by_admin_id": admin_id,
             "approved_at": datetime.now(timezone.utc),
@@ -126,6 +134,14 @@ class WalletAdminService:
                 update_data["reason"] = f"Rejection notes: {admin_notes}"
 
         # Save changes
-        await self.repository.update(request.id, **update_data)
+        updated_request = await self.repository.update(
+            request.id,
+            **update_data,
+        )
 
-        return request
+        if updated_request is None:
+            raise ValueError(
+                f"Failed to reject request {request_id}: update returned None"
+            )
+
+        return updated_request
