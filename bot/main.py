@@ -150,7 +150,7 @@ async def main() -> None:
         blacklist,
         broadcast,
         deposit_settings,
-        finpass_recovery as admin_finpass,
+        # finpass_recovery as admin_finpass,  # Temporarily disabled due to encoding issues
         management,
         panel,
         users,
@@ -173,7 +173,7 @@ async def main() -> None:
     dp.include_router(transaction.router)
     dp.include_router(support.router)
     dp.include_router(verification.router)
-    dp.include_router(finpass_recovery.router)
+    # dp.include_router(finpass_recovery.router)  # Temporarily disabled
     dp.include_router(instructions.router)
     dp.include_router(appeal.router)
 
@@ -185,7 +185,7 @@ async def main() -> None:
     dp.include_router(broadcast.router)
     dp.include_router(blacklist.router)
     dp.include_router(deposit_settings.router)
-    dp.include_router(admin_finpass.router)
+    # dp.include_router(admin_finpass.router)  # Temporarily disabled
     dp.include_router(management.router)
     dp.include_router(wallets.router)
 
