@@ -12,6 +12,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.types import ErrorEvent
 from loguru import logger
 
 try:
@@ -150,23 +151,20 @@ async def main() -> None:  # noqa: C901
 
     # Register error handler (MUST BE FIRST)
     @dp.error()
-    async def error_handler(event, exc: Exception) -> bool:
+    async def error_handler(event: ErrorEvent) -> bool:
         """Global error handler for unhandled exceptions."""
         logger.exception(
-            f"Unhandled error in bot: {exc.__class__.__name__}: {exc}",
-            extra={
-                "update": str(event.update)
-                if hasattr(event, "update")
-                else None
-            },
+            f"Unhandled error in bot: {event.exception.__class__.__name__}: "
+            f"{event.exception}",
+            extra={"update": str(event.update) if event.update else None},
         )
 
         # Try to send error message to user
         try:
-            if hasattr(event, "update") and event.update.message:
+            if event.update and event.update.message:
                 await event.update.message.answer(
-                    "⚠️ Произошла ошибка. Пожалуйста, попробуйте позже"
-                        "или обратитесь в поддержку."
+                    "⚠️ Произошла ошибка. Пожалуйста, попробуйте позже "
+                    "или обратитесь в поддержку."
                 )
         except Exception as send_error:
             logger.error(f"Failed to send error message: {send_error}")

@@ -72,50 +72,41 @@ class AuthMiddleware(BaseMiddleware):
         users = await user_repo.find_by(telegram_id=telegram_user.id)
         user: User | None = users[0] if users else None
 
+        # Create user if not exists
+        if not user:
+            user = await user_repo.create(
+                telegram_id=telegram_user.id,
+                username=telegram_user.username,
+                first_name=telegram_user.first_name,
+                last_name=telegram_user.last_name,
+            )
+            logger.info(
+                f"Auto-created user {user.id} for Telegram ID "
+                f"{telegram_user.id} (@{telegram_user.username})"
+            )
+
         # Add user to data
         data["user"] = user
 
         # Add user_id, telegram_id for handlers
-        if user:
-            data["user_id"] = user.id
-            data["telegram_id"] = telegram_user.id
+        data["user_id"] = user.id
+        data["telegram_id"] = telegram_user.id
 
-            # Check if user is admin
-            # Admin check: user.is_admin or check Admin table
-            is_admin = False
-            if hasattr(user, "is_admin"):
-                is_admin = user.is_admin
-            else:
-                # Check if user exists in Admin table
-                from app.repositories.admin_repository import AdminRepository
-
-                admin_repo = AdminRepository(session)
-                admin = await admin_repo.get_by_telegram_id(telegram_user.id)
-                is_admin = admin is not None
-
-            data["is_admin"] = is_admin
-            data["admin_id"] = user.id if is_admin else 0
+        # Check if user is admin
+        # Admin check: user.is_admin or check Admin table
+        is_admin = False
+        if hasattr(user, "is_admin"):
+            is_admin = user.is_admin
         else:
-            data["user_id"] = 0
-            data["telegram_id"] = telegram_user.id
-            data["is_admin"] = False
-            data["admin_id"] = 0
+            # Check if user exists in Admin table
+            from app.repositories.admin_repository import AdminRepository
 
-        # Check if registration required
-        if self.require_registration and not user:
-            # User not registered - block access
-            if isinstance(event, Message):
-                await event.answer(
-                    "Вы не зарегистрированы! "
-                    "Используйте /start для регистрации."
-                )
-            elif isinstance(event, CallbackQuery):
-                await event.answer(
-                    "Вы не зарегистрированы! "
-                    "Используйте /start для регистрации.",
-                    show_alert=True,
-                )
-            return
+            admin_repo = AdminRepository(session)
+            admin = await admin_repo.get_by_telegram_id(telegram_user.id)
+            is_admin = admin is not None
+
+        data["is_admin"] = is_admin
+        data["admin_id"] = user.id if is_admin else 0
 
         # Call next handler
         return await handler(event, data)
