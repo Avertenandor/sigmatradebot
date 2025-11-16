@@ -4,6 +4,8 @@ Start handler.
 Handles /start command and user registration.
 """
 
+from typing import Any
+
 from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
@@ -28,8 +30,8 @@ router = Router()
 async def cmd_start(
     message: Message,
     session: AsyncSession,
-    user: User | None,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """
     Handle /start command with referral code support.
@@ -37,9 +39,10 @@ async def cmd_start(
     Args:
         message: Telegram message
         session: Database session
-        user: Current user (if registered)
         state: FSM state
+        data: Additional data from middlewares
     """
+    user: User | None = data.get("user")
     # Extract referral code from command args
     # Format: /start ref123456 or /start ref_123456
     referrer_telegram_id = None
