@@ -309,7 +309,7 @@ _settings_service: SettingsService | None = None
 
 def init_settings_service(
     session: AsyncSession,
-    redis_client: redis.Redis | None = None,
+    redis_client: Any | None = None,
 ) -> SettingsService:
     """Initialize settings service singleton."""
     global _settings_service
