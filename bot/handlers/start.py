@@ -5,7 +5,7 @@ Handles /start command and user registration.
 """
 
 from aiogram import F, Router
-from aiogram.filters import Command, CommandStart
+from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import (
     Message,
@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 from app.services.user_service import UserService
-from bot.keyboards.reply import main_menu_reply_keyboard, confirmation_keyboard
+from bot.keyboards.reply import main_menu_reply_keyboard
 from bot.states.registration import RegistrationStates
 
 router = Router()
@@ -49,7 +49,11 @@ async def cmd_start(
         if ref_arg.startswith("ref"):
             try:
                 # Extract telegram_id from ref code
-                ref_id_str = ref_arg.replace("ref", "").replace("_", "").replace("-", "")
+                ref_id_str = (
+                    ref_arg.replace("ref", "")
+                    .replace("_", "")
+                    .replace("-", "")
+                )
                 if ref_id_str.isdigit():
                     referrer_telegram_id = int(ref_id_str)
                     logger.info(
@@ -280,8 +284,9 @@ async def process_password_confirmation(
             
             if action_type == BlacklistActionType.REGISTRATION_DENIED:
                 await message.answer(
-                    "Здравствуйте, по решению участников нашего сообщества "
-                    "вам отказано в регистрации в нашем боте и других инструментах нашего сообщества."
+                    "Здравствуйте, по решению участников нашего "
+                    "сообщества вам отказано в регистрации в нашем "
+                    "боте и других инструментах нашего сообщества."
                 )
             else:
                 # Should not happen during registration, but handle gracefully
@@ -362,7 +367,8 @@ async def skip_contacts(
 ) -> None:
     """Skip contacts collection."""
     await callback.message.edit_text(
-        "✅ Контакты пропущены. Вы можете добавить их позже в настройках профиля.",
+        "✅ Контакты пропущены. Вы можете добавить их позже "
+        "в настройках профиля.",
     )
     await callback.answer()
     await state.clear()
@@ -382,7 +388,8 @@ async def process_phone(
         await state.clear()
         return  # Let menu handlers process this
     
-    if message.text and message.text.strip().lower() in ["/skip", "пропустить", "skip"]:
+    skip_commands = ["/skip", "пропустить", "skip"]
+    if message.text and message.text.strip().lower() in skip_commands:
         await state.update_data(phone=None)
         await state.set_state(RegistrationStates.waiting_for_email)
         await message.answer(
@@ -428,7 +435,8 @@ async def process_email(
         await state.clear()
         return  # Let menu handlers process this
     
-    if message.text and message.text.strip().lower() in ["/skip", "пропустить", "skip"]:
+    skip_commands = ["/skip", "пропустить", "skip"]
+    if message.text and message.text.strip().lower() in skip_commands:
         email = None
     else:
         email = message.text.strip() if message.text else None
@@ -465,5 +473,8 @@ async def process_email(
     else:
         contacts_text += "\nВы можете изменить их позже в настройках профиля."
     
-    await message.answer(contacts_text, reply_markup=main_menu_reply_keyboard())
+    await message.answer(
+        contacts_text,
+        reply_markup=main_menu_reply_keyboard(),
+    )
     await state.clear()
