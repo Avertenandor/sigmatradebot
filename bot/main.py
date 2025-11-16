@@ -135,7 +135,7 @@ async def main() -> None:
     from bot.handlers import (
         appeal,
         deposit,
-        finpass_recovery,
+        # finpass_recovery,  # Temporarily disabled due to encoding issues
         instructions,
         menu,
         start,
