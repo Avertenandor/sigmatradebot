@@ -119,8 +119,17 @@ class Settings(BaseSettings):
                 )
 
             # Ensure database URL is not using default passwords
-            if ('password' in self.database_url.lower() or
-                    'changeme' in self.database_url.lower()):
+            # Check for common insecure patterns like user:password@
+            # or postgres:postgres@
+            insecure_patterns = [
+                ':password@',
+                ':changeme@',
+                'postgres:postgres@',
+                'admin:admin@',
+                'root:root@',
+            ]
+            if any(pattern in self.database_url.lower()
+                   for pattern in insecure_patterns):
                 raise ValueError(
                     'DATABASE_URL must not use default passwords '
                     'in production'
