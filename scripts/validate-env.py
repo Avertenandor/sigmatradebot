@@ -69,10 +69,10 @@ def validate_env() -> Tuple[bool, List[str]]:
     if settings.database_url and "postgresql" not in settings.database_url.lower():
         errors.append("DATABASE_URL should be a PostgreSQL connection string")
     
-    # Validate admin IDs
+    # Validate admin IDs (warning only, not blocking)
     admin_ids = settings.get_admin_ids()
     if not admin_ids:
-        errors.append("ADMIN_TELEGRAM_IDS is not set or empty")
+        print("⚠️  WARNING: ADMIN_TELEGRAM_IDS is not set or empty. Admin features may not work.")
     
     # Validate Redis settings
     if not settings.redis_host:
