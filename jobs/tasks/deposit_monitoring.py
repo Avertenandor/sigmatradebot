@@ -94,7 +94,10 @@ async def _monitor_deposits_async() -> dict:
                     and tx_status.get("confirmations", 0) >= 12
                 ):
                     # Confirm deposit
-                    await deposit_service.confirm_deposit(deposit.id)
+                    block_number = tx_status.get("block_number", 0)
+                    await deposit_service.confirm_deposit(
+                        deposit.id, block_number
+                    )
                     confirmed += 1
 
                     logger.info(

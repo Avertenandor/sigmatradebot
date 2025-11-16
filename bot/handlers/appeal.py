@@ -146,12 +146,10 @@ async def process_appeal_text(
 
     appeal_repo = AppealRepository(session)
     appeal = await appeal_repo.create(
-        {
-            "user_id": user.id,
-            "blacklist_id": blacklist_entry.id,
-            "appeal_text": appeal_text,
-            "status": AppealStatus.PENDING,
-        }
+        user_id=user.id,
+        blacklist_id=blacklist_entry.id,
+        appeal_text=appeal_text,
+        status=AppealStatus.PENDING,
     )
 
     await session.flush()  # Flush to get appeal.id
@@ -177,18 +175,17 @@ async def process_appeal_text(
     )
 
     appeal_ticket = await ticket_repo.create(
-        {
-            "user_id": user.id,
-            "category": SupportCategory.OTHER.value,
-            "priority": SupportTicketPriority.HIGH.value,
-            "status": SupportTicketStatus.OPEN.value,
-            "subject": (
-                f"Апелляция по блокировке аккаунта (User ID: "
-                f"{user.id}, Appeal ID: {appeal.id})"
-            ),
-            "description": (
-                f"**Апелляция от пользователя:**\n"
-                f"Telegram ID: {user.telegram_id}\n"
+        user_id=user.id,
+        category=SupportCategory.OTHER.value,
+        priority=SupportTicketPriority.HIGH.value,
+        status=SupportTicketStatus.OPEN.value,
+        subject=(
+            f"Апелляция по блокировке аккаунта (User ID: "
+            f"{user.id}, Appeal ID: {appeal.id})"
+        ),
+        description=(
+            f"**Апелляция от пользователя:**\n"
+            f"Telegram ID: {user.telegram_id}\n"
                 f"Username: @{user.username or 'N/A'}\n"
                 f"Wallet: {user.wallet_address}\n\n"
                 f"**Текст апелляции:**\n{appeal_text}\n\n"
@@ -196,8 +193,7 @@ async def process_appeal_text(
                 f"Причина: {blacklist_entry.reason or 'Не указана'}\n"
                 f"Дата блокировки: {blocked_date}\n"
                 f"Срок подачи апелляции: {deadline_date}"
-            ),
-        }
+        ),
     )
 
     await session.commit()

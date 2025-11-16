@@ -23,6 +23,7 @@ class TransactionType(StrEnum):
     REFERRAL_REWARD = "referral_reward"
     DEPOSIT_REWARD = "deposit_reward"
     SYSTEM_PAYOUT = "system_payout"
+    ADJUSTMENT = "adjustment"
 
 
 class WalletChangeType(StrEnum):

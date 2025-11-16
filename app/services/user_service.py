@@ -48,6 +48,18 @@ class UserService:
         """
         return await self.user_repo.get_by_id(user_id)
 
+    async def get_user_by_id(self, user_id: int) -> User | None:
+        """
+        Get user by ID (alias).
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            User or None
+        """
+        return await self.get_by_id(user_id)
+
     async def get_by_telegram_id(
         self, telegram_id: int
     ) -> User | None:
@@ -410,7 +422,9 @@ class UserService:
             "total_earnings": total_earnings,
         }
 
-    def generate_referral_link(self, user_id: int, bot_username: str) -> str:
+    def generate_referral_link(
+        self, user_id: int, bot_username: str | None
+    ) -> str:
         """
         Generate referral link for user.
 
@@ -421,7 +435,8 @@ class UserService:
         Returns:
             Referral link
         """
-        return f"https://t.me/{bot_username}?start=ref_{user_id}"
+        username = bot_username or "bot"
+        return f"https://t.me/{username}?start=ref_{user_id}"
 
     async def find_by_id(self, user_id: int) -> User | None:
         """

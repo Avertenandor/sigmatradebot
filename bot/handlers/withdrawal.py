@@ -235,27 +235,34 @@ async def process_financial_password(
         await state.clear()
         return
 
-    logger.info(
-        "Withdrawal requested",
-        extra={
-            "transaction_id": transaction.id,
-            "user_id": user.id,
-            "amount": str(amount),
-        },
-    )
+    if transaction:
+        logger.info(
+            "Withdrawal requested",
+            extra={
+                "transaction_id": transaction.id,
+                "user_id": user.id,
+                "amount": str(amount),
+            },
+        )
 
-    text = (
-        f"✅ Заявка на вывод создана!\n\n"
-        f"💰 Сумма: {amount} USDT\n"
-        f"🆔 ID заявки: {transaction.id}\n"
-        f"📍 Адрес: {user.masked_wallet}\n\n"
-        f"⏳ Заявка находится на рассмотрении.\n"
-        f"Обычно обработка занимает от 1 до 24 часов.\n\n"
-        f"Вы получите уведомление после обработки."
-    )
+        text = (
+            f"✅ Заявка на вывод создана!\n\n"
+            f"💰 Сумма: {amount} USDT\n"
+            f"🆔 ID заявки: {transaction.id}\n"
+            f"📍 Адрес: {user.masked_wallet}\n\n"
+            f"⏳ Заявка находится на рассмотрении.\n"
+            f"Обычно обработка занимает от 1 до 24 часов.\n\n"
+            f"Вы получите уведомление после обработки."
+        )
 
-    await message.answer(text, reply_markup=main_menu_reply_keyboard())
-    await state.clear()
+        await message.answer(text, reply_markup=main_menu_reply_keyboard())
+        await state.clear()
+    else:
+        await message.answer(
+            "❌ Ошибка при создании заявки на вывод. Попробуйте позже.",
+            reply_markup=main_menu_reply_keyboard(),
+        )
+        await state.clear()
 
 
 @router.message(F.text == "📜 История выводов")

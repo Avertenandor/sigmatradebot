@@ -53,7 +53,7 @@ class ReferralEarningRepository(
         Returns:
             List of unpaid earnings
         """
-        filters = {"paid": False}
+        filters: dict[str, bool | int] = {"paid": False}
         if referral_id:
             filters["referral_id"] = referral_id
 
@@ -132,6 +132,31 @@ class ReferralEarningRepository(
             stmt = stmt.limit(limit)
         if offset is not None:
             stmt = stmt.offset(offset)
+
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_all_for_referrer(
+        self, referrer_id: int
+    ) -> list[ReferralEarning]:
+        """
+        Get all earnings for a referrer through their referrals.
+
+        Args:
+            referrer_id: Referrer user ID
+
+        Returns:
+            List of all earnings
+        """
+        from app.models.referral import Referral
+
+        # Join with Referral to get earnings where the referrer matches
+        stmt = (
+            select(ReferralEarning)
+            .join(Referral, ReferralEarning.referral_id == Referral.id)
+            .where(Referral.referrer_id == referrer_id)
+            .order_by(ReferralEarning.created_at.desc())
+        )
 
         result = await self.session.execute(stmt)
         return list(result.scalars().all())

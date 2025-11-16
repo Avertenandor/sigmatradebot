@@ -202,11 +202,20 @@ async def process_role(
     admin_service = AdminService(session)
 
     try:
-        new_admin = await admin_service.create_admin(
+        new_admin, master_key, error = await admin_service.create_admin(
             telegram_id=telegram_id,
             role=role,
+            created_by=admin.id,
             username=None,  # Will be updated on first interaction
         )
+
+        if error or not new_admin:
+            await callback.message.edit_text(
+                f"❌ **Ошибка при создании администратора!**\n\n{error}",
+                parse_mode="Markdown",
+            )
+            await state.clear()
+            return
 
         await session.commit()
 

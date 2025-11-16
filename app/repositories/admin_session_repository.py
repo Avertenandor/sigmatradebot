@@ -70,6 +70,20 @@ class AdminSessionRepository(BaseRepository[AdminSession]):
         await self.session.flush()
         return len(sessions)
 
+    async def deactivate_all_for_admin(
+        self, admin_id: int
+    ) -> int:
+        """
+        Deactivate all sessions for admin (alias).
+
+        Args:
+            admin_id: Admin ID
+
+        Returns:
+            Number of deactivated sessions
+        """
+        return await self.deactivate_all_sessions(admin_id)
+
     async def cleanup_expired_sessions(self) -> int:
         """
         Cleanup expired sessions.

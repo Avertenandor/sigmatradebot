@@ -82,6 +82,15 @@ class UserRepository(BaseRepository[User]):
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
+    async def get_all_active_users(self) -> list[User]:
+        """
+        Get all active (non-banned) users.
+
+        Returns:
+            List of active users
+        """
+        return await self.find_by(is_banned=False)
+
     async def get_banned_users(self) -> list[User]:
         """
         Get all banned users.

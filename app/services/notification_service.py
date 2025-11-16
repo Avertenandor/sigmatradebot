@@ -256,3 +256,75 @@ class NotificationService:
                 )
 
         return success_count
+
+    async def notify_withdrawal_processed(
+        self, telegram_id: int, amount: float, tx_hash: str
+    ) -> bool:
+        """
+        Notify user about withdrawal being processed.
+
+        Args:
+            telegram_id: User telegram ID
+            amount: Withdrawal amount
+            tx_hash: Transaction hash
+
+        Returns:
+            True if notification sent successfully
+        """
+        from bot.main import bot_instance
+
+        message = (
+            f"✅ **Ваша заявка на вывод средств одобрена!**\n\n"
+            f"💰 Сумма: {amount:.2f} USDT\n"
+            f"🔗 Транзакция: `{tx_hash}`\n\n"
+            f"Средства будут отправлены в ближайшее время."
+        )
+
+        try:
+            await bot_instance.send_message(
+                chat_id=telegram_id,
+                text=message,
+                parse_mode="Markdown",
+            )
+            return True
+        except Exception as e:
+            logger.error(
+                f"Failed to notify user about withdrawal: {e}",
+                extra={"telegram_id": telegram_id},
+            )
+            return False
+
+    async def notify_withdrawal_rejected(
+        self, telegram_id: int, amount: float
+    ) -> bool:
+        """
+        Notify user about withdrawal being rejected.
+
+        Args:
+            telegram_id: User telegram ID
+            amount: Withdrawal amount
+
+        Returns:
+            True if notification sent successfully
+        """
+        from bot.main import bot_instance
+
+        message = (
+            f"❌ **Ваша заявка на вывод средств отклонена**\n\n"
+            f"💰 Сумма: {amount:.2f} USDT\n\n"
+            f"Для получения дополнительной информации обратитесь в поддержку."
+        )
+
+        try:
+            await bot_instance.send_message(
+                chat_id=telegram_id,
+                text=message,
+                parse_mode="Markdown",
+            )
+            return True
+        except Exception as e:
+            logger.error(
+                f"Failed to notify user about withdrawal rejection: {e}",
+                extra={"telegram_id": telegram_id},
+            )
+            return False

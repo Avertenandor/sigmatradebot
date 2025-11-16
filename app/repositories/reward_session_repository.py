@@ -40,6 +40,26 @@ class RewardSessionRepository(BaseRepository[RewardSession]):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get_active_sessions(
+        self,
+    ) -> list[RewardSession]:
+        """
+        Get all active reward sessions.
+
+        Returns:
+            List of active sessions
+        """
+        now = datetime.now()
+
+        stmt = (
+            select(RewardSession)
+            .where(RewardSession.is_active)
+            .where(RewardSession.start_date <= now)
+            .where(RewardSession.end_date >= now)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
     async def get_latest_session(
         self,
     ) -> RewardSession | None:

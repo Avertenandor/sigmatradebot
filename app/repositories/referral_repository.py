@@ -19,7 +19,7 @@ class ReferralRepository(BaseRepository[Referral]):
         super().__init__(Referral, session)
 
     async def get_by_referrer(
-        self, referrer_id: int, level: int = None
+        self, referrer_id: int, level: int | None = None
     ) -> list[Referral]:
         """
         Get referrals by referrer.

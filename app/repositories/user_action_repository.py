@@ -33,7 +33,7 @@ class UserActionRepository(BaseRepository[UserAction]):
         Returns:
             List of user actions
         """
-        filters = {"user_id": user_id}
+        filters: dict[str, int | str] = {"user_id": user_id}
         if action_type:
             filters["action_type"] = action_type
 

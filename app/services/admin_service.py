@@ -325,6 +325,27 @@ class AdminService:
         """
         return await self.admin_repo.find_all()
 
+    async def get_all_admins(self) -> list[Admin]:
+        """
+        Get all admins (alias).
+
+        Returns:
+            List of all admins
+        """
+        return await self.list_all_admins()
+
+    async def get_admin_by_id(self, admin_id: int) -> Admin | None:
+        """
+        Get admin by ID.
+
+        Args:
+            admin_id: Admin ID
+
+        Returns:
+            Admin or None
+        """
+        return await self.admin_repo.get_by_id(admin_id)
+
     async def delete_admin(self, admin_id: int) -> bool:
         """
         Delete admin.

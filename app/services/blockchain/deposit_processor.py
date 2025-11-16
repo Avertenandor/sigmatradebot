@@ -5,6 +5,7 @@ Processes and confirms deposit transactions.
 """
 
 from decimal import Decimal
+from typing import Any
 
 from loguru import logger
 from web3 import AsyncWeb3
@@ -61,7 +62,7 @@ class DepositProcessor:
         expected_to_address: str,
         expected_amount: Decimal | None = None,
         tolerance_percent: float = 0.05,
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """
         Check deposit transaction status.
 
@@ -177,7 +178,7 @@ class DepositProcessor:
 
     def _parse_transfer_logs(
         self, logs: list
-    ) -> dict[str, any] | None:
+    ) -> dict[str, Any] | None:
         """
         Parse Transfer event from transaction logs.
 

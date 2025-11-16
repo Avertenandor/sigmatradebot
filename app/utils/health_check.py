@@ -5,6 +5,7 @@ Provides health check functionality for the bot.
 """
 
 import asyncio
+from typing import Any
 
 from loguru import logger
 from sqlalchemy import text
@@ -14,7 +15,7 @@ from app.config.settings import settings
 from app.services.blockchain_service import get_blockchain_service
 
 
-async def check_database() -> dict[str, any]:
+async def check_database() -> dict[str, Any]:
     """
     Check database connectivity.
 
@@ -38,7 +39,7 @@ async def check_database() -> dict[str, any]:
         }
 
 
-async def check_redis() -> dict[str, any]:
+async def check_redis() -> dict[str, Any]:
     """
     Check Redis connectivity.
 
@@ -76,7 +77,7 @@ async def check_redis() -> dict[str, any]:
         }
 
 
-async def check_blockchain() -> dict[str, any]:
+async def check_blockchain() -> dict[str, Any]:
     """
     Check blockchain service connectivity.
 
@@ -115,7 +116,7 @@ async def check_blockchain() -> dict[str, any]:
         }
 
 
-async def check_all() -> dict[str, any]:
+async def check_all() -> dict[str, Any]:
     """
     Perform all health checks.
 
@@ -139,7 +140,7 @@ async def check_all() -> dict[str, any]:
     }
 
 
-def get_health_status_sync() -> dict[str, any]:
+def get_health_status_sync() -> dict[str, Any]:
     """
     Get health status synchronously (for use in HTTP endpoints).
 

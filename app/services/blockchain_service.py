@@ -9,6 +9,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 
 from eth_account import Account
 from eth_utils import is_address, to_checksum_address
@@ -67,7 +68,7 @@ class BlockchainService:
         self,
         rpc_url: str,
         usdt_contract: str,
-        wallet_private_key: str,
+        wallet_private_key: str | None,
     ) -> None:
         """
         Initialize blockchain service.
@@ -148,7 +149,7 @@ class BlockchainService:
 
     async def send_payment(
         self, to_address: str, amount: float
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """
         Send USDT payment.
 
@@ -262,7 +263,7 @@ class BlockchainService:
 
     async def check_transaction_status(
         self, tx_hash: str
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """
         Check transaction status on blockchain.
 
@@ -335,7 +336,7 @@ class BlockchainService:
 
     async def get_transaction_details(
         self, tx_hash: str
-    ) -> dict[str, any] | None:
+    ) -> dict[str, Any] | None:
         """
         Get transaction details.
 
@@ -580,7 +581,7 @@ class BlockchainService:
 
     async def monitor_incoming_deposits(
         self, wallet_address: str, from_block: int
-    ) -> list[dict[str, any]]:
+    ) -> list[dict[str, Any]]:
         """
         Monitor incoming USDT deposits to wallet.
 
@@ -692,7 +693,7 @@ def get_blockchain_service() -> BlockchainService:
 def init_blockchain_service(
     rpc_url: str,
     usdt_contract: str,
-    wallet_private_key: str,
+    wallet_private_key: str | None,
 ) -> None:
     """
     Initialize blockchain service singleton.

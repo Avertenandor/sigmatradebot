@@ -36,7 +36,7 @@ class FinancialPasswordRecoveryRepository(
         Returns:
             List of recovery requests
         """
-        filters = {"user_id": user_id}
+        filters: dict[str, int | str] = {"user_id": user_id}
         if status:
             filters["status"] = status
 
