@@ -1,1 +1,324 @@
-∢ഢ匊瑥楴杮⁳敓癲捩⹥਍਍慍慮敧⁳祳瑳浥猠瑥楴杮⁳瑳牯摥椠⁮慤慴慢敳眠瑩⁨敒楤⁳慣档湩⹧਍∢ഢഊ昊潲⁭祴楰杮椠灭牯⁴湁ⱹ传瑰潩慮൬ഊ椊灭牯⁴敲楤⹳獡湹楣⁯獡爠摥獩਍牦浯氠杯牵⁵浩潰瑲氠杯敧൲昊潲⁭煳慬捬敨祭攮瑸愮祳据潩椠灭牯⁴獁湹卣獥楳湯਍਍牦浯愠灰洮摯汥⹳祳瑳浥獟瑥楴杮椠灭牯⁴祓瑳浥敓瑴湩൧昊潲⁭灡⹰敲潰楳潴楲獥献獹整彭敳瑴湩彧敲潰楳潴祲椠灭牯⁴祓瑳浥敓瑴湩剧灥獯瑩牯൹ഊഊ挊慬獳匠瑥楴杮即牥楶散ഺ †∠∢਍††敓癲捩⁥潦⁲慭慮楧杮猠獹整⁭敳瑴湩獧മഊ †䘠慥畴敲㩳਍††‭慄慴慢敳戭捡敫⁤敳瑴湩獧਍††‭敒楤⁳慣档湩⁧楷桴吠䱔਍††‭祔数挠湯敶獲潩⁮敨灬牥൳ †ⴠ䐠晥畡瑬瘠污敵൳ †∠∢਍਍††敤⁦彟湩瑩彟ന †††猠汥ⱦ਍††††敳獳潩㩮䄠祳据敓獳潩Ɱ਍††††敲楤彳汣敩瑮›灏楴湯污牛摥獩刮摥獩⁝‽潎敮ബ †††挠捡敨瑟汴›湩⁴‽〳ⰰ†‣‵業畮整൳ †⤠ⴠ‾潎敮ഺ †††∠∢਍††††湉瑩慩楬敺猠瑥楴杮⁳敳癲捩⹥਍਍††††牁獧ഺ †††††猠獥楳湯›慄慴慢敳猠獥楳湯਍††††††敲楤彳汣敩瑮›敒楤⁳汣敩瑮映牯挠捡楨杮⠠灯楴湯污ഩ †††††挠捡敨瑟汴›慃档⁥呔⁌湩猠捥湯獤਍††††∢ഢ †††猠汥⹦敳獳潩⁮‽敳獳潩൮ †††猠汥⹦敲楤彳汣敩瑮㴠爠摥獩损楬湥൴ †††猠汥⹦慣档彥瑴⁬‽慣档彥瑴൬ †††猠汥⹦敲潰楳潴祲㴠匠獹整卭瑥楴杮敒潰楳潴祲猨獥楳湯ഩഊ †††⌠䌠捡敨欠祥瀠敲楦൸ †††猠汥⹦慣档彥牰晥硩㴠∠敳瑴湩獧∺਍਍††獡湹⁣敤⁦敧⡴਍††††敳晬ബ †††欠祥›瑳Ⱳ਍††††敤慦汵㩴䄠祮㴠丠湯ⱥ਍††††獵彥慣档㩥戠潯⁬‽牔敵ബ †⤠ⴠ‾灏楴湯污獛牴㩝਍††††∢ഢ †††䜠瑥猠瑥楴杮瘠污敵മഊ †††䄠杲㩳਍††††††敫㩹匠瑥楴杮欠祥਍††††††敤慦汵㩴䐠晥畡瑬瘠污敵椠⁦潮⁴潦湵൤ †††††甠敳损捡敨›桗瑥敨⁲潴甠敳删摥獩挠捡敨਍਍††††敒畴湲㩳਍††††††敓瑴湩⁧慶畬⁥牯搠晥畡瑬਍††††∢ഢ †††⌠吠祲挠捡敨映物瑳਍††††晩甠敳损捡敨愠摮猠汥⹦敲楤彳汣敩瑮ഺ †††††琠祲ഺ †††††††挠捡敨彤慶畬⁥‽睡楡⁴敳晬爮摥獩损楬湥⹴敧⡴਍††††††††††≦獻汥⹦慣档彥牰晥硩筽敫絹ഢ †††††††⤠਍††††††††晩挠捡敨彤慶畬⁥獩渠瑯丠湯㩥਍††††††††††敲畴湲挠捡敨彤慶畬⹥敤潣敤∨瑵ⵦ∸ഩ †††††攠捸灥⁴硅散瑰潩⁮獡攠ഺ †††††††氠杯敧⹲慷湲湩⡧≦敒楤⁳慣档⁥牥潲㩲笠絥⤢਍਍††††‣敇⁴牦浯搠瑡扡獡൥ †††猠瑥楴杮㴠愠慷瑩猠汥⹦敲潰楳潴祲朮瑥扟役敫⡹敫⥹਍਍††††晩猠瑥楴杮ഺ †††††瘠污敵㴠猠瑥楴杮瘮污敵਍਍††††††‣灕慤整挠捡敨਍††††††晩甠敳损捡敨愠摮猠汥⹦敲楤彳汣敩瑮ഺ †††††††琠祲ഺ †††††††††愠慷瑩猠汥⹦敲楤彳汣敩瑮献瑥硥ന †††††††††††映笢敳晬挮捡敨灟敲楦絸死祥≽ബ †††††††††††猠汥⹦慣档彥瑴ⱬ਍††††††††††††慶畬ⱥ਍††††††††††ഩ †††††††攠捸灥⁴硅散瑰潩⁮獡攠ഺ †††††††††氠杯敧⹲慷湲湩⡧≦敒楤⁳慣档⁥敳⁴牥潲㩲笠絥⤢਍਍††††††敲畴湲瘠污敵਍਍††††敲畴湲搠晥畡瑬਍਍††獡湹⁣敤⁦敧彴湩⡴਍††††敳晬ബ †††欠祥›瑳Ⱳ਍††††敤慦汵㩴椠瑮㴠〠ബ †⤠ⴠ‾湩㩴਍††††∢ഢ †††䜠瑥猠瑥楴杮愠⁳湩整敧⹲਍਍††††牁獧ഺ †††††欠祥›敓瑴湩⁧敫൹ †††††搠晥畡瑬›敄慦汵⁴慶畬൥ഊ †††删瑥牵獮ഺ †††††䤠瑮来牥瘠污敵਍††††∢ഢ †††瘠污敵㴠愠慷瑩猠汥⹦敧⡴敫⥹਍਍††††晩瘠污敵椠⁳潎敮ഺ †††††爠瑥牵⁮敤慦汵൴ഊ †††琠祲ഺ †††††爠瑥牵⁮湩⡴慶畬⥥਍††††硥散瑰⠠慖畬䕥牲牯‬祔数牅潲⥲ഺ †††††氠杯敧⹲慷湲湩⡧≦湉慶楬⁤湩⁴慶畬⁥潦⁲死祥㩽笠慶畬絥⤢਍††††††敲畴湲搠晥畡瑬਍਍††獡湹⁣敤⁦敧彴汦慯⡴਍††††敳晬ബ †††欠祥›瑳Ⱳ਍††††敤慦汵㩴映潬瑡㴠〠〮ബ †⤠ⴠ‾汦慯㩴਍††††∢ഢ †††䜠瑥猠瑥楴杮愠⁳汦慯⹴਍਍††††牁獧ഺ †††††欠祥›敓瑴湩⁧敫൹ †††††搠晥畡瑬›敄慦汵⁴慶畬൥ഊ †††删瑥牵獮ഺ †††††䘠潬瑡瘠污敵਍††††∢ഢ †††瘠污敵㴠愠慷瑩猠汥⹦敧⡴敫⥹਍਍††††晩瘠污敵椠⁳潎敮ഺ †††††爠瑥牵⁮敤慦汵൴ഊ †††琠祲ഺ †††††爠瑥牵⁮汦慯⡴慶畬⥥਍††††硥散瑰⠠慖畬䕥牲牯‬祔数牅潲⥲ഺ †††††氠杯敧⹲慷湲湩⡧≦湉慶楬⁤汦慯⁴慶畬⁥潦⁲死祥㩽笠慶畬絥⤢਍††††††敲畴湲搠晥畡瑬਍਍††獡湹⁣敤⁦敧彴潢汯ന †††猠汥ⱦ਍††††敫㩹猠牴ബ †††搠晥畡瑬›潢汯㴠䘠污敳ബ †⤠ⴠ‾潢汯ഺ †††∠∢਍††††敇⁴敳瑴湩⁧獡戠潯敬湡മഊ †††䄠杲㩳਍††††††敫㩹匠瑥楴杮欠祥਍††††††敤慦汵㩴䐠晥畡瑬瘠污敵਍਍††††敒畴湲㩳਍††††††潂汯慥⁮慶畬൥ †††∠∢਍††††慶畬⁥‽睡楡⁴敳晬朮瑥欨祥ഩഊ †††椠⁦慶畬⁥獩丠湯㩥਍††††††敲畴湲搠晥畡瑬਍਍††††晩椠楳獮慴据⡥慶畬ⱥ戠潯⥬ഺ †††††爠瑥牵⁮慶畬൥ഊ †††⌠倠牡敳猠牴湩⁧慶畬獥਍††††晩椠楳獮慴据⡥慶畬ⱥ猠牴㨩਍††††††敲畴湲瘠污敵氮睯牥⤨椠⁮∨牴敵Ⱒ∠∱‬礢獥Ⱒ∠湯⤢਍਍††††敲畴湲戠潯⡬慶畬⥥਍਍††獡湹⁣敤⁦敳⡴਍††††敳晬ബ †††欠祥›瑳Ⱳ਍††††慶畬㩥䄠祮ബ †††搠獥牣灩楴湯›灏楴湯污獛牴⁝‽潎敮ബ †⤠ⴠ‾祓瑳浥敓瑴湩㩧਍††††∢ഢ †††匠瑥猠瑥楴杮瘠污敵മഊ †††䄠杲㩳਍††††††敫㩹匠瑥楴杮欠祥਍††††††慶畬㩥匠瑥楴杮瘠污敵਍††††††敤捳楲瑰潩㩮传瑰潩慮⁬敤捳楲瑰潩൮ഊ †††删瑥牵獮ഺ †††††匠獹整卭瑥楴杮椠獮慴据൥ †††∠∢਍††††‣潃癮牥⁴慶畬⁥潴猠牴湩൧ †††瘠污敵獟牴㴠猠牴瘨污敵ഩഊ †††⌠䌠敨正椠⁦硥獩獴਍††††硥獩楴杮㴠愠慷瑩猠汥⹦敲潰楳潴祲朮瑥扟役敫⡹敫⥹਍਍††††晩攠楸瑳湩㩧਍††††††‣灕慤整਍††††††硥獩楴杮瘮污敵㴠瘠污敵獟牴਍††††††晩搠獥牣灩楴湯ഺ †††††††攠楸瑳湩⹧敤捳楲瑰潩⁮‽敤捳楲瑰潩൮ഊ †††††愠慷瑩猠汥⹦敲潰楳潴祲甮摰瑡⡥硥獩楴杮ഩ †††††猠瑥楴杮㴠攠楸瑳湩൧ഊ †††攠獬㩥਍††††††‣牃慥整਍††††††敳瑴湩⁧‽睡楡⁴敳晬爮灥獯瑩牯⹹牣慥整ന †††††††笠਍††††††††††欢祥㨢欠祥ബ †††††††††∠慶畬≥›慶畬彥瑳Ⱳ਍††††††††††搢獥牣灩楴湯㨢搠獥牣灩楴湯漠⁲≦敓瑴湩㩧笠敫絹Ⱒ਍††††††††ൽ †††††⤠਍਍††††‣湉慶楬慤整挠捡敨਍††††晩猠汥⹦敲楤彳汣敩瑮ഺ †††††琠祲ഺ †††††††愠慷瑩猠汥⹦敲楤彳汣敩瑮搮汥瑥⡥≦獻汥⹦慣档彥牰晥硩筽敫絹⤢਍††††††硥散瑰䔠捸灥楴湯愠⁳㩥਍††††††††潬杧牥眮牡楮杮昨刢摥獩挠捡敨搠汥瑥⁥牥潲㩲笠絥⤢਍਍††††潬杧牥椮普⡯≦敓瑴湩⁧灵慤整㩤笠敫絹㴠笠慶畬彥瑳絲⤢਍਍††††敲畴湲猠瑥楴杮਍਍††獡湹⁣敤⁦敤敬整猨汥ⱦ欠祥›瑳⥲ⴠ‾潢汯ഺ †††∠∢਍††††敄敬整猠瑥楴杮മഊ †††䄠杲㩳਍††††††敫㩹匠瑥楴杮欠祥਍਍††††敒畴湲㩳਍††††††牔敵椠⁦敤敬整൤ †††∠∢਍††††敳瑴湩⁧‽睡楡⁴敳晬爮灥獯瑩牯⹹敧彴祢歟祥欨祥ഩഊ †††椠⁦潮⁴敳瑴湩㩧਍††††††敲畴湲䘠污敳਍਍††††睡楡⁴敳晬爮灥獯瑩牯⹹敤敬整猨瑥楴杮椮⥤਍਍††††‣湉慶楬慤整挠捡敨਍††††晩猠汥⹦敲楤彳汣敩瑮ഺ †††††琠祲ഺ †††††††愠慷瑩猠汥⹦敲楤彳汣敩瑮搮汥瑥⡥≦獻汥⹦慣档彥牰晥硩筽敫絹⤢਍††††††硥散瑰䔠捸灥楴湯愠⁳㩥਍††††††††潬杧牥眮牡楮杮昨刢摥獩挠捡敨搠汥瑥⁥牥潲㩲笠絥⤢਍਍††††潬杧牥椮普⡯≦敓瑴湩⁧敤敬整㩤笠敫絹⤢਍਍††††敲畴湲吠畲൥ഊ †愠祳据搠晥朠瑥慟汬猨汥⥦ⴠ‾楬瑳卛獹整卭瑥楴杮㩝਍††††∢ഢ †††䜠瑥愠汬猠瑥楴杮⹳਍਍††††敒畴湲㩳਍††††††楌瑳漠⁦祓瑳浥敓瑴湩⁧湩瑳湡散൳ †††∠∢਍††††敲畴湲愠慷瑩猠汥⹦敲潰楳潴祲朮瑥慟汬⤨਍਍††獡湹⁣敤⁦汣慥彲慣档⡥敳晬‬敫㩹传瑰潩慮孬瑳嵲㴠丠湯⥥ⴠ‾潎敮ഺ †††∠∢਍††††汃慥⁲敳瑴湩獧挠捡敨മഊ †††䄠杲㩳਍††††††敫㩹匠数楣楦⁣敫⁹潴挠敬牡‬牯丠湯⁥潦⁲污൬ †††∠∢਍††††晩渠瑯猠汥⹦敲楤彳汣敩瑮ഺ †††††爠瑥牵൮ഊ †††琠祲ഺ †††††椠⁦敫㩹਍††††††††睡楡⁴敳晬爮摥獩损楬湥⹴敤敬整昨笢敳晬挮捡敨灟敲楦絸死祥≽ഩ †††††攠獬㩥਍††††††††‣汃慥⁲污⁬敳瑴湩獧挠捡敨਍††††††††慰瑴牥⁮‽≦獻汥⹦慣档彥牰晥硩⩽ഢ †††††††挠牵潳⁲‽രഊ †††††††眠楨敬吠畲㩥਍††††††††††畣獲牯‬敫獹㴠愠慷瑩猠汥⹦敲楤彳汣敩瑮献慣⡮਍††††††††††††畣獲牯挽牵潳Ⱳ਍††††††††††††慭捴㵨慰瑴牥Ɱ਍††††††††††††潣湵㵴〱ⰰ਍††††††††††ഩഊ †††††††††椠⁦敫獹ഺ †††††††††††愠慷瑩猠汥⹦敲楤彳汣敩瑮搮汥瑥⡥欪祥⥳਍਍††††††††††晩挠牵潳⁲㴽〠ഺ †††††††††††戠敲歡਍਍††††††潬杧牥椮普⡯匢瑥楴杮⁳慣档⁥汣慥敲≤ഩഊ †††攠捸灥⁴硅散瑰潩⁮獡攠ഺ †††††氠杯敧⹲牥潲⡲≦牅潲⁲汣慥楲杮猠瑥楴杮⁳慣档㩥笠絥⤢਍਍਍‣楓杮敬潴⁮慭慮敧敭瑮⠠灯楴湯污‬潦⁲汧扯污愠捣獥⥳਍獟瑥楴杮彳敳癲捩㩥传瑰潩慮孬敓瑴湩獧敓癲捩嵥㴠丠湯൥ഊഊ搊晥椠楮彴敳瑴湩獧獟牥楶散ന †猠獥楳湯›獁湹卣獥楳湯ബ †爠摥獩损楬湥㩴传瑰潩慮孬敲楤⹳敒楤嵳㴠丠湯ⱥ਍ 㸭匠瑥楴杮即牥楶散ഺ †∠∢਍††湉瑩慩楬敺猠瑥楴杮⁳敳癲捩⁥楳杮敬潴⹮਍਍††牁獧ഺ †††猠獥楳湯›慄慴慢敳猠獥楳湯਍††††敲楤彳汣敩瑮›敒楤⁳汣敩瑮਍਍††敒畴湲㩳਍††††敓瑴湩獧敓癲捩⁥湩瑳湡散਍††∢ഢ †朠潬慢⁬獟瑥楴杮彳敳癲捩൥ഊ †张敳瑴湩獧獟牥楶散㴠匠瑥楴杮即牥楶散ന †††猠獥楳湯猽獥楳湯ബ †††爠摥獩损楬湥㵴敲楤彳汣敩瑮ബ †⤠਍਍††敲畴湲张敳瑴湩獧獟牥楶散਍਍਍敤⁦敧彴敳瑴湩獧獟牥楶散⤨ⴠ‾灏楴湯污卛瑥楴杮即牥楶散㩝਍††∢䜢瑥猠瑥楴杮⁳敳癲捩⁥楳杮敬潴⹮∢ഢ †爠瑥牵⁮獟瑥楴杮彳敳癲捩൥
+"""
+Settings Service.
+
+Manages system settings stored in database with Redis caching.
+"""
+
+from typing import Any, Optional
+import redis.asyncio as redis
+from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.system_setting import SystemSetting
+from app.repositories.system_setting_repository import SystemSettingRepository
+
+
+class SettingsService:
+    """
+    Service for managing system settings.
+
+    Features:
+    - Database-backed settings
+    - Redis caching with TTL
+    - Type conversion helpers
+    - Default values
+    """
+
+    def __init__(
+        self,
+        session: AsyncSession,
+        redis_client: Optional[redis.Redis] = None,
+        cache_ttl: int = 300,  # 5 minutes
+    ) -> None:
+        """
+        Initialize settings service.
+
+        Args:
+            session: Database session
+            redis_client: Redis client for caching (optional)
+            cache_ttl: Cache TTL in seconds
+        """
+        self.session = session
+        self.redis_client = redis_client
+        self.cache_ttl = cache_ttl
+        self.repository = SystemSettingRepository(session)
+
+        # Cache key prefix
+        self.cache_prefix = "settings:"
+
+    async def get(
+        self,
+        key: str,
+        default: Any = None,
+        use_cache: bool = True,
+    ) -> Optional[str]:
+        """
+        Get setting value.
+
+        Args:
+            key: Setting key
+            default: Default value if not found
+            use_cache: Whether to use Redis cache
+
+        Returns:
+            Setting value or default
+        """
+        # Try cache first
+        if use_cache and self.redis_client:
+            try:
+                cached_value = await self.redis_client.get(
+                    f"{self.cache_prefix}{key}"
+                )
+                if cached_value is not None:
+                    return cached_value.decode("utf-8")
+            except Exception as e:
+                logger.warning(f"Redis cache error: {e}")
+
+        # Get from database
+        setting = await self.repository.get_by_key(key)
+
+        if setting:
+            value = setting.value
+
+            # Update cache
+            if use_cache and self.redis_client:
+                try:
+                    await self.redis_client.setex(
+                        f"{self.cache_prefix}{key}",
+                        self.cache_ttl,
+                        value,
+                    )
+                except Exception as e:
+                    logger.warning(f"Redis cache set error: {e}")
+
+            return value
+
+        return default
+
+    async def get_int(
+        self,
+        key: str,
+        default: int = 0,
+    ) -> int:
+        """
+        Get setting as integer.
+
+        Args:
+            key: Setting key
+            default: Default value
+
+        Returns:
+            Integer value
+        """
+        value = await self.get(key)
+
+        if value is None:
+            return default
+
+        try:
+            return int(value)
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid int value for {key}: {value}")
+            return default
+
+    async def get_float(
+        self,
+        key: str,
+        default: float = 0.0,
+    ) -> float:
+        """
+        Get setting as float.
+
+        Args:
+            key: Setting key
+            default: Default value
+
+        Returns:
+            Float value
+        """
+        value = await self.get(key)
+
+        if value is None:
+            return default
+
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid float value for {key}: {value}")
+            return default
+
+    async def get_bool(
+        self,
+        key: str,
+        default: bool = False,
+    ) -> bool:
+        """
+        Get setting as boolean.
+
+        Args:
+            key: Setting key
+            default: Default value
+
+        Returns:
+            Boolean value
+        """
+        value = await self.get(key)
+
+        if value is None:
+            return default
+
+        if isinstance(value, bool):
+            return value
+
+        # Parse string values
+        if isinstance(value, str):
+            return value.lower() in ("true", "1", "yes", "on")
+
+        return bool(value)
+
+    async def set(
+        self,
+        key: str,
+        value: Any,
+        description: Optional[str] = None,
+    ) -> SystemSetting:
+        """
+        Set setting value.
+
+        Args:
+            key: Setting key
+            value: Setting value
+            description: Optional description
+
+        Returns:
+            SystemSetting instance
+        """
+        # Convert value to string
+        value_str = str(value)
+
+        # Check if exists
+        existing = await self.repository.get_by_key(key)
+
+        if existing:
+            # Update
+            existing.value = value_str
+            if description:
+                existing.description = description
+            await self.repository.update(existing)
+            setting = existing
+        else:
+            # Create
+            setting = await self.repository.create(
+                {
+                    "key": key,
+                    "value": value_str,
+                    "description": description or f"Setting: {key}",
+                }
+            )
+
+        # Invalidate cache
+        if self.redis_client:
+            try:
+                await self.redis_client.delete(f"{self.cache_prefix}{key}")
+            except Exception as e:
+                logger.warning(f"Redis cache delete error: {e}")
+
+        logger.info(f"Setting updated: {key} = {value_str}")
+
+        return setting
+
+    async def delete(self, key: str) -> bool:
+        """
+        Delete setting.
+
+        Args:
+            key: Setting key
+
+        Returns:
+            True if deleted
+        """
+        setting = await self.repository.get_by_key(key)
+
+        if not setting:
+            return False
+
+        await self.repository.delete(setting.id)
+
+        # Invalidate cache
+        if self.redis_client:
+            try:
+                await self.redis_client.delete(f"{self.cache_prefix}{key}")
+            except Exception as e:
+                logger.warning(f"Redis cache delete error: {e}")
+
+        logger.info(f"Setting deleted: {key}")
+
+        return True
+
+    async def get_all(self) -> list[SystemSetting]:
+        """
+        Get all settings.
+
+        Returns:
+            List of SystemSetting instances
+        """
+        return await self.repository.get_all()
+
+    async def clear_cache(self, key: Optional[str] = None) -> None:
+        """
+        Clear settings cache.
+
+        Args:
+            key: Specific key to clear, or None for all
+        """
+        if not self.redis_client:
+            return
+
+        try:
+            if key:
+                await self.redis_client.delete(f"{self.cache_prefix}{key}")
+            else:
+                # Clear all settings cache
+                pattern = f"{self.cache_prefix}*"
+                cursor = 0
+
+                while True:
+                    cursor, keys = await self.redis_client.scan(
+                        cursor=cursor,
+                        match=pattern,
+                        count=100,
+                    )
+
+                    if keys:
+                        await self.redis_client.delete(*keys)
+
+                    if cursor == 0:
+                        break
+
+            logger.info("Settings cache cleared")
+        except Exception as e:
+            logger.error(f"Error clearing settings cache: {e}")
+
+
+# Singleton management (optional, for global access)
+_settings_service: Optional[SettingsService] = None
+
+
+def init_settings_service(
+    session: AsyncSession,
+    redis_client: Optional[redis.Redis] = None,
+) -> SettingsService:
+    """Initialize settings service singleton."""
+    global _settings_service
+
+    _settings_service = SettingsService(
+        session=session,
+        redis_client=redis_client,
+    )
+
+    return _settings_service
+
+
+def get_settings_service() -> Optional[SettingsService]:
+    """Get settings service singleton."""
+    return _settings_service
