@@ -8,14 +8,13 @@ import secrets
 import string
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 from app.services.user_service import UserService
-from bot.keyboards.inline import main_menu_keyboard, settings_keyboard
-from bot.keyboards.reply import main_menu_reply_keyboard
+from bot.keyboards.reply import main_menu_reply_keyboard, settings_keyboard
 
 
 router = Router(name="verification")
@@ -40,9 +39,8 @@ def generate_financial_password(length: int = 8) -> str:
 
 
 @router.message(F.text == "✅ Пройти верификацию")
-@router.callback_query(F.data == "verification:start")
 async def start_verification(
-    event: Message | CallbackQuery,
+    message: Message,
     session: AsyncSession,
     user: User,
     state: FSMContext,
@@ -51,7 +49,7 @@ async def start_verification(
     Start verification process - generate financial password.
     
     Args:
-        event: Message or callback query
+        message: Telegram message
         session: Database session
         user: Current user
         state: FSM state
@@ -67,17 +65,10 @@ async def start_verification(
             "Если вы забыли пароль, обратитесь в поддержку."
         )
         
-        if isinstance(event, Message):
-            await event.answer(
-                message_text,
-                reply_markup=main_menu_reply_keyboard(),
-            )
-        else:
-            await event.message.edit_text(
-                message_text,
-                reply_markup=settings_keyboard(),
-            )
-            await event.answer()
+        await message.answer(
+            message_text,
+            reply_markup=main_menu_reply_keyboard(),
+        )
         return
     
     # Generate financial password
@@ -110,9 +101,9 @@ async def start_verification(
     
     # Show password ONCE with warning
     password_message = (
-        "🔐 **Финансовый пароль сгенерирован!**\n\n"
-        f"**Ваш пароль:** `{financial_password}`\n\n"
-        "⚠️ **ВАЖНО:**\n"
+        "🔐 *Финансовый пароль сгенерирован!*\n\n"
+        f"*Ваш пароль:* `{financial_password}`\n\n"
+        "⚠️ *ВАЖНО:*\n"
         "• Сохраните этот пароль в безопасном месте\n"
         "• Он нужен для подтверждения финансовых операций\n"
         "• Пароль больше НЕ будет показан\n"
@@ -120,34 +111,9 @@ async def start_verification(
         "✅ Верификация завершена!"
     )
     
-    if isinstance(event, Message):
-        await event.answer(
-            password_message,
-            parse_mode="Markdown",
-            reply_markup=main_menu_reply_keyboard(),
-        )
-    else:
-        await event.message.edit_text(
-            password_message,
-            parse_mode="Markdown",
-            reply_markup=settings_keyboard(),
-        )
-        await event.answer("✅ Верификация завершена!")
-
-
-@router.callback_query(F.data == "verification:show_password")
-async def show_password_reminder(
-    callback: CallbackQuery,
-) -> None:
-    """
-    Show reminder that password cannot be shown again.
-    
-    Args:
-        callback: Callback query
-    """
-    await callback.answer(
-        "❌ Финансовый пароль хранится только у вас.\n"
-        "При утере пароля обратитесь в поддержку.",
-        show_alert=True,
+    await message.answer(
+        password_message,
+        parse_mode="Markdown",
+        reply_markup=main_menu_reply_keyboard(),
     )
 

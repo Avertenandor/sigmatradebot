@@ -59,6 +59,10 @@ def main_menu_reply_keyboard(
             KeyboardButton(text="⚙️ Настройки"),
         )
         builder.row(
+            KeyboardButton(text="📖 Инструкции"),
+            KeyboardButton(text="📜 История"),
+        )
+        builder.row(
             KeyboardButton(text="✅ Пройти верификацию"),
         )
         
