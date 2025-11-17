@@ -9,6 +9,7 @@ from typing import Any
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
@@ -30,6 +31,7 @@ async def show_main_menu(
     session: AsyncSession,
     user: User,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """
     Show main menu.
@@ -39,7 +41,10 @@ async def show_main_menu(
         session: Database session
         user: Current user
         state: FSM state
+        **data: Handler data (includes is_admin from AuthMiddleware)
     """
+    logger.info(f"[MENU] show_main_menu called for user {user.telegram_id} (@{user.username})")
+    
     # Clear any active FSM state
     await state.clear()
 
@@ -48,9 +53,18 @@ async def show_main_menu(
     blacklist_entry = await blacklist_repo.find_by_telegram_id(
         user.telegram_id
     )
+    logger.info(
+        f"[MENU] Blacklist entry for user {user.telegram_id}: "
+        f"exists={blacklist_entry is not None}, "
+        f"active={blacklist_entry.is_active if blacklist_entry else False}"
+    )
 
     # Get is_admin from middleware data (set by AuthMiddleware)
     is_admin = data.get("is_admin", False)
+    logger.info(
+        f"[MENU] is_admin from data for user {user.telegram_id}: {is_admin}, "
+        f"data keys: {list(data.keys())}"
+    )
 
     text = (
         f"📊 *Главное меню*\n\n"
@@ -58,13 +72,21 @@ async def show_main_menu(
         f"Выберите действие из меню ниже:"
     )
 
+    logger.info(
+        f"[MENU] Creating keyboard for user {user.telegram_id} with "
+        f"is_admin={is_admin}, blacklist_entry={blacklist_entry is not None}"
+    )
+    keyboard = main_menu_reply_keyboard(
+        user=user, blacklist_entry=blacklist_entry, is_admin=is_admin
+    )
+    logger.info(f"[MENU] Sending main menu to user {user.telegram_id}")
+    
     await message.answer(
         text,
-        reply_markup=main_menu_reply_keyboard(
-            user=user, blacklist_entry=blacklist_entry, is_admin=is_admin
-        ),
+        reply_markup=keyboard,
         parse_mode="Markdown",
     )
+    logger.info(f"[MENU] Main menu sent successfully to user {user.telegram_id}")
 
 
 @router.message(F.text.in_({"📊 Главное меню", "⬅ Назад"}))
@@ -75,12 +97,19 @@ async def handle_main_menu(
     **data: Any,
 ) -> None:
     """Handle main menu button."""
+    telegram_id = message.from_user.id if message.from_user else None
+    logger.info(f"[MENU] handle_main_menu called for user {telegram_id}, text: {message.text}")
+    
     user: User | None = data.get("user")
+    logger.info(f"[MENU] User from data: {user.id if user else None}, data keys: {list(data.keys())}")
+    
     if not user:
         # Если по какой-то причине DI не предоставил user, просто очистим
         # состояние и покажем базовое меню без учёта статусов.
+        logger.warning(f"[MENU] No user in data for telegram_id {telegram_id}, using fallback")
         await state.clear()
         is_admin = data.get("is_admin", False)
+        logger.info(f"[MENU] Fallback menu with is_admin={is_admin}")
         await message.answer(
             "📊 *Главное меню*\n\nВыберите действие:",
             reply_markup=main_menu_reply_keyboard(
@@ -89,7 +118,8 @@ async def handle_main_menu(
             parse_mode="Markdown",
         )
         return
-    await show_main_menu(message, session, user, state)
+    logger.info(f"[MENU] Calling show_main_menu for user {user.telegram_id}")
+    await show_main_menu(message, session, user, state, **data)
 
 
 @router.callback_query(F.data == "main_menu")
@@ -149,7 +179,10 @@ async def show_balance(
     **data: Any,
 ) -> None:
     """Show user balance."""
+    telegram_id = message.from_user.id if message.from_user else None
+    logger.info(f"[MENU] show_balance called for user {telegram_id}")
     user: User | None = data.get("user")
+    logger.info(f"[MENU] User from data: {user.id if user else None}, data keys: {list(data.keys())}")
     if not user:
         # Try to get user from database
         from app.repositories.user_repository import UserRepository
@@ -194,7 +227,10 @@ async def show_deposit_menu(
     **data: Any,
 ) -> None:
     """Show deposit menu."""
+    telegram_id = message.from_user.id if message.from_user else None
+    logger.info(f"[MENU] show_deposit_menu called for user {telegram_id}")
     user: User | None = data.get("user")
+    logger.info(f"[MENU] User from data: {user.id if user else None}, data keys: {list(data.keys())}")
     if not user:
         # Try to get user from database
         from app.repositories.user_repository import UserRepository
@@ -235,7 +271,10 @@ async def show_withdrawal_menu(
     **data: Any,
 ) -> None:
     """Show withdrawal menu."""
+    telegram_id = message.from_user.id if message.from_user else None
+    logger.info(f"[MENU] show_withdrawal_menu called for user {telegram_id}")
     user: User | None = data.get("user")
+    logger.info(f"[MENU] User from data: {user.id if user else None}, data keys: {list(data.keys())}")
     if not user:
         # Try to get user from database
         from app.repositories.user_repository import UserRepository

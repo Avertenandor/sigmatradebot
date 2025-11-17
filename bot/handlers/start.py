@@ -111,17 +111,25 @@ async def cmd_start(
         # 2) И отправим главное меню отдельным сообщением
         # Get is_admin from middleware data
         is_admin = data.get("is_admin", False)
+        logger.info(
+            f"[START] cmd_start for registered user {user.telegram_id}: "
+            f"is_admin={is_admin}, data keys: {list(data.keys())}"
+        )
         # Get blacklist status if needed
         from app.repositories.blacklist_repository import BlacklistRepository
         blacklist_repo = BlacklistRepository(session)
         blacklist_entry = await blacklist_repo.find_by_telegram_id(user.telegram_id)
+        logger.info(
+            f"[START] Creating keyboard for user {user.telegram_id} with "
+            f"is_admin={is_admin}, blacklist_entry={blacklist_entry is not None}"
+        )
         await message.answer(
             "Выберите действие ниже:",
             reply_markup=main_menu_reply_keyboard(
                 user=user, blacklist_entry=blacklist_entry, is_admin=is_admin
             ),
         )
-        logger.info("cmd_start: main menu keyboard sent successfully")
+        logger.info(f"[START] Main menu keyboard sent successfully to user {user.telegram_id}")
         return
 
     # Not registered: покажем приветствие и сразу главное меню

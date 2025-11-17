@@ -3,6 +3,8 @@ Admin Panel Handler
 Handles admin panel main menu and platform statistics
 """
 
+from typing import Any
+
 from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.types import (
@@ -11,6 +13,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     Message,
 )
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.deposit_service import DepositService
@@ -108,13 +111,19 @@ async def cmd_admin_panel(
 async def handle_admin_panel_button(
     message: Message,
     session: AsyncSession,
-    is_admin: bool = False,
+    **data: Any,
 ) -> None:
     """
     Вход в админ-панель по кнопке в reply keyboard.
     Работает только для админов (is_admin=True из middleware).
     """
+    telegram_id = message.from_user.id if message.from_user else None
+    logger.info(f"[ADMIN] handle_admin_panel_button called for user {telegram_id}")
+    is_admin = data.get("is_admin", False)
+    logger.info(f"[ADMIN] is_admin from data: {is_admin}, data keys: {list(data.keys())}")
+    
     if not is_admin:
+        logger.warning(f"[ADMIN] User {telegram_id} tried to access admin panel but is_admin={is_admin}")
         await message.answer("❌ Эта функция доступна только администраторам")
         return
 

@@ -6,6 +6,7 @@ Reply keyboard builders for main navigation.
 
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from loguru import logger
 
 from app.models.blacklist import Blacklist, BlacklistActionType
 from app.models.user import User
@@ -29,6 +30,15 @@ def main_menu_reply_keyboard(
     Returns:
         ReplyKeyboardMarkup with main menu buttons
     """
+    user_id = user.id if user else None
+    telegram_id = user.telegram_id if user else None
+    logger.info(
+        f"[KEYBOARD] main_menu_reply_keyboard called: "
+        f"user_id={user_id}, telegram_id={telegram_id}, "
+        f"is_admin={is_admin}, "
+        f"blacklist_active={blacklist_entry.is_active if blacklist_entry else False}"
+    )
+
     builder = ReplyKeyboardBuilder()
 
     # If user is blocked (with appeal option), show only appeal button
@@ -38,11 +48,13 @@ def main_menu_reply_keyboard(
         and blacklist_entry.is_active
         and blacklist_entry.action_type == BlacklistActionType.BLOCKED
     ):
+        logger.info(f"[KEYBOARD] User {telegram_id} is blocked, showing appeal button only")
         builder.row(
             KeyboardButton(text="📝 Подать апелляцию"),
         )
     else:
         # Standard menu for active users
+        logger.info(f"[KEYBOARD] Building standard menu for user {telegram_id}")
         builder.row(
             KeyboardButton(text="💰 Депозит"),
             KeyboardButton(text="💸 Вывод"),
@@ -65,11 +77,16 @@ def main_menu_reply_keyboard(
 
         # Add admin panel button for admins
         if is_admin:
+            logger.info(f"[KEYBOARD] Adding admin panel button for user {telegram_id}")
             builder.row(
                 KeyboardButton(text="👑 Админ-панель"),
             )
+        else:
+            logger.info(f"[KEYBOARD] NOT adding admin panel button (is_admin={is_admin}) for user {telegram_id}")
 
-    return builder.as_markup(resize_keyboard=True)
+    keyboard = builder.as_markup(resize_keyboard=True)
+    logger.info(f"[KEYBOARD] Keyboard created for user {telegram_id}, buttons count: {len(keyboard.keyboard)}")
+    return keyboard
 
 
 def support_keyboard() -> ReplyKeyboardMarkup:
