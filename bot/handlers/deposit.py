@@ -5,12 +5,12 @@ Handles deposit creation flow.
 """
 
 from decimal import Decimal
+from typing import Any
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from loguru import logger
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 from app.services.deposit_service import DepositService
@@ -58,31 +58,53 @@ def extract_level_from_button(text: str) -> int:
 )
 async def select_deposit_level(
     message: Message,
-    session: AsyncSession,
-    user: User,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """
     Handle deposit level selection with validation.
+    
+    Uses session_factory for short transaction during validation.
 
     Args:
         message: Telegram message
-        session: Database session
-        user: Current user
         state: FSM state
+        data: Additional data including session_factory and user
     """
+    user: User | None = data.get("user")
+    if not user:
+        await message.answer("❌ Ошибка: пользователь не найден")
+        return
+    
     # Extract level from button text
-    level = extract_level_from_button(message.text)
+    level = extract_level_from_button(message.text or "")
 
-    # Validate purchase eligibility
+    # Validate purchase eligibility with SHORT transaction
     from app.services.deposit_validation_service import (
         DepositValidationService,
     )
 
-    validation_service = DepositValidationService(session)
-    can_purchase, error_msg = await validation_service.can_purchase_level(
-        user.id, level
-    )
+    session_factory = data.get("session_factory")
+    
+    if not session_factory:
+        # Fallback to old session
+        session = data.get("session")
+        if not session:
+            await message.answer("❌ Системная ошибка. Попробуйте позже.")
+            return
+        validation_service = DepositValidationService(session)
+        can_purchase, error_msg = await validation_service.can_purchase_level(
+            user.id, level
+        )
+    else:
+        # NEW pattern: short read transaction
+        async with session_factory() as session:
+            async with session.begin():
+                validation_service = DepositValidationService(session)
+                can_purchase, error_msg = await validation_service.can_purchase_level(
+                    user.id, level
+                )
+        # Transaction closed here
 
     if not can_purchase:
         await message.answer(
@@ -129,25 +151,31 @@ async def select_deposit_level(
 @router.message(DepositStates.waiting_for_tx_hash)
 async def process_tx_hash(
     message: Message,
-    session: AsyncSession,
-    user: User,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """
     Process transaction hash for deposit.
+    
+    Uses session_factory for short transaction during deposit creation.
 
     Args:
         message: Telegram message
-        session: Database session
-        user: Current user
         state: FSM state
+        data: Additional data including session_factory and user
     """
+    user: User | None = data.get("user")
+    if not user:
+        await message.answer("❌ Ошибка: пользователь не найден")
+        await state.clear()
+        return
+    
     # Check if message is a menu button - if so, clear state and ignore
-    if is_menu_button(message.text):
+    if is_menu_button(message.text or ""):
         await state.clear()
         return  # Let menu handlers process this
 
-    tx_hash = message.text.strip()
+    tx_hash = (message.text or "").strip()
 
     # Basic validation
     if not tx_hash.startswith("0x") or len(tx_hash) != 66:
@@ -160,9 +188,9 @@ async def process_tx_hash(
         return
 
     # Get level and expected amount from state
-    data = await state.get_data()
-    level = data.get("level", 1)
-    expected_amount_str = data.get("expected_amount")
+    state_data = await state.get_data()
+    level = state_data.get("level", 1)
+    expected_amount_str = state_data.get("expected_amount")
 
     if expected_amount_str:
         expected_amount = Decimal(expected_amount_str)
@@ -171,36 +199,66 @@ async def process_tx_hash(
 
         expected_amount = DEPOSIT_LEVELS.get(level, Decimal("10"))
 
-    # Validate purchase eligibility again (in case state was modified)
-    from app.services.deposit_validation_service import (
-        DepositValidationService,
-    )
+    session_factory = data.get("session_factory")
 
-    validation_service = DepositValidationService(session)
-    can_purchase, error_msg = await validation_service.can_purchase_level(
-        user.id, level
-    )
-
-    if not can_purchase:
-        await message.answer(
-            f"❌ {error_msg}\n\nПопробуйте выбрать другой уровень депозита."
+    # Validate and create deposit with SHORT transaction
+    if not session_factory:
+        # Fallback to old session
+        session = data.get("session")
+        if not session:
+            await message.answer("❌ Системная ошибка.")
+            await state.clear()
+            return
+        
+        from app.services.deposit_validation_service import (
+            DepositValidationService,
         )
-        await state.clear()
-        return
-
-    # Get system wallet address
-    from app.config.settings import settings
-
-    system_wallet = settings.system_wallet_address
-
-    # Create deposit with pending status
-    deposit_service = DepositService(session)
-    deposit = await deposit_service.create_deposit(
-        user_id=user.id,
-        level=level,
-        amount=expected_amount,
-        tx_hash=tx_hash,
-    )
+        validation_service = DepositValidationService(session)
+        can_purchase, error_msg = await validation_service.can_purchase_level(
+            user.id, level
+        )
+        
+        if not can_purchase:
+            await message.answer(
+                f"❌ {error_msg}\n\nПопробуйте выбрать другой уровень."
+            )
+            await state.clear()
+            return
+        
+        deposit_service = DepositService(session)
+        deposit = await deposit_service.create_deposit(
+            user_id=user.id,
+            level=level,
+            amount=expected_amount,
+            tx_hash=tx_hash,
+        )
+    else:
+        # NEW pattern: short transaction for validation and creation
+        async with session_factory() as session:
+            async with session.begin():
+                from app.services.deposit_validation_service import (
+                    DepositValidationService,
+                )
+                validation_service = DepositValidationService(session)
+                can_purchase, error_msg = await validation_service.can_purchase_level(
+                    user.id, level
+                )
+                
+                if not can_purchase:
+                    await message.answer(
+                        f"❌ {error_msg}\n\nПопробуйте выбрать другой уровень."
+                    )
+                    await state.clear()
+                    return
+                
+                deposit_service = DepositService(session)
+                deposit = await deposit_service.create_deposit(
+                    user_id=user.id,
+                    level=level,
+                    amount=expected_amount,
+                    tx_hash=tx_hash,
+                )
+        # Transaction closed here
 
     logger.info(
         "Deposit created with tx hash",
@@ -212,6 +270,11 @@ async def process_tx_hash(
             "tx_hash": tx_hash,
         },
     )
+
+    # Get system wallet address
+    from app.config.settings import settings
+
+    system_wallet = settings.system_wallet_address
 
     # Show deposit info with payment address
     text = (
