@@ -41,17 +41,22 @@ async def start_appeal(
     blacklist_repo = BlacklistRepository(session)
     blacklist_entry = await blacklist_repo.get_by_telegram_id(user.telegram_id)
 
+    is_admin = data.get("is_admin", False)
     if not blacklist_entry or not blacklist_entry.is_active:
         await message.answer(
             "❌ У вас нет активной блокировки для подачи апелляции.",
-            reply_markup=main_menu_reply_keyboard(),
+            reply_markup=main_menu_reply_keyboard(
+                user=user, blacklist_entry=blacklist_entry, is_admin=is_admin
+            ),
         )
         return
 
     if blacklist_entry.action_type != BlacklistActionType.BLOCKED:
         await message.answer(
             "❌ Апелляция доступна только для заблокированных аккаунтов.",
-            reply_markup=main_menu_reply_keyboard(),
+            reply_markup=main_menu_reply_keyboard(
+                user=user, blacklist_entry=blacklist_entry, is_admin=is_admin
+            ),
         )
         return
 
@@ -62,7 +67,9 @@ async def start_appeal(
     ):
         await message.answer(
             "❌ Срок подачи апелляции истек (3 рабочих дня).",
-            reply_markup=main_menu_reply_keyboard(),
+            reply_markup=main_menu_reply_keyboard(
+                user=user, blacklist_entry=blacklist_entry, is_admin=is_admin
+            ),
         )
         return
 
@@ -81,7 +88,9 @@ async def start_appeal(
             f"Статус: {existing_appeal.status}\n"
             f"Подана: {created_date}\n\n"
             "Дождитесь рассмотрения текущей апелляции.",
-            reply_markup=main_menu_reply_keyboard(),
+            reply_markup=main_menu_reply_keyboard(
+                user=user, blacklist_entry=blacklist_entry, is_admin=is_admin
+            ),
         )
         return
 
@@ -133,9 +142,12 @@ async def process_appeal_text(
     blacklist_entry = await blacklist_repo.get_by_telegram_id(user.telegram_id)
 
     if not blacklist_entry:
+        is_admin = data.get("is_admin", False)
         await message.answer(
             "❌ Ошибка: запись о блокировке не найдена.",
-            reply_markup=main_menu_reply_keyboard(),
+            reply_markup=main_menu_reply_keyboard(
+                user=user, blacklist_entry=None, is_admin=is_admin
+            ),
         )
         await state.clear()
         return
@@ -209,13 +221,16 @@ async def process_appeal_text(
         },
     )
 
+    is_admin = data.get("is_admin", False)
     await message.answer(
         "✅ **Апелляция подана!**\n\n"
         f"🆔 ID апелляции: #{appeal.id}\n"
         f"📋 Номер обращения: #{appeal_ticket.id}\n\n"
         "Ваша апелляция будет рассмотрена в течение 5 рабочих дней.\n"
         "Вы получите уведомление о результате рассмотрения.",
-        reply_markup=main_menu_reply_keyboard(),
+        reply_markup=main_menu_reply_keyboard(
+            user=user, blacklist_entry=blacklist_entry, is_admin=is_admin
+        ),
     )
 
     await state.clear()

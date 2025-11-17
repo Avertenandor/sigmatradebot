@@ -313,9 +313,17 @@ async def process_financial_password(
         # Transaction closed here - BEFORE notifications
 
     if error:
+        is_admin = data.get("is_admin", False)
+        from app.repositories.blacklist_repository import BlacklistRepository
+        blacklist_repo = BlacklistRepository(session)
+        blacklist_entry = None
+        if user:
+            blacklist_entry = await blacklist_repo.find_by_telegram_id(user.telegram_id)
         await message.answer(
             f"❌ Ошибка создания заявки:\n{error}",
-            reply_markup=main_menu_reply_keyboard(),
+            reply_markup=main_menu_reply_keyboard(
+                user=user, blacklist_entry=blacklist_entry, is_admin=is_admin
+            ),
         )
         await state.clear()
         return
@@ -340,12 +348,29 @@ async def process_financial_password(
             f"Вы получите уведомление после обработки."
         )
 
-        await message.answer(text, reply_markup=main_menu_reply_keyboard())
+        is_admin = data.get("is_admin", False)
+        from app.repositories.blacklist_repository import BlacklistRepository
+        blacklist_repo = BlacklistRepository(session)
+        blacklist_entry = await blacklist_repo.find_by_telegram_id(user.telegram_id)
+        await message.answer(
+            text,
+            reply_markup=main_menu_reply_keyboard(
+                user=user, blacklist_entry=blacklist_entry, is_admin=is_admin
+            ),
+        )
         await state.clear()
     else:
+        is_admin = data.get("is_admin", False)
+        from app.repositories.blacklist_repository import BlacklistRepository
+        blacklist_repo = BlacklistRepository(session)
+        blacklist_entry = None
+        if user:
+            blacklist_entry = await blacklist_repo.find_by_telegram_id(user.telegram_id)
         await message.answer(
             "❌ Ошибка при создании заявки на вывод. Попробуйте позже.",
-            reply_markup=main_menu_reply_keyboard(),
+            reply_markup=main_menu_reply_keyboard(
+                user=user, blacklist_entry=blacklist_entry, is_admin=is_admin
+            ),
         )
         await state.clear()
 

@@ -104,6 +104,11 @@ class AuthMiddleware(BaseMiddleware):
             admin_repo = AdminRepository(session)
             admin = await admin_repo.get_by_telegram_id(telegram_user.id)
             is_admin = admin is not None
+            if is_admin:
+                logger.info(
+                    f"User {telegram_user.id} (@{telegram_user.username}) "
+                    f"identified as admin (role: {admin.role if admin else 'unknown'})"
+                )
 
         data["is_admin"] = is_admin
         data["admin_id"] = user.id if is_admin else 0

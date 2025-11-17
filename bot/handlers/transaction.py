@@ -144,6 +144,16 @@ async def handle_transaction_history(
 
             text += "\n"
 
+    is_admin = data.get("is_admin", False)
+    from app.repositories.blacklist_repository import BlacklistRepository
+    blacklist_repo = BlacklistRepository(session)
+    blacklist_entry = None
+    if user:
+        blacklist_entry = await blacklist_repo.find_by_telegram_id(user.telegram_id)
     await message.answer(
-        text, parse_mode="Markdown", reply_markup=main_menu_reply_keyboard()
+        text,
+        parse_mode="Markdown",
+        reply_markup=main_menu_reply_keyboard(
+            user=user, blacklist_entry=blacklist_entry, is_admin=is_admin
+        ),
     )

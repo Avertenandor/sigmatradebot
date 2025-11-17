@@ -80,9 +80,12 @@ async def handle_main_menu(
         # Если по какой-то причине DI не предоставил user, просто очистим
         # состояние и покажем базовое меню без учёта статусов.
         await state.clear()
+        is_admin = data.get("is_admin", False)
         await message.answer(
             "📊 *Главное меню*\n\nВыберите действие:",
-            reply_markup=main_menu_reply_keyboard(),
+            reply_markup=main_menu_reply_keyboard(
+                user=None, blacklist_entry=None, is_admin=is_admin
+            ),
             parse_mode="Markdown",
         )
         return
