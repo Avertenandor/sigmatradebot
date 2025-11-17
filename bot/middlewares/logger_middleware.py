@@ -4,7 +4,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject, Update, User
+from aiogram.types import TelegramObject, Update, Message
 from loguru import logger
 
 
@@ -47,6 +47,10 @@ class LoggerMiddleware(BaseMiddleware):
         logger.info(
             f"[{request_id}] {update_type} from user {user_id} (@{username})"
         )
+        
+        # Log message text for debugging
+        if isinstance(event, Message) and event.text:
+            logger.info(f"[{request_id}] Text: '{event.text}'")
 
         # Process
         try:
