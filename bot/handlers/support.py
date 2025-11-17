@@ -23,7 +23,6 @@ async def handle_support_menu(
     **data: Any,
 ) -> None:
     """Show support menu."""
-    user: User = data.get("user")
     await state.clear()
 
     text = "💬 *Служба поддержки*\n\nВыберите действие из меню ниже:"
@@ -40,7 +39,6 @@ async def handle_create_ticket(
     **data: Any,
 ) -> None:
     """Start ticket creation."""
-    user: User = data.get("user")
     text = (
         "✉️ *Создать обращение*\n\n"
         "Опишите вашу проблему или вопрос.\n"
@@ -60,7 +58,7 @@ async def process_ticket_message(
     **data: Any,
 ) -> None:
     """Process ticket message."""
-    user: User = data.get("user")
+    user: User | None = data.get("user")
     from bot.utils.menu_buttons import is_menu_button
 
     # Check if user pressed menu button
@@ -75,6 +73,13 @@ async def process_ticket_message(
     support_service = SupportService(session)
 
     try:
+        if not user:
+            await state.clear()
+            await message.answer(
+                "❌ Ошибка контекста пользователя. Повторите /start"
+            )
+            return
+
         ticket, error = await support_service.create_ticket(
             user_id=user.id,
             category=SupportCategory.OTHER,
@@ -98,7 +103,9 @@ async def process_ticket_message(
             f"Мы ответим вам в ближайшее время."
         )
 
-        await message.answer(text, parse_mode="Markdown")
+        await message.answer(
+            text, parse_mode="Markdown", reply_markup=support_keyboard()
+        )
 
         # Notify admins
         from app.config.settings import settings
@@ -108,7 +115,7 @@ async def process_ticket_message(
             admin_text = (
                 f"🆕 *Новое обращение #{ticket.id}*\n\n"
                 f"От: @{user.username or 'пользователь'}"
-                    "(`{user.telegram_id}`)\n"
+                f" (`{user.telegram_id}`)\n"
                 f"Текст: {message.text}"
             )
 
@@ -132,10 +139,17 @@ async def handle_my_tickets(
     **data: Any,
 ) -> None:
     """Show user's tickets."""
-    user: User = data.get("user")
+    user: User | None = data.get("user")
     from app.services.support_service import SupportService
 
     support_service = SupportService(session)
+    if not user:
+        await message.answer(
+            "❌ Ошибка контекста пользователя. Повторите /start",
+            reply_markup=support_keyboard(),
+        )
+        return
+
     tickets = await support_service.get_user_tickets(user.id)
 
     if not tickets:
@@ -157,7 +171,9 @@ async def handle_my_tickets(
                 f"   Создано: {created_date}\n\n"
             )
 
-    await message.answer(text, parse_mode="Markdown")
+    await message.answer(
+        text, parse_mode="Markdown", reply_markup=support_keyboard()
+    )
 
 
 @router.message(F.text == "❓ FAQ")
@@ -181,4 +197,6 @@ async def handle_faq(
         "Для других вопросов создайте обращение в поддержку."
     )
 
-    await message.answer(text, parse_mode="Markdown")
+    await message.answer(
+        text, parse_mode="Markdown", reply_markup=support_keyboard()
+    )

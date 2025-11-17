@@ -90,7 +90,10 @@ def support_keyboard() -> ReplyKeyboardMarkup:
     builder.row(
         KeyboardButton(text="❓ FAQ"),
     )
+    # Покажем и "Назад", и явную кнопку выхода в главное меню —
+    # пользователи привыкли к обоим вариантам.
     builder.row(
+        KeyboardButton(text="⬅ Назад"),
         KeyboardButton(text="📊 Главное меню"),
     )
 

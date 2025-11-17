@@ -69,7 +69,7 @@ async def show_main_menu(
     )
 
 
-@router.message(F.text == "📊 Главное меню")
+@router.message(F.text.in_({"📊 Главное меню", "⬅ Назад"}))
 async def handle_main_menu(
     message: Message,
     session: AsyncSession,
