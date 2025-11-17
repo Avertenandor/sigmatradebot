@@ -48,11 +48,11 @@ def extract_level_from_button(text: str) -> int:
 @router.message(
     F.text.in_(
         [
-            "💰 Пополнить Level 1 (50 USDT)",
-            "💰 Пополнить Level 2 (100 USDT)",
-            "💰 Пополнить Level 3 (250 USDT)",
-            "💰 Пополнить Level 4 (500 USDT)",
-            "💰 Пополнить Level 5 (1000 USDT)",
+            "💰 Пополнить Level 1 (10 USDT)",
+            "💰 Пополнить Level 2 (50 USDT)",
+            "💰 Пополнить Level 3 (100 USDT)",
+            "💰 Пополнить Level 4 (150 USDT)",
+            "💰 Пополнить Level 5 (300 USDT)",
         ]
     )
 )
@@ -134,9 +134,14 @@ async def select_deposit_level(
             "(максимум можно заработать 5x от депозита)\n\n"
         )
 
+    # Get system wallet address
+    from app.config.settings import settings
+    system_wallet = settings.system_wallet_address
+    
     text += (
         f"📝 *Следующий шаг:*\n"
-        f"Отправьте {expected_amount} USDT на адрес кошелька проекта.\n\n"
+        f"Отправьте {expected_amount} USDT на адрес кошелька проекта:\n\n"
+        f"`{system_wallet}`\n\n"
         "После отправки введите hash транзакции:"
     )
 

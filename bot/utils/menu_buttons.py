@@ -23,11 +23,11 @@ MAIN_MENU_BUTTONS = [
 
 # Deposit menu buttons
 DEPOSIT_MENU_BUTTONS = [
-    "💰 Пополнить Level 1 (50 USDT)",
-    "💰 Пополнить Level 2 (100 USDT)",
-    "💰 Пополнить Level 3 (250 USDT)",
-    "💰 Пополнить Level 4 (500 USDT)",
-    "💰 Пополнить Level 5 (1000 USDT)",
+    "💰 Пополнить Level 1 (10 USDT)",
+    "💰 Пополнить Level 2 (50 USDT)",
+    "💰 Пополнить Level 3 (100 USDT)",
+    "💰 Пополнить Level 4 (150 USDT)",
+    "💰 Пополнить Level 5 (300 USDT)",
 ]
 
 # Withdrawal menu buttons

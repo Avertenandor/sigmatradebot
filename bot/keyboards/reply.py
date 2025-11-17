@@ -127,19 +127,19 @@ def deposit_keyboard() -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
 
     builder.row(
-        KeyboardButton(text="💰 Пополнить Level 1 (50 USDT)"),
+        KeyboardButton(text="💰 Пополнить Level 1 (10 USDT)"),
     )
     builder.row(
-        KeyboardButton(text="💰 Пополнить Level 2 (100 USDT)"),
+        KeyboardButton(text="💰 Пополнить Level 2 (50 USDT)"),
     )
     builder.row(
-        KeyboardButton(text="💰 Пополнить Level 3 (250 USDT)"),
+        KeyboardButton(text="💰 Пополнить Level 3 (100 USDT)"),
     )
     builder.row(
-        KeyboardButton(text="💰 Пополнить Level 4 (500 USDT)"),
+        KeyboardButton(text="💰 Пополнить Level 4 (150 USDT)"),
     )
     builder.row(
-        KeyboardButton(text="💰 Пополнить Level 5 (1000 USDT)"),
+        KeyboardButton(text="💰 Пополнить Level 5 (300 USDT)"),
     )
     builder.row(
         KeyboardButton(text="📊 Главное меню"),

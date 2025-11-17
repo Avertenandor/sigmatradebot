@@ -94,9 +94,14 @@ async def cmd_start(
         # КРИТИЧНО: очистим любое FSM состояние, чтобы /start всегда работал
         await state.clear()
         
+        # Format balance properly (avoid scientific notation)
+        balance_str = f"{user.balance:.8f}".rstrip('0').rstrip('.')
+        if balance_str == '':
+            balance_str = '0'
+        
         welcome_text = (
             f"Добро пожаловать обратно, {user.username or 'пользователь'}!\n\n"
-            f"Ваш баланс: {user.balance} USDT\n"
+            f"Ваш баланс: {balance_str} USDT\n"
             f"Используйте меню ниже для навигации."
         )
         logger.debug("cmd_start: sending welcome with ReplyKeyboardRemove")
