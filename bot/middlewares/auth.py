@@ -128,28 +128,28 @@ class AuthMiddleware(BaseMiddleware):
         data["telegram_id"] = telegram_user.id
 
         # Check if user is admin
-        # Admin check: user.is_admin or check Admin table
+        # Admin check: check Admin table first (authoritative source), then user.is_admin flag
         is_admin = False
-        if hasattr(user, "is_admin"):
-            is_admin = user.is_admin
+        from app.repositories.admin_repository import AdminRepository
+
+        admin_repo = AdminRepository(session)
+        admin = await admin_repo.get_by_telegram_id(telegram_user.id)
+        if admin is not None:
+            is_admin = True
+            logger.info(
+                f"User {telegram_user.id} (@{telegram_user.username}) "
+                f"identified as admin from Admin table (role: {admin.role if admin else 'unknown'})"
+            )
+        elif hasattr(user, "is_admin") and user.is_admin:
+            # Fallback to user.is_admin flag if not in Admin table
+            is_admin = True
             logger.debug(
-                f"User {telegram_user.id} is_admin from user.is_admin: {is_admin}"
+                f"User {telegram_user.id} is_admin from user.is_admin flag: {is_admin}"
             )
         else:
-            # Check if user exists in Admin table
-            from app.repositories.admin_repository import AdminRepository
-
-            admin_repo = AdminRepository(session)
-            admin = await admin_repo.get_by_telegram_id(telegram_user.id)
-            is_admin = admin is not None
-            logger.info(
-                f"User {telegram_user.id} admin check: admin={admin}, is_admin={is_admin}"
+            logger.debug(
+                f"User {telegram_user.id} is not an admin (not in Admin table, user.is_admin={getattr(user, 'is_admin', False)})"
             )
-            if is_admin:
-                logger.info(
-                    f"User {telegram_user.id} (@{telegram_user.username}) "
-                    f"identified as admin (role: {admin.role if admin else 'unknown'})"
-                )
 
         data["is_admin"] = is_admin
         data["admin_id"] = user.id if is_admin else 0
