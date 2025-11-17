@@ -76,6 +76,9 @@ async def cmd_start(
 
     # Check if already registered
     if user:
+        # КРИТИЧНО: очистим любое FSM состояние, чтобы /start всегда работал
+        await state.clear()
+        
         welcome_text = (
             f"Добро пожаловать обратно, {user.username or 'пользователь'}!\n\n"
             f"Ваш баланс: {user.balance} USDT\n"
@@ -154,7 +157,12 @@ async def process_wallet(
 
     if is_menu_button(message.text):
         await state.clear()
-        return  # Let menu handlers process this
+        # Покажем главное меню сразу, не полагаясь на повторную диспетчеризацию
+        await message.answer(
+            "📊 Главное меню",
+            reply_markup=main_menu_reply_keyboard(),
+        )
+        return
 
     wallet_address = message.text.strip()
 
@@ -210,7 +218,11 @@ async def process_financial_password(
 
     if is_menu_button(message.text):
         await state.clear()
-        return  # Let menu handlers process this
+        await message.answer(
+            "📊 Главное меню",
+            reply_markup=main_menu_reply_keyboard(),
+        )
+        return
 
     password = message.text.strip()
 
@@ -256,7 +268,11 @@ async def process_password_confirmation(
 
     if is_menu_button(message.text):
         await state.clear()
-        return  # Let menu handlers process this
+        await message.answer(
+            "📊 Главное меню",
+            reply_markup=main_menu_reply_keyboard(),
+        )
+        return
 
     confirmation = message.text.strip()
 
@@ -403,7 +419,11 @@ async def process_phone(
 
     if is_menu_button(message.text):
         await state.clear()
-        return  # Let menu handlers process this
+        await message.answer(
+            "📊 Главное меню",
+            reply_markup=main_menu_reply_keyboard(),
+        )
+        return
 
     skip_commands = ["/skip", "пропустить", "skip"]
     if message.text and message.text.strip().lower() in skip_commands:
@@ -451,7 +471,11 @@ async def process_email(
 
     if is_menu_button(message.text):
         await state.clear()
-        return  # Let menu handlers process this
+        await message.answer(
+            "📊 Главное меню",
+            reply_markup=main_menu_reply_keyboard(),
+        )
+        return
 
     skip_commands = ["/skip", "пропустить", "skip"]
     if message.text and message.text.strip().lower() in skip_commands:
