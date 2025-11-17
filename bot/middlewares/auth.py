@@ -97,11 +97,23 @@ class AuthMiddleware(BaseMiddleware):
 
         # Create user if not exists
         if not user:
+            # User model only has telegram_id and username, not first_name/last_name
+            # Also need wallet_address and financial_password - these should be set later
+            # For now, create with minimal required fields
+            from decimal import Decimal
+            import secrets
+            import string
+            
+            # Generate temporary wallet address and password
+            # These will be set properly during verification
+            temp_wallet = "0x" + "".join(secrets.choice(string.hexdigits) for _ in range(40))
+            temp_password = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(16))
+            
             user = await user_repo.create(
                 telegram_id=telegram_user.id,
                 username=telegram_user.username,
-                first_name=telegram_user.first_name,
-                last_name=telegram_user.last_name,
+                wallet_address=temp_wallet,
+                financial_password=temp_password,
             )
             logger.info(
                 f"Auto-created user {user.id} for Telegram ID "
