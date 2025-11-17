@@ -226,10 +226,15 @@ async def show_referral_menu(
 async def show_settings_menu(
     message: Message,
     session: AsyncSession,
-    user: User,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """Show settings menu."""
+    user: User | None = data.get("user")
+    if not user:
+        await message.answer("Ошибка: пользователь не найден")
+        return
+    
     await state.clear()
 
     text = "⚙️ *Настройки*\n\nВыберите раздел:"
@@ -246,9 +251,14 @@ async def show_settings_menu(
 async def show_my_referrals(
     message: Message,
     session: AsyncSession,
-    user: User,
+    **data: Any,
 ) -> None:
     """Show user's referrals list."""
+    user: User | None = data.get("user")
+    if not user:
+        await message.answer("Ошибка: пользователь не найден")
+        return
+    
     UserService(session)
 
     # TODO: Implement referral list logic
@@ -261,9 +271,14 @@ async def show_my_referrals(
 async def show_my_earnings(
     message: Message,
     session: AsyncSession,
-    user: User,
+    **data: Any,
 ) -> None:
     """Show user's referral earnings."""
+    user: User | None = data.get("user")
+    if not user:
+        await message.answer("Ошибка: пользователь не найден")
+        return
+    
     # TODO: Implement earnings logic
     text = "💰 *Мой заработок*\n\nФункция в разработке"
 
@@ -274,9 +289,14 @@ async def show_my_earnings(
 async def show_referral_stats(
     message: Message,
     session: AsyncSession,
-    user: User,
+    **data: Any,
 ) -> None:
     """Show referral statistics."""
+    user: User | None = data.get("user")
+    if not user:
+        await message.answer("Ошибка: пользователь не найден")
+        return
+    
     # TODO: Implement stats logic
     text = "📊 *Статистика рефералов*\n\nФункция в разработке"
 
@@ -287,9 +307,14 @@ async def show_referral_stats(
 async def show_my_profile(
     message: Message,
     session: AsyncSession,
-    user: User,
+    **data: Any,
 ) -> None:
     """Show detailed user profile."""
+    user: User | None = data.get("user")
+    if not user:
+        await message.answer("Ошибка: пользователь не найден")
+        return
+    
     from app.services.deposit_service import DepositService
     from bot.utils.formatters import format_usdt
 
