@@ -443,9 +443,14 @@ async def show_my_profile(
 async def show_my_wallet(
     message: Message,
     session: AsyncSession,
-    user: User,
+    **data: Any,
 ) -> None:
     """Show user wallet."""
+    user: User | None = data.get("user")
+    if not user:
+        await message.answer("Ошибка: пользователь не найден")
+        return
+    
     text = (
         f"💳 *Мой кошелек*\n\n"
         f"Адрес: `{user.wallet_address}`\n\n"

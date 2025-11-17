@@ -4,6 +4,8 @@ Instructions handler - ТОЛЬКО REPLY KEYBOARDS!
 Provides deposit instructions and BSCScan links.
 """
 
+from typing import Any
+
 from aiogram import F, Router
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +20,7 @@ router = Router()
 async def show_instructions(
     message: Message,
     session: AsyncSession,
-    user: User,
+    **data: Any,
 ) -> None:
     """
     Show deposit instructions.
@@ -26,8 +28,13 @@ async def show_instructions(
     Args:
         message: Telegram message
         session: Database session
-        user: Current user
+        data: Additional data from middlewares
     """
+    user: User | None = data.get("user")
+    if not user:
+        await message.answer("Ошибка: пользователь не найден")
+        return
+    
     from app.config.settings import settings
 
     instructions_text = (
