@@ -54,18 +54,23 @@ class AuthMiddleware(BaseMiddleware):
         session: AsyncSession = data.get("session")
         if not session:
             logger.error("No session in data - DatabaseMiddleware missing?")
-            return
+            return await handler(event, data)
 
-        # Get telegram user
-        telegram_user = None
-        if isinstance(event, Message):
-            telegram_user = event.from_user
-        elif isinstance(event, CallbackQuery):
-            telegram_user = event.from_user
+        # Get telegram user - try from data first (set by aiogram), then from event
+        telegram_user = data.get("event_from_user")
+        if not telegram_user:
+            # Fallback: try to get from event directly
+            if isinstance(event, Message):
+                telegram_user = event.from_user
+            elif isinstance(event, CallbackQuery):
+                telegram_user = event.from_user
 
         if not telegram_user:
             # No user in event, skip
-            logger.debug("AuthMiddleware: No telegram_user in event, skipping")
+            logger.debug(
+                f"AuthMiddleware: No telegram_user found. Event type: {type(event).__name__}, "
+                f"data keys: {list(data.keys())}"
+            )
             return await handler(event, data)
 
         logger.info(
