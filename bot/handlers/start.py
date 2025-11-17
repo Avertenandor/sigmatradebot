@@ -160,6 +160,7 @@ async def process_wallet(
     """
     # КРИТИЧНО: пропускаем /start к основному обработчику
     if message.text and message.text.startswith("/start"):
+        logger.info("process_wallet: caught /start, clearing state and returning")
         await state.clear()
         return  # Позволяем CommandStart() обработать это
 
@@ -167,6 +168,7 @@ async def process_wallet(
     from bot.utils.menu_buttons import is_menu_button
 
     if is_menu_button(message.text):
+        logger.debug(f"process_wallet: menu button {message.text}, showing main menu")
         await state.clear()
         # Покажем главное меню сразу, не полагаясь на повторную диспетчеризацию
         await message.answer(
