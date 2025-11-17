@@ -4,128 +4,136 @@ Admin management handler.
 Allows super admins to promote/demote other admins.
 """
 
-from aiogram import Router
+from typing import Any
+
+from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InlineKeyboardButton, Message
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import Message
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.admin import Admin
 from app.services.admin_service import AdminService
+from bot.keyboards.reply import admin_management_keyboard, admin_keyboard, cancel_keyboard
 from bot.states.admin import AdminManagementStates
 
 router = Router()
 
 
-@router.callback_query(lambda c: c.data == "admin:management")
+@router.message(F.text == "👥 Управление админами")
 async def show_admin_management(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
+    **data: Any,
 ) -> None:
     """
     Show admin management menu.
 
     Args:
-        callback: Callback query
+        message: Message
         session: Database session
-        admin: Current admin
+        data: Handler data
     """
-    # Only super_admin can manage admins
-    if admin.role != "super_admin":
-        await callback.answer(
-            "тЭМ ╨в╨╛╨╗╤М╨║╨╛ ╤Б╤Г╨┐╨╡╤А ╨░╨┤╨╝╨╕╨╜ ╨╝╨╛╨╢╨╡╤В"
-                "╤Г╨┐╤А╨░╨▓╨╗╤П╤В╤М ╨░╨┤╨╝╨╕╨╜╨╕╤Б╤В╤А╨░╤В╨╛╤А╨░╨╝╨╕!",
-            show_alert=True,
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    # Check if user is super_admin
+    from app.repositories.admin_repository import AdminRepository
+    
+    admin_repo = AdminRepository(session)
+    admin = await admin_repo.get_by(telegram_id=message.from_user.id)
+    
+    if not admin or admin.role != "super_admin":
+        await message.answer(
+            "❌ Только super admin может управлять администраторами!",
+            reply_markup=admin_keyboard(),
         )
         return
 
     admin_service = AdminService(session)
     admins = await admin_service.get_all_admins()
 
-    text = "ЁЯСе **╨г╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡ ╨░╨┤╨╝╨╕╨╜╨╕╤Б╤В╤А╨░╤В╨╛╤А╨░╨╝╨╕**\n\n"
+    text = "👥 **Управление администраторами**\n\n"
 
     for adm in admins:
         role_emoji = {
-            "super_admin": "ЁЯСС",
-            "extended_admin": "тнР",
-            "admin": "ЁЯСд",
-        }.get(adm.role, "ЁЯСд")
+            "super_admin": "👑",
+            "extended_admin": "🔧",
+            "admin": "👤",
+        }.get(adm.role, "👤")
 
         text += (
             f"{role_emoji} `{adm.telegram_id}` - {adm.username or 'N/A'}\n"
-            f"   ╨а╨╛╨╗╤М: {adm.role}\n"
-            f"   ╨Р╨║╤В╨╕╨▓╨╡╨╜: {'тЬЕ' if adm.is_active else 'тЭМ'}\n\n"
+            f"   Роль: {adm.role}\n"
+            f"   Активен: {'✅' if adm.is_active else '❌'}\n\n"
         )
 
-    builder = InlineKeyboardBuilder()
-    builder.row(
-        InlineKeyboardButton(
-            text="тЮХ ╨Ф╨╛╨▒╨░╨▓╨╕╤В╤М ╨░╨┤╨╝╨╕╨╜╨░",
-            callback_data="admin:add_admin",
-        )
-    )
-    builder.row(
-        InlineKeyboardButton(
-            text="ЁЯФ╜ ╨Я╨╛╨╜╨╕╨╖╨╕╤В╤М ╨░╨┤╨╝╨╕╨╜╨░",
-            callback_data="admin:demote_admin",
-        )
-    )
-    builder.row(
-        InlineKeyboardButton(
-            text="тЧАя╕П ╨Э╨░╨╖╨░╨┤",
-            callback_data="admin:panel",
-        )
-    )
-
-    await callback.message.edit_text(
+    await message.answer(
         text,
-        reply_markup=builder.as_markup(),
         parse_mode="Markdown",
+        reply_markup=admin_management_keyboard(),
     )
-    await callback.answer()
 
 
-@router.callback_query(lambda c: c.data == "admin:add_admin")
+@router.message(F.text == "➕ Добавить админа")
 async def start_add_admin(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """Start adding new admin."""
-    if admin.role != "super_admin":
-        await callback.answer(
-            "тЭМ ╨Ф╨╛╤Б╤В╤Г╨┐ ╨╖╨░╨┐╤А╨╡╤Й╨╡╨╜!", show_alert=True
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    # Check if user is super_admin
+    from app.repositories.admin_repository import AdminRepository
+    
+    admin_repo = AdminRepository(session)
+    admin = await admin_repo.get_by(telegram_id=message.from_user.id)
+    
+    if not admin or admin.role != "super_admin":
+        await message.answer(
+            "❌ Доступ запрещён!",
+            reply_markup=admin_management_keyboard(),
         )
         return
 
-    await callback.message.edit_text(
-        "тЮХ **╨Ф╨╛╨▒╨░╨▓╨╗╨╡╨╜╨╕╨╡ ╨░╨┤╨╝╨╕╨╜╨╕╤Б╤В╤А╨░╤В╨╛╤А╨░**\n\n"
-        "╨Т╨▓╨╡╨┤╨╕╤В╨╡ Telegram ID ╨┐╨╛╨╗╤М╨╖╨╛╨▓╨░╤В╨╡╨╗╤П:",
-        reply_markup=InlineKeyboardBuilder()
-        .row(
-            InlineKeyboardButton(
-                text="тЭМ ╨Ю╤В╨╝╨╡╨╜╨░",
-                callback_data="admin:management",
-            )
-        )
-        .as_markup(),
+    await message.answer(
+        "➕ **Добавление администратора**\n\n"
+        "Введите Telegram ID пользователя:",
+        parse_mode="Markdown",
+        reply_markup=cancel_keyboard(),
     )
 
     await state.set_state(AdminManagementStates.waiting_for_telegram_id)
-    await callback.answer()
 
 
 @router.message(AdminManagementStates.waiting_for_telegram_id)
 async def process_telegram_id(
     message: Message,
     session: AsyncSession,
-    admin: Admin,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """Process telegram ID for new admin."""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        return
+
+    # Check if message is a cancel button
+    if message.text == "❌ Отмена":
+        await state.clear()
+        await message.answer(
+            "❌ Добавление админа отменено.",
+            reply_markup=admin_management_keyboard(),
+        )
+        return
+
     # Check if message is a menu button - if so, clear state and ignore
     from bot.utils.menu_buttons import is_menu_button
 
@@ -137,63 +145,85 @@ async def process_telegram_id(
         telegram_id = int(message.text.strip())
     except ValueError:
         await message.answer(
-            "тЭМ ╨Э╨╡╨▓╨╡╤А╨╜╤Л╨╣ ╤Д╨╛╤А╨╝╨░╤В! ╨Т╨▓╨╡╨┤╨╕╤В╨╡"
-                "╤З╨╕╤Б╨╗╨╛╨▓╨╛╨╣ Telegram ID."
+            "❌ Неверный формат! Введите числовой Telegram ID.",
+            reply_markup=cancel_keyboard(),
         )
         return
 
     # Save to state
     await state.update_data(telegram_id=telegram_id)
 
-    # Ask for role
-    builder = InlineKeyboardBuilder()
-    builder.row(
-        InlineKeyboardButton(
-            text="ЁЯСд Admin",
-            callback_data="admin:role:admin",
-        )
-    )
-    builder.row(
-        InlineKeyboardButton(
-            text="тнР Extended Admin",
-            callback_data="admin:role:extended_admin",
-        )
-    )
-    builder.row(
-        InlineKeyboardButton(
-            text="тЭМ ╨Ю╤В╨╝╨╡╨╜╨░",
-            callback_data="admin:management",
-        )
-    )
-
     await message.answer(
-        "╨Т╤Л╨▒╨╡╤А╨╕╤В╨╡ ╤А╨╛╨╗╤М ╨┤╨╗╤П ╨┐╨╛╨╗╤М╨╖╨╛╨▓╨░╤В╨╡╨╗╤П"
-            "`{telegram_id}`:",
-        reply_markup=builder.as_markup(),
+        f"Выберите роль для пользователя `{telegram_id}`:\n\n"
+        "Введите одну из ролей:\n"
+        "• `admin` - обычный администратор\n"
+        "• `extended_admin` - расширенный администратор\n\n"
+        "Или используйте кнопку отмены:",
         parse_mode="Markdown",
+        reply_markup=cancel_keyboard(),
     )
 
     await state.set_state(AdminManagementStates.waiting_for_role)
 
 
-@router.callback_query(
-    AdminManagementStates.waiting_for_role,
-    lambda c: c.data.startswith("admin:role:"),
-)
+@router.message(AdminManagementStates.waiting_for_role)
 async def process_role(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """Process role selection."""
-    role = callback.data.split(":")[-1]
-    data = await state.get_data()
-    telegram_id = data.get("telegram_id")
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        return
+
+    # Check if message is a cancel button
+    if message.text == "❌ Отмена":
+        await state.clear()
+        await message.answer(
+            "❌ Добавление админа отменено.",
+            reply_markup=admin_management_keyboard(),
+        )
+        return
+
+    # Check if message is a menu button - if so, clear state and ignore
+    from bot.utils.menu_buttons import is_menu_button
+
+    if message.text and is_menu_button(message.text):
+        await state.clear()
+        return  # Let menu handlers process this
+
+    role = message.text.strip().lower()
+    
+    if role not in ["admin", "extended_admin"]:
+        await message.answer(
+            "❌ Неверная роль! Введите `admin` или `extended_admin`.",
+            reply_markup=cancel_keyboard(),
+        )
+        return
+
+    data_state = await state.get_data()
+    telegram_id = data_state.get("telegram_id")
 
     if not telegram_id:
-        await callback.answer(
-            "тЭМ ╨Ю╤И╨╕╨▒╨║╨░: Telegram ID ╨╜╨╡ ╨╜╨░╨╣╨┤╨╡╨╜!", show_alert=True
+        await message.answer(
+            "❌ Ошибка: Telegram ID не найден!",
+            reply_markup=admin_management_keyboard(),
+        )
+        await state.clear()
+        return
+
+    # Get current admin
+    from app.repositories.admin_repository import AdminRepository
+    
+    admin_repo = AdminRepository(session)
+    admin = await admin_repo.get_by(telegram_id=message.from_user.id)
+    
+    if not admin or admin.role != "super_admin":
+        await message.answer(
+            "❌ Доступ запрещён!",
+            reply_markup=admin_management_keyboard(),
         )
         await state.clear()
         return
@@ -210,141 +240,79 @@ async def process_role(
         )
 
         if error or not new_admin:
-            await callback.message.edit_text(
+            await message.answer(
                 f"❌ **Ошибка при создании администратора!**\n\n{error}",
                 parse_mode="Markdown",
+                reply_markup=admin_management_keyboard(),
             )
             await state.clear()
             return
 
         await session.commit()
 
-        await callback.message.edit_text(
-            f"тЬЕ **╨Р╨┤╨╝╨╕╨╜╨╕╤Б╤В╤А╨░╤В╨╛╤А ╨┤╨╛╨▒╨░╨▓╨╗╨╡╨╜!**\n\n"
+        await message.answer(
+            f"✅ **Администратор добавлен!**\n\n"
             f"Telegram ID: `{new_admin.telegram_id}`\n"
-            f"╨а╨╛╨╗╤М: {new_admin.role}\n\n"
-            f"╨Я╨╛╨╗╤М╨╖╨╛╨▓╨░╤В╨╡╨╗╤М ╨╝╨╛╨╢╨╡╤В ╨▓╨╛╨╣╤В╨╕ ╨▓"
-                "╨░╨┤╨╝╨╕╨╜ ╨┐╨░╨╜╨╡╨╗╤М ╨╕╤Б╨┐╨╛╨╗╤М╨╖╤Г╤П /admin",
-            reply_markup=InlineKeyboardBuilder()
-            .row(
-                InlineKeyboardButton(
-                    text="тЧАя╕П ╨Э╨░╨╖╨░╨┤",
-                    callback_data="admin:management",
-                )
-            )
-            .as_markup(),
+            f"Роль: {new_admin.role}\n\n"
+            f"Пользователь может войти в админ панель используя /admin",
             parse_mode="Markdown",
+            reply_markup=admin_management_keyboard(),
         )
 
     except Exception as e:
         logger.error(f"Error creating admin: {e}")
-        await callback.message.edit_text(
-            "тЭМ ╨Ю╤И╨╕╨▒╨║╨░ ╨┐╤А╨╕ ╤Б╨╛╨╖╨┤╨░╨╜╨╕╨╕"
-                "╨░╨┤╨╝╨╕╨╜╨╕╤Б╤В╤А╨░╤В╨╛╤А╨░: {e}",
-            reply_markup=InlineKeyboardBuilder()
-            .row(
-                InlineKeyboardButton(
-                    text="тЧАя╕П ╨Э╨░╨╖╨░╨┤",
-                    callback_data="admin:management",
-                )
-            )
-            .as_markup(),
+        await message.answer(
+            f"❌ Ошибка при создании администратора: {e}",
+            reply_markup=admin_management_keyboard(),
         )
 
     await state.clear()
-    await callback.answer()
 
 
-@router.callback_query(lambda c: c.data == "admin:demote_admin")
-async def start_demote_admin(
-    callback: CallbackQuery,
+@router.message(F.text == "📋 Список админов")
+async def show_admin_list(
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
-    state: FSMContext,
+    **data: Any,
 ) -> None:
-    """Start demoting admin."""
-    if admin.role != "super_admin":
-        await callback.answer(
-            "тЭМ ╨Ф╨╛╤Б╤В╤Г╨┐ ╨╖╨░╨┐╤А╨╡╤Й╨╡╨╜!", show_alert=True
-        )
+    """Show list of admins."""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
         return
 
     admin_service = AdminService(session)
     admins = await admin_service.get_all_admins()
 
-    # Filter out super_admin and current admin
-    demotable = [
-        a for a in admins if a.role != "super_admin" and a.id != admin.id
-    ]
+    text = "📋 **Список администраторов:**\n\n"
 
-    if not demotable:
-        await callback.answer(
-            "╨Э╨╡╤В ╨░╨┤╨╝╨╕╨╜╨╕╤Б╤В╤А╨░╤В╨╛╤А╨╛╨▓ ╨┤╨╗╤П ╨┐╨╛╨╜╨╕╨╢╨╡╨╜╨╕╤П!",
-            show_alert=True,
-        )
-        return
+    for adm in admins:
+        role_emoji = {
+            "super_admin": "👑",
+            "extended_admin": "🔧",
+            "admin": "👤",
+        }.get(adm.role, "👤")
 
-    builder = InlineKeyboardBuilder()
-
-    for adm in demotable:
-        builder.row(
-            InlineKeyboardButton(
-                text=f"ЁЯФ╜ {adm.username or adm.telegram_id} ({adm.role})",
-                callback_data=f"admin:demote:{adm.id}",
-            )
+        text += (
+            f"{role_emoji} `{adm.telegram_id}` - {adm.username or 'N/A'}\n"
+            f"   Роль: {adm.role}\n"
+            f"   Активен: {'✅' if adm.is_active else '❌'}\n\n"
         )
 
-    builder.row(
-        InlineKeyboardButton(
-            text="тЭМ ╨Ю╤В╨╝╨╡╨╜╨░",
-            callback_data="admin:management",
-        )
-    )
-
-    await callback.message.edit_text(
-        "ЁЯФ╜ **╨Я╨╛╨╜╨╕╨╢╨╡╨╜╨╕╨╡ ╨░╨┤╨╝╨╕╨╜╨╕╤Б╤В╤А╨░╤В╨╛╤А╨░**\n\n"
-        "╨Т╤Л╨▒╨╡╤А╨╕╤В╨╡ ╨░╨┤╨╝╨╕╨╜╨╕╤Б╤В╤А╨░╤В╨╛╤А╨░ ╨┤╨╗╤П"
-            "╤Г╨┤╨░╨╗╨╡╨╜╨╕╤П:",
-        reply_markup=builder.as_markup(),
-    )
-    await callback.answer()
-
-
-@router.callback_query(lambda c: c.data.startswith("admin:demote:"))
-async def confirm_demote(
-    callback: CallbackQuery,
-    session: AsyncSession,
-    admin: Admin,
-) -> None:
-    """Confirm admin demotion."""
-    admin_id = int(callback.data.split(":")[-1])
-
-    admin_service = AdminService(session)
-    target_admin = await admin_service.get_admin_by_id(admin_id)
-
-    if not target_admin:
-        await callback.answer(
-            "тЭМ ╨Р╨┤╨╝╨╕╨╜ ╨╜╨╡ ╨╜╨░╨╣╨┤╨╡╨╜!", show_alert=True
-        )
-        return
-
-    # Delete admin
-    await admin_service.delete_admin(admin_id)
-    await session.commit()
-
-    await callback.message.edit_text(
-        f"тЬЕ **╨Р╨┤╨╝╨╕╨╜╨╕╤Б╤В╤А╨░╤В╨╛╤А ╤Г╨┤╨░╨╗╨╡╨╜!**\n\n"
-        f"╨Я╨╛╨╗╤М╨╖╨╛╨▓╨░╤В╨╡╨╗╤М `{target_admin.telegram_id}`"
-            "╨▒╨╛╨╗╤М╤И╨╡ ╨╜╨╡ ╨╕╨╝╨╡╨╡╤В ╨┐╤А╨░╨▓"
-                "╨░╨┤╨╝╨╕╨╜╨╕╤Б╤В╤А╨░╤В╨╛╤А╨░.",
-        reply_markup=InlineKeyboardBuilder()
-        .row(
-            InlineKeyboardButton(
-                text="тЧАя╕П ╨Э╨░╨╖╨░╨┤",
-                callback_data="admin:management",
-            )
-        )
-        .as_markup(),
+    await message.answer(
+        text,
         parse_mode="Markdown",
+        reply_markup=admin_management_keyboard(),
     )
-    await callback.answer()
+
+
+@router.message(F.text == "👑 Админ-панель")
+async def handle_back_to_admin_panel(
+    message: Message,
+    session: AsyncSession,
+    **data: Any,
+) -> None:
+    """Return to admin panel from management menu"""
+    from bot.handlers.admin.panel import handle_admin_panel_button
+    
+    await handle_admin_panel_button(message, session, **data)

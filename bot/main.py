@@ -194,8 +194,7 @@ async def main() -> None:  # noqa: C901
         blacklist,
         broadcast,
         deposit_settings,
-        # finpass_recovery as admin_finpass,
-            # Temporarily disabled due to encoding issues
+        finpass_recovery as admin_finpass,
         management,
         panel,
         users,
@@ -230,7 +229,7 @@ async def main() -> None:  # noqa: C901
     dp.include_router(broadcast.router)
     dp.include_router(blacklist.router)
     dp.include_router(deposit_settings.router)
-    # dp.include_router(admin_finpass.router)  # Temporarily disabled
+    dp.include_router(admin_finpass.router)
     dp.include_router(management.router)
     dp.include_router(wallets.router)
 

@@ -14,12 +14,9 @@ from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Message,
-)
+from typing import Any
+
+from aiogram.types import Message
 from eth_account import Account
 from mnemonic import Mnemonic
 
@@ -82,13 +79,16 @@ async def process_wallet_key(message: Message, state: FSMContext):
         if private_key.startswith("0x"):
             private_key = private_key[2:]
 
+        from bot.keyboards.reply import cancel_keyboard
+
         # Валидация: проверяем что это hex и 64 символа
         if len(private_key) != 64:
             await message.answer(
                 "❌ Неверная длина ключа!\n"
                 f"Получено: {len(private_key)} символов\n"
                 "Требуется: 64 hex символа\n\n"
-                "Попробуйте ещё раз или /cancel для отмены"
+                "Попробуйте ещё раз или /cancel для отмены",
+                reply_markup=cancel_keyboard(),
             )
             return
 
@@ -98,7 +98,8 @@ async def process_wallet_key(message: Message, state: FSMContext):
             await message.answer(
                 "❌ Ключ содержит недопустимые символы!\n"
                 "Разрешены только: 0-9, a-f, A-F\n\n"
-                "Попробуйте ещё раз или /cancel для отмены"
+                "Попробуйте ещё раз или /cancel для отмены",
+                reply_markup=cancel_keyboard(),
             )
             return
 
@@ -110,7 +111,8 @@ async def process_wallet_key(message: Message, state: FSMContext):
             await message.answer(
                 f"❌ Неверный приватный ключ!\n"
                 f"Ошибка: {str(e)}\n\n"
-                "Попробуйте ещё раз или /cancel для отмены"
+                "Попробуйте ещё раз или /cancel для отмены",
+                reply_markup=cancel_keyboard(),
             )
             return
 
@@ -118,6 +120,8 @@ async def process_wallet_key(message: Message, state: FSMContext):
         await state.update_data(
             private_key=private_key, wallet_address=wallet_address
         )
+
+        from bot.keyboards.reply import confirmation_keyboard
 
         await message.answer(
             f"✅ <b>Ключ валиден!</b>\n\n"
@@ -129,32 +133,47 @@ async def process_wallet_key(message: Message, state: FSMContext):
             "• Ключ будет сохранён в .env\n"
             "• Бот будет перезапущен\n"
             "• Blockchain операции будут использовать этот кошелёк\n\n"
-            "Используйте /confirm для подтверждения или /cancel для отмены",
+            "Используйте кнопку '✅ Да' для подтверждения или '❌ Нет' для отмены",
             parse_mode="HTML",
+            reply_markup=confirmation_keyboard(),
         )
 
         await state.set_state(WalletKeySetup.confirming)
 
     except Exception as e:
+        from bot.keyboards.reply import cancel_keyboard
         await message.answer(
             f"❌ Ошибка при обработке ключа:\n{str(e)}\n\n"
-            "Попробуйте ещё раз или /cancel для отмены"
+            "Попробуйте ещё раз или /cancel для отмены",
+            reply_markup=cancel_keyboard(),
         )
         await state.clear()
 
 
-@router.message(Command("confirm"), WalletKeySetup.confirming)
-async def confirm_wallet_key(message: Message, state: FSMContext):
+@router.message(WalletKeySetup.confirming)
+async def confirm_wallet_key(message: Message, state: FSMContext, **data: Any):
     """
     Подтверждение и сохранение приватного ключа.
     """
-    data = await state.get_data()
-    private_key = data.get("private_key")
-    wallet_address = data.get("wallet_address")
+    # Check if user confirmed
+    if message.text != "✅ Да":
+        from bot.keyboards.reply import admin_wallet_keyboard
+        await message.answer(
+            "❌ Сохранение отменено",
+            reply_markup=admin_wallet_keyboard(),
+        )
+        await state.clear()
+        return
+
+    data_state = await state.get_data()
+    private_key = data_state.get("private_key")
+    wallet_address = data_state.get("wallet_address")
 
     if not private_key or not wallet_address:
+        from bot.keyboards.reply import admin_wallet_keyboard
         await message.answer(
-            "❌ Ошибка: данные потеряны. Начните заново с /setup_wallet_key"
+            "❌ Ошибка: данные потеряны. Начните заново с /setup_wallet_key",
+            reply_markup=admin_wallet_keyboard(),
         )
         await state.clear()
         return
@@ -193,11 +212,14 @@ async def confirm_wallet_key(message: Message, state: FSMContext):
         with open(env_file, "w") as f:
             f.writelines(new_lines)
 
+        from bot.keyboards.reply import admin_wallet_keyboard
+
         await message.answer(
             "✅ <b>Приватный ключ успешно сохранён!</b>\n\n"
             f"🔑 Адрес: <code>{wallet_address}</code>\n\n"
             "🔄 Перезапускаю бота для применения изменений...",
             parse_mode="HTML",
+            reply_markup=admin_wallet_keyboard(),
         )
 
         # Очищаем state
@@ -220,20 +242,27 @@ async def confirm_wallet_key(message: Message, state: FSMContext):
         )
 
     except Exception as e:
+        from bot.keyboards.reply import admin_wallet_keyboard
         await message.answer(
             f"❌ Ошибка при сохранении:\n{str(e)}\n\n"
-            "Обратитесь к администратору сервера"
+            "Обратитесь к администратору сервера",
+            reply_markup=admin_wallet_keyboard(),
         )
         await state.clear()
 
 
 @router.message(Command("cancel"), WalletKeySetup)
-async def cancel_wallet_key_setup(message: Message, state: FSMContext):
+async def cancel_wallet_key_setup(message: Message, state: FSMContext, **data: Any):
     """
     Отмена настройки ключа.
     """
+    from bot.keyboards.reply import admin_wallet_keyboard
+    
     await state.clear()
-    await message.answer("❌ Операция отменена")
+    await message.answer(
+        "❌ Операция отменена",
+        reply_markup=admin_wallet_keyboard(),
+    )
 
 
 # ============================================
@@ -241,44 +270,19 @@ async def cancel_wallet_key_setup(message: Message, state: FSMContext):
 # ============================================
 
 
-def get_wallet_management_keyboard() -> InlineKeyboardMarkup:
-    """Клавиатура управления кошельком."""
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="📊 Статус кошелька", callback_data="wallet_status"
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text="➕ Добавить/обновить ключ",
-                    callback_data="wallet_add",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🌱 Добавить seed фразу",
-                    callback_data="wallet_add_seed",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🗑️ Удалить ключ", callback_data="wallet_remove"
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text="❌ Закрыть", callback_data="wallet_close"
-                ),
-            ],
-        ]
+async def handle_wallet_menu(message: Message, **data: Any) -> None:
+    """Show wallet management menu."""
+    from bot.keyboards.reply import admin_wallet_keyboard
+    
+    await message.answer(
+        "🔐 <b>УПРАВЛЕНИЕ КОШЕЛЬКОМ</b>\n\nВыберите действие:",
+        parse_mode="HTML",
+        reply_markup=admin_wallet_keyboard(),
     )
-    return keyboard
 
 
-@router.message(Command("wallet_menu"))
-async def cmd_wallet_menu(message: Message):
+@router.message(F.text == "🔐 Управление кошельком")
+async def cmd_wallet_menu(message: Message, **data: Any):
     """
     Главное меню управления кошельком.
 
@@ -290,20 +294,22 @@ async def cmd_wallet_menu(message: Message):
         await message.answer("❌ Команда доступна только super admin")
         return
 
+    from bot.keyboards.reply import admin_wallet_keyboard
+
     await message.answer(
         "🔐 <b>УПРАВЛЕНИЕ КОШЕЛЬКОМ</b>\n\nВыберите действие:",
         parse_mode="HTML",
-        reply_markup=get_wallet_management_keyboard(),
+        reply_markup=admin_wallet_keyboard(),
     )
 
 
-@router.callback_query(F.data == "wallet_status")
-async def callback_wallet_status(callback: CallbackQuery):
+@router.message(F.text == "📊 Статус кошелька")
+async def handle_wallet_status(message: Message, **data: Any):
     """Показать статус кошелька."""
     # Проверка прав
     admin_ids = settings.get_admin_ids()
-    if not admin_ids or callback.from_user.id != admin_ids[0]:
-        await callback.answer("❌ Доступ запрещён", show_alert=True)
+    if not admin_ids or message.from_user.id != admin_ids[0]:
+        await message.answer("❌ Доступ запрещён")
         return
 
     # Проверяем текущий ключ
@@ -352,24 +358,25 @@ async def callback_wallet_status(callback: CallbackQuery):
                 "💡 Установите корректный ключ."
             )
 
-    await callback.message.edit_text(
+    from bot.keyboards.reply import admin_wallet_keyboard
+
+    await message.answer(
         status_text,
         parse_mode="HTML",
-        reply_markup=get_wallet_management_keyboard(),
+        reply_markup=admin_wallet_keyboard(),
     )
-    await callback.answer()
 
 
-@router.callback_query(F.data == "wallet_add")
-async def callback_wallet_add(callback: CallbackQuery, state: FSMContext):
+@router.message(F.text == "➕ Добавить/обновить ключ")
+async def handle_wallet_add(message: Message, state: FSMContext, **data: Any):
     """Начать процесс добавления ключа."""
     # Проверка прав
     admin_ids = settings.get_admin_ids()
-    if not admin_ids or callback.from_user.id != admin_ids[0]:
-        await callback.answer("❌ Доступ запрещён", show_alert=True)
+    if not admin_ids or message.from_user.id != admin_ids[0]:
+        await message.answer("❌ Доступ запрещён")
         return
 
-    await callback.message.edit_text(
+    await message.answer(
         "🔐 <b>ДОБАВЛЕНИЕ ПРИВАТНОГО КЛЮЧА</b>\n\n"
         "⚠️ <b>ВНИМАНИЕ!</b> Это критически важная операция!\n\n"
         "📝 <b>Инструкция:</b>\n"
@@ -383,19 +390,18 @@ async def callback_wallet_add(callback: CallbackQuery, state: FSMContext):
     )
 
     await state.set_state(WalletKeySetup.waiting_for_key)
-    await callback.answer()
 
 
-@router.callback_query(F.data == "wallet_add_seed")
-async def callback_wallet_add_seed(callback: CallbackQuery, state: FSMContext):
+@router.message(F.text == "🌱 Добавить seed фразу")
+async def handle_wallet_add_seed(message: Message, state: FSMContext, **data: Any):
     """Начать процесс добавления seed фразы."""
     # Проверка прав
     admin_ids = settings.get_admin_ids()
-    if not admin_ids or callback.from_user.id != admin_ids[0]:
-        await callback.answer("❌ Доступ запрещён", show_alert=True)
+    if not admin_ids or message.from_user.id != admin_ids[0]:
+        await message.answer("❌ Доступ запрещён")
         return
 
-    await callback.message.edit_text(
+    await message.answer(
         "🌱 <b>ДОБАВЛЕНИЕ SEED ФРАЗЫ</b>\n\n"
         "⚠️ <b>ВНИМАНИЕ!</b> Это критически важная операция!\n\n"
         "📝 <b>Инструкция:</b>\n"
@@ -410,7 +416,6 @@ async def callback_wallet_add_seed(callback: CallbackQuery, state: FSMContext):
     )
 
     await state.set_state(WalletKeySetup.waiting_for_seed)
-    await callback.answer()
 
 
 @router.message(WalletKeySetup.waiting_for_seed)
@@ -425,6 +430,8 @@ async def process_wallet_seed(message: Message, state: FSMContext):
         # Получаем seed фразу из сообщения
         seed_phrase = message.text.strip()
 
+        from bot.keyboards.reply import cancel_keyboard
+
         # Валидация seed фразы
         try:
             mnemo = Mnemonic("english")
@@ -432,14 +439,16 @@ async def process_wallet_seed(message: Message, state: FSMContext):
                 await message.answer(
                     "❌ Неверная seed фраза!\n"
                     "Проверьте правильность написания слов.\n\n"
-                    "Попробуйте ещё раз или /cancel для отмены"
+                    "Попробуйте ещё раз или /cancel для отмены",
+                    reply_markup=cancel_keyboard(),
                 )
                 return
         except Exception as e:
             await message.answer(
                 f"❌ Ошибка валидации seed фразы!\n"
                 f"Ошибка: {str(e)}\n\n"
-                "Попробуйте ещё раз или /cancel для отмены"
+                "Попробуйте ещё раз или /cancel для отмены",
+                reply_markup=cancel_keyboard(),
             )
             return
 
@@ -453,7 +462,8 @@ async def process_wallet_seed(message: Message, state: FSMContext):
             await message.answer(
                 f"❌ Ошибка при извлечении ключа из seed фразы!\n"
                 f"Ошибка: {str(e)}\n\n"
-                "Попробуйте ещё раз или /cancel для отмены"
+                "Попробуйте ещё раз или /cancel для отмены",
+                reply_markup=cancel_keyboard(),
             )
             return
 
@@ -461,6 +471,8 @@ async def process_wallet_seed(message: Message, state: FSMContext):
         await state.update_data(
             private_key=private_key, wallet_address=wallet_address
         )
+
+        from bot.keyboards.reply import confirmation_keyboard
 
         await message.answer(
             f"✅ <b>Seed фраза валидна!</b>\n\n"
@@ -472,27 +484,30 @@ async def process_wallet_seed(message: Message, state: FSMContext):
             "• Приватный ключ будет извлечён и сохранён в .env\n"
             "• Бот будет перезапущен\n"
             "• Blockchain операции будут использовать этот кошелёк\n\n"
-            "Используйте /confirm для подтверждения или /cancel для отмены",
+            "Используйте кнопку '✅ Да' для подтверждения или '❌ Нет' для отмены",
             parse_mode="HTML",
+            reply_markup=confirmation_keyboard(),
         )
 
         await state.set_state(WalletKeySetup.confirming)
 
     except Exception as e:
+        from bot.keyboards.reply import cancel_keyboard
         await message.answer(
             f"❌ Ошибка при обработке seed фразы:\n{str(e)}\n\n"
-            "Попробуйте ещё раз или /cancel для отмены"
+            "Попробуйте ещё раз или /cancel для отмены",
+            reply_markup=cancel_keyboard(),
         )
         await state.clear()
 
 
-@router.callback_query(F.data == "wallet_remove")
-async def callback_wallet_remove(callback: CallbackQuery, state: FSMContext):
+@router.message(F.text == "🗑️ Удалить ключ")
+async def handle_wallet_remove(message: Message, state: FSMContext, **data: Any):
     """Начать процесс удаления ключа."""
     # Проверка прав
     admin_ids = settings.get_admin_ids()
-    if not admin_ids or callback.from_user.id != admin_ids[0]:
-        await callback.answer("❌ Доступ запрещён", show_alert=True)
+    if not admin_ids or message.from_user.id != admin_ids[0]:
+        await message.answer("❌ Доступ запрещён")
         return
 
     # Проверяем есть ли ключ
@@ -500,27 +515,16 @@ async def callback_wallet_remove(callback: CallbackQuery, state: FSMContext):
     is_test_key = current_key == "0" * 64 or not current_key
 
     if is_test_key:
-        await callback.answer(
-            "⚠️ Ключ уже удалён или не установлен", show_alert=True
+        from bot.keyboards.reply import admin_wallet_keyboard
+        await message.answer(
+            "⚠️ Ключ уже удалён или не установлен",
+            reply_markup=admin_wallet_keyboard(),
         )
         return
 
-    # Создаём клавиатуру подтверждения
-    confirm_keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="✅ Да, удалить",
-                    callback_data="wallet_remove_confirm",
-                ),
-                InlineKeyboardButton(
-                    text="❌ Отмена", callback_data="wallet_status"
-                ),
-            ]
-        ]
-    )
+    from bot.keyboards.reply import confirmation_keyboard
 
-    await callback.message.edit_text(
+    await message.answer(
         "🗑️ <b>УДАЛЕНИЕ ПРИВАТНОГО КЛЮЧА</b>\n\n"
         f"📍 <b>Текущий адрес:</b>\n<code>{settings.wallet_address}</code>\n\n"
         "⚠️ <b>ВНИМАНИЕ!</b>\n"
@@ -531,19 +535,30 @@ async def callback_wallet_remove(callback: CallbackQuery, state: FSMContext):
         "• Бот будет перезапущен\n\n"
         "❓ Вы уверены что хотите удалить ключ?",
         parse_mode="HTML",
-        reply_markup=confirm_keyboard,
+        reply_markup=confirmation_keyboard(),
     )
 
-    await callback.answer()
+    await state.set_state(WalletKeySetup.confirming_removal)
 
 
-@router.callback_query(F.data == "wallet_remove_confirm")
-async def callback_wallet_remove_confirm(callback: CallbackQuery):
+@router.message(WalletKeySetup.confirming_removal)
+async def handle_wallet_remove_confirm(message: Message, state: FSMContext, **data: Any):
     """Подтверждение удаления ключа."""
     # Проверка прав
     admin_ids = settings.get_admin_ids()
-    if not admin_ids or callback.from_user.id != admin_ids[0]:
-        await callback.answer("❌ Доступ запрещён", show_alert=True)
+    if not admin_ids or message.from_user.id != admin_ids[0]:
+        await message.answer("❌ Доступ запрещён")
+        await state.clear()
+        return
+
+    # Проверяем ответ
+    if message.text != "✅ Да":
+        from bot.keyboards.reply import admin_wallet_keyboard
+        await message.answer(
+            "❌ Удаление отменено",
+            reply_markup=admin_wallet_keyboard(),
+        )
+        await state.clear()
         return
 
     try:
@@ -568,11 +583,14 @@ async def callback_wallet_remove_confirm(callback: CallbackQuery):
         with open(env_file, "w") as f:
             f.writelines(new_lines)
 
-        await callback.message.edit_text(
+        from bot.keyboards.reply import admin_wallet_keyboard
+
+        await message.answer(
             "✅ <b>Приватный ключ успешно удалён!</b>\n\n"
             "🔄 Перезапускаю бота для применения изменений...\n\n"
             "⚠️ Не забудьте установить новый ключ для работы с blockchain!",
             parse_mode="HTML",
+            reply_markup=admin_wallet_keyboard(),
         )
 
         # Перезапускаем Docker контейнеры
@@ -591,22 +609,25 @@ async def callback_wallet_remove_confirm(callback: CallbackQuery):
             capture_output=True,
         )
 
+        await state.clear()
+
     except Exception as e:
-        await callback.message.edit_text(
+        from bot.keyboards.reply import admin_wallet_keyboard
+        await message.answer(
             f"❌ <b>Ошибка при удалении:</b>\n{str(e)}\n\n"
             "Обратитесь к администратору сервера",
             parse_mode="HTML",
-            reply_markup=get_wallet_management_keyboard(),
+            reply_markup=admin_wallet_keyboard(),
         )
+        await state.clear()
 
-    await callback.answer()
 
-
-@router.callback_query(F.data == "wallet_close")
-async def callback_wallet_close(callback: CallbackQuery):
-    """Закрыть меню управления кошельком."""
-    await callback.message.delete()
-    await callback.answer("Меню закрыто")
+@router.message(F.text == "👑 Админ-панель")
+async def handle_back_to_admin_panel(message: Message, session: AsyncSession, **data: Any):
+    """Return to admin panel from wallet menu"""
+    from bot.handlers.admin.panel import handle_admin_panel_button
+    
+    await handle_admin_panel_button(message, session, **data)
 
 
 # ============================================

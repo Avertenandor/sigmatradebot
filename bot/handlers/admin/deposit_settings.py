@@ -4,24 +4,32 @@ Deposit settings handler.
 Allows admins to configure max open deposit level.
 """
 
-from aiogram import Router
-from aiogram.types import CallbackQuery, InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+import re
+from typing import Any
+
+from aiogram import F, Router
+from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.admin import Admin
 from app.services.settings_service import SettingsService
+from bot.keyboards.reply import admin_deposit_settings_keyboard, admin_keyboard
 
 router = Router()
 
 
-@router.callback_query(lambda c: c.data == "admin:deposit_settings")
+@router.message(F.text == "⚙️ Настроить уровни депозитов")
 async def show_deposit_settings(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
+    **data: Any,
 ) -> None:
     """Show deposit settings."""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
     settings_service = SettingsService(session)
 
     max_level = await settings_service.get_int(
@@ -29,71 +37,95 @@ async def show_deposit_settings(
     )
 
     text = (
-        "тЪЩя╕П **╨Э╨░╤Б╤В╤А╨╛╨╣╨║╨╕ ╨┤╨╡╨┐╨╛╨╖╨╕╤В╨╛╨▓**\n\n"
-        f"╨Ь╨░╨║╤Б╨╕╨╝╨░╨╗╤М╨╜╤Л╨╣ ╨╛╤В╨║╤А╤Л╤В╤Л╨╣ ╤Г╤А╨╛╨▓╨╡╨╜╤М: "
-        f"**{max_level}**\n\n"
-        "╨Я╨╛╨╗╤М╨╖╨╛╨▓╨░╤В╨╡╨╗╨╕ ╨╝╨╛╨│╤Г╤В ╤Б╨╛╨╖╨┤╨░╨▓╨░╤В╤М "
-        "╨┤╨╡╨┐╨╛╨╖╨╕╤В╤Л ╤В╨╛╨╗╤М╨║╨╛ ╨┤╨╛ ╤Г╨║╨░╨╖╨░╨╜╨╜╨╛╨│╨╛ "
-        "╤Г╤А╨╛╨▓╨╜╤П.\n\n"
-        "╨г╤А╨╛╨▓╨╜╨╕:\n"
-        "1я╕ПтГг ╨г╤А╨╛╨▓╨╡╨╜╤М 1\n"
-        "2я╕ПтГг ╨г╤А╨╛╨▓╨╡╨╜╤М 2\n"
-        "3я╕ПтГг ╨г╤А╨╛╨▓╨╡╨╜╤М 3\n"
-        "4я╕ПтГг ╨г╤А╨╛╨▓╨╡╨╜╤М 4\n"
-        "5я╕ПтГг ╨г╤А╨╛╨▓╨╡╨╜╤М 5\n"
+        "⚙️ **Настройки депозитов**\n\n"
+        f"Максимальный открытый уровень: **{max_level}**\n\n"
+        "Пользователи могут создавать депозиты только до указанного уровня.\n\n"
+        "Уровни:\n"
+        "1️⃣ Уровень 1\n"
+        "2️⃣ Уровень 2\n"
+        "3️⃣ Уровень 3\n"
+        "4️⃣ Уровень 4\n"
+        "5️⃣ Уровень 5\n\n"
+        "Для установки максимального уровня введите: **уровень <номер>**\n"
+        "Пример: `уровень 3`"
     )
 
-    builder = InlineKeyboardBuilder()
-
-    for level in range(1, 6):
-        emoji = "тЬЕ" if level <= max_level else "тЭМ"
-        builder.row(
-            InlineKeyboardButton(
-                text=f"{emoji} ╨г╤А╨╛╨▓╨╡╨╜╤М {level}",
-                callback_data=f"admin:set_max_level:{level}",
-            )
-        )
-
-    builder.row(
-        InlineKeyboardButton(
-            text="тЧАя╕П ╨Э╨░╨╖╨░╨┤",
-            callback_data="admin:panel",
-        )
-    )
-
-    await callback.message.edit_text(
+    await message.answer(
         text,
-        reply_markup=builder.as_markup(),
         parse_mode="Markdown",
+        reply_markup=admin_deposit_settings_keyboard(),
     )
-    await callback.answer()
 
 
-@router.callback_query(lambda c: c.data.startswith("admin:set_max_level:"))
+@router.message(F.text.regexp(r"^уровень\s+(\d+)$", flags=0))
 async def set_max_deposit_level(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
+    **data: Any,
 ) -> None:
     """Set max deposit level."""
-    level = int(callback.data.split(":")[-1])
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    # Extract level from message text
+    match = re.match(r"^уровень\s+(\d+)$", message.text.strip(), re.IGNORECASE)
+    if not match:
+        await message.answer(
+            "❌ Неверный формат. Используйте: `уровень <номер>` (1-5)",
+            reply_markup=admin_deposit_settings_keyboard(),
+        )
+        return
+
+    level = int(match.group(1))
+    
+    if level < 1 or level > 5:
+        await message.answer(
+            "❌ Уровень должен быть от 1 до 5",
+            reply_markup=admin_deposit_settings_keyboard(),
+        )
+        return
+
+    # Get admin
+    from app.repositories.admin_repository import AdminRepository
+    
+    admin_repo = AdminRepository(session)
+    admin = await admin_repo.get_by(telegram_id=message.from_user.id)
+    
+    if not admin:
+        await message.answer(
+            "❌ Администратор не найден",
+            reply_markup=admin_deposit_settings_keyboard(),
+        )
+        return
 
     settings_service = SettingsService(session)
 
     await settings_service.set(
         key="max_open_deposit_level",
         value=level,
-        description="Maximum open deposit level (set by admin"
-            "{admin.telegram_id})",
+        description=f"Maximum open deposit level (set by admin {admin.telegram_id})",
     )
 
     await session.commit()
 
-    await callback.answer(
-        "тЬЕ ╨Ь╨░╨║╤Б╨╕╨╝╨░╨╗╤М╨╜╤Л╨╣ ╤Г╤А╨╛╨▓╨╡╨╜╤М"
-            "╤Г╤Б╤В╨░╨╜╨╛╨▓╨╗╨╡╨╜: {level}",
-        show_alert=True,
+    await message.answer(
+        f"✅ Максимальный уровень установлен: {level}",
+        reply_markup=admin_deposit_settings_keyboard(),
     )
 
     # Refresh display
-    await show_deposit_settings(callback, session, admin)
+    await show_deposit_settings(message, session, **data)
+
+
+@router.message(F.text == "👑 Админ-панель")
+async def handle_back_to_admin_panel(
+    message: Message,
+    session: AsyncSession,
+    **data: Any,
+) -> None:
+    """Return to admin panel from deposit settings menu"""
+    from bot.handlers.admin.panel import handle_admin_panel_button
+    
+    await handle_admin_panel_button(message, session, **data)

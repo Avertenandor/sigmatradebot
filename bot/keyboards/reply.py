@@ -342,3 +342,129 @@ def cancel_keyboard() -> ReplyKeyboardMarkup:
     )
 
     return builder.as_markup(resize_keyboard=True)
+
+
+def admin_wallet_keyboard() -> ReplyKeyboardMarkup:
+    """
+    Admin wallet management keyboard.
+
+    Returns:
+        ReplyKeyboardMarkup with wallet management options
+    """
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(text="📊 Статус кошелька"),
+    )
+    builder.row(
+        KeyboardButton(text="➕ Добавить/обновить ключ"),
+    )
+    builder.row(
+        KeyboardButton(text="🌱 Добавить seed фразу"),
+    )
+    builder.row(
+        KeyboardButton(text="🗑️ Удалить ключ"),
+    )
+    builder.row(
+        KeyboardButton(text="👑 Админ-панель"),
+    )
+
+    return builder.as_markup(resize_keyboard=True)
+
+
+def admin_broadcast_keyboard() -> ReplyKeyboardMarkup:
+    """
+    Admin broadcast keyboard.
+
+    Returns:
+        ReplyKeyboardMarkup with broadcast options
+    """
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(text="❌ Отмена"),
+    )
+    builder.row(
+        KeyboardButton(text="👑 Админ-панель"),
+    )
+
+    return builder.as_markup(resize_keyboard=True)
+
+
+def admin_support_keyboard() -> ReplyKeyboardMarkup:
+    """
+    Admin support keyboard.
+
+    Returns:
+        ReplyKeyboardMarkup with support options
+    """
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(text="👑 Админ-панель"),
+    )
+
+    return builder.as_markup(resize_keyboard=True)
+
+
+def admin_blacklist_keyboard() -> ReplyKeyboardMarkup:
+    """
+    Admin blacklist management keyboard.
+
+    Returns:
+        ReplyKeyboardMarkup with blacklist management options
+    """
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(text="➕ Добавить в blacklist"),
+    )
+    builder.row(
+        KeyboardButton(text="🗑️ Удалить из blacklist"),
+    )
+    builder.row(
+        KeyboardButton(text="👑 Админ-панель"),
+    )
+
+    return builder.as_markup(resize_keyboard=True)
+
+
+def admin_management_keyboard() -> ReplyKeyboardMarkup:
+    """
+    Admin management keyboard (for managing admins).
+
+    Returns:
+        ReplyKeyboardMarkup with admin management options
+    """
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(text="➕ Добавить админа"),
+    )
+    builder.row(
+        KeyboardButton(text="📋 Список админов"),
+    )
+    builder.row(
+        KeyboardButton(text="👑 Админ-панель"),
+    )
+
+    return builder.as_markup(resize_keyboard=True)
+
+
+def admin_deposit_settings_keyboard() -> ReplyKeyboardMarkup:
+    """
+    Admin deposit settings keyboard.
+
+    Returns:
+        ReplyKeyboardMarkup with deposit settings options
+    """
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(text="⚙️ Настроить уровни депозитов"),
+    )
+    builder.row(
+        KeyboardButton(text="👑 Админ-панель"),
+    )
+
+    return builder.as_markup(resize_keyboard=True)

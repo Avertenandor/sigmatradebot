@@ -4,53 +4,51 @@ Financial password recovery admin handler.
 Allows admins to approve/reject finpass recovery requests.
 """
 
-from aiogram import Router
-from aiogram.types import CallbackQuery, InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+import re
+from typing import Any
+
+from aiogram import F, Router
+from aiogram.types import Message
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.admin import Admin
 from app.services.finpass_recovery_service import FinpassRecoveryService
 from app.services.user_service import UserService
+from bot.keyboards.reply import admin_keyboard
 
 router = Router()
 
 
-@router.callback_query(lambda c: c.data == "admin:finpass_recovery")
+@router.message(F.text == "🔑 Восстановление пароля")
 async def show_recovery_requests(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
+    **data: Any,
 ) -> None:
     """Show pending finpass recovery requests."""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
     recovery_service = FinpassRecoveryService(session)
     user_service = UserService(session)
     requests = await recovery_service.get_all_pending()
 
     if not requests:
-        await callback.message.edit_text(
-            "ЁЯУЛ **╨Ч╨░╨┐╤А╨╛╤Б╤Л ╨╜╨░ ╨▓╨╛╤Б╤Б╤В╨░╨╜╨╛╨▓╨╗╨╡╨╜╨╕╨╡"
-                "╨┐╨░╤А╨╛╨╗╤П**\n\n"
-            "╨Э╨╡╤В ╨╛╨╢╨╕╨┤╨░╤О╤Й╨╕╤Е ╨╖╨░╨┐╤А╨╛╤Б╨╛╨▓.",
-            reply_markup=InlineKeyboardBuilder()
-            .row(
-                InlineKeyboardButton(
-                    text="тЧАя╕П ╨Э╨░╨╖╨░╨┤",
-                    callback_data="admin:panel",
-                )
-            )
-            .as_markup(),
+        await message.answer(
+            "🔑 **Запросы на восстановление пароля**\n\n"
+            "Нет ожидающих запросов.",
+            parse_mode="Markdown",
+            reply_markup=admin_keyboard(),
         )
-        await callback.answer()
         return
 
     text = (
-        f"ЁЯФР **╨Ч╨░╨┐╤А╨╛╤Б╤Л ╨╜╨░ ╨▓╨╛╤Б╤Б╤В╨░╨╜╨╛╨▓╨╗╨╡╨╜╨╕╨╡ "
-        f"╨┐╨░╤А╨╛╨╗╤П**\n\n╨Т╤Б╨╡╨│╨╛: {len(requests)}\n\n"
+        f"🔑 **Запросы на восстановление пароля**\n\nВсего: {len(requests)}\n\n"
     )
 
-    builder = InlineKeyboardBuilder()
     display_requests = requests[:10]
 
     for req in display_requests:
@@ -65,53 +63,69 @@ async def show_recovery_requests(
         )
 
         text += (
-            f"тФБтФБтФБтФБтФБтФБтФБтФБтФБтФБтФБтФБтФБтФБтФБ\n"
+            f"─────────────────────────────\n"
             f"ID: #{req.id}\n"
-            f"╨Я╨╛╨╗╤М╨╖╨╛╨▓╨░╤В╨╡╨╗╤М: {user_label}\n"
-            f"╨Я╤А╨╕╤З╨╕╨╜╨░: {reason_preview}\n"
-            f"╨б╨╛╨╖╨┤╨░╨╜: {req.created_at.strftime('%d.%m.%Y %H:%M')}\n\n"
-        )
-
-        builder.row(
-            InlineKeyboardButton(
-                text=f"тЬЕ ╨Ю╨┤╨╛╨▒╤А╨╕╤В╤М #{req.id}",
-                callback_data=f"admin:approve_recovery:{req.id}",
-            ),
-            InlineKeyboardButton(
-                text=f"тЭМ ╨Ю╤В╨║╨╗╨╛╨╜╨╕╤В╤М #{req.id}",
-                callback_data=f"admin:reject_recovery:{req.id}",
-            ),
+            f"Пользователь: {user_label}\n"
+            f"Причина: {reason_preview}\n"
+            f"Создан: {req.created_at.strftime('%d.%m.%Y %H:%M')}\n\n"
         )
 
     if len(requests) > len(display_requests):
         text += (
-            "тФБтФБтФБтФБтФБтФБтФБтФБтФБтФБтФБтФБтФБтФБтФБ\n"
-            "╨Ы╤А╤Г╤Б╤П ╨╛╤З╨╛ ╨▓╨╛╨╜╨╜╨╕╤П — ╨╜╨╕╨▓╨╛╨│╨╛ ╨▓╨╛╨╜╨╜╨╕╤П.\n\n"
+            "─────────────────────────────\n"
+            f"И еще запросов — никого вонь.\n\n"
         )
 
-    builder.row(
-        InlineKeyboardButton(
-            text="тЧАя╕П ╨Э╨░╨╖╨░╨┤",
-            callback_data="admin:panel",
-        )
+    text += (
+        "Для одобрения заявки введите: **одобрить восстановление <ID>**\n"
+        "Для отклонения заявки введите: **отклонить восстановление <ID>**\n"
+        "Пример: `одобрить восстановление 123` или `отклонить восстановление 123`"
     )
 
-    await callback.message.edit_text(
+    await message.answer(
         text,
-        reply_markup=builder.as_markup(),
         parse_mode="Markdown",
+        reply_markup=admin_keyboard(),
     )
-    await callback.answer()
 
 
-@router.callback_query(lambda c: c.data.startswith("admin:approve_recovery:"))
+@router.message(F.text.regexp(r"^одобрить восстановление\s+(\d+)$", flags=0))
 async def approve_recovery(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
+    **data: Any,
 ) -> None:
     """Approve finpass recovery request."""
-    request_id = int(callback.data.split(":")[-1])
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    # Extract request ID from message text
+    match = re.match(
+        r"^одобрить восстановление\s+(\d+)$", message.text.strip(), re.IGNORECASE
+    )
+    if not match:
+        await message.answer(
+            "❌ Неверный формат. Используйте: `одобрить восстановление <ID>`",
+            reply_markup=admin_keyboard(),
+        )
+        return
+
+    request_id = int(match.group(1))
+
+    # Get admin
+    from app.repositories.admin_repository import AdminRepository
+    
+    admin_repo = AdminRepository(session)
+    admin = await admin_repo.get_by(telegram_id=message.from_user.id)
+    
+    if not admin:
+        await message.answer(
+            "❌ Администратор не найден",
+            reply_markup=admin_keyboard(),
+        )
+        return
 
     recovery_service = FinpassRecoveryService(session)
     user_service = UserService(session)
@@ -148,22 +162,18 @@ async def approve_recovery(
         user.financial_password = hashed.decode()
         user.earnings_blocked = True
 
-        await callback.bot.send_message(
+        await message.bot.send_message(
             user.telegram_id,
-            f"тЬЕ **╨Т╨░╤И ╨╖╨░╨┐╤А╨╛╤Б ╨╜╨░ "
-            f"╨▓╨╛╤Б╤Б╤В╨░╨╜╨╛╨▓╨╗╨╡╨╜╨╕╨╡ ╨┐╨░╤А╨╛╨╗╤П "
-            f"╨╛╨┤╨╛╨▒╤А╨╡╨╜!**\n\n"
-            f"╨Э╨╛╨▓╤Л╨╣ ╤Д╨╕╨╜╨░╨╜╤Б╨╛╨▓╤Л╨╣ ╨┐╨░╤А╨╛╨╗╤М: "
+            f"✅ **Ваш запрос на "
+            f"восстановление пароля одобрен!**\n\n"
+            f"Новый финансовый пароль: "
             f"`{new_password}`\n\n"
-            f"тЪая╕П **╨Т╨░╨╢╨╜╨╛:**\n"
-            f"тАв ╨б╨╛╤Е╤А╨░╨╜╨╕╤В╨╡ ╤Н╤В╨╛╤В ╨┐╨░╤А╨╛╨╗╤М ╨▓ "
-            f"╨╜╨░╨┤╨╡╨╢╨╜╨╛╨╝ ╨╝╨╡╤Б╤В╨╡\n"
-            f"тАв ╨Т╨░╤И╨╕ ╨▓╤Л╨┐╨╗╨░╤В╤Л ╨╖╨░╨▒╨╗╨╛╨║╨╕╤А╨╛╨▓╨░╨╜╤Л "
-            f"╨┤╨╛ ╨┐╨╡╤А╨▓╨╛╨│╨╛ ╨╕╤Б╨┐╨╛╨╗╤М╨╖╨╛╨▓╨░╨╜╨╕╤П ╨┐╨░╤А╨╛╨╗╤П\n"
-            f"тАв ╨Я╨╛╤Б╨╗╨╡ ╨┐╨╡╤А╨▓╨╛╨│╨╛ ╤Г╤Б╨┐╨╡╤И╨╜╨╛╨│╨╛ "
-            f"╨▓╤Л╨▓╨╛╨┤╨░ ╨▒╨╗╨╛╨║╨╕╤А╨╛╨▓╨║╨░ ╨▒╤Г╨┤╨╡╤В ╤Б╨╜╤П╤В╨░\n\n"
-            f"╨Ш╤Б╨┐╨╛╨╗╤М╨╖╤Г╨╣╤В╨╡ ╤А╨░╨╖╨┤╨╡╨╗ '╨Т╤Л╨▓╨╛╨┤' ╨┤╨╗╤П "
-            f"╨┐╤А╨╛╨▓╨╡╤А╨║╨╕ ╨╜╨╛╨▓╨╛╨│╨╛ ╨┐╨░╤А╨╛╨╗╤П.",
+            f"⚠️ **Важно:**\n"
+            f"• Сохраните этот пароль в надёжном месте\n"
+            f"• Ваши выплаты заблокированы "
+            f"до первого использования пароля\n"
+            f"• После первого успешного вывода блокировка будет снята\n\n"
+            f"Используйте раздел 'Вывод' для проверки нового пароля.",
             parse_mode="Markdown",
         )
 
@@ -175,29 +185,61 @@ async def approve_recovery(
 
         await session.commit()
 
-        await callback.answer(
-            f"тЬЕ ╨Ч╨░╨┐╤А╨╛╤Б #{request_id} ╨╛╨┤╨╛╨▒╤А╨╡╨╜!\n"
-            f"╨Э╨╛╨▓╤Л╨╣ ╨┐╨░╤А╨╛╨╗╤М ╨╛╤В╨┐╤А╨░╨▓╨╗╨╡╨╜"
-                "╨┐╨╛╨╗╤М╨╖╨╛╨▓╨░╤В╨╡╨╗╤О.",
-            show_alert=True,
+        await message.answer(
+            f"✅ Запрос #{request_id} одобрен!\n"
+            f"Новый пароль отправлен пользователю.",
+            reply_markup=admin_keyboard(),
         )
 
-        await show_recovery_requests(callback, session, admin)
+        # Refresh display
+        await show_recovery_requests(message, session, **data)
 
     except Exception as e:
         await session.rollback()
         logger.error(f"Error approving recovery: {e}")
-        await callback.answer(f"тЭМ ╨Ю╤И╨╕╨▒╨║╨░: {e}", show_alert=True)
+        await message.answer(
+            f"❌ Ошибка: {e}",
+            reply_markup=admin_keyboard(),
+        )
 
 
-@router.callback_query(lambda c: c.data.startswith("admin:reject_recovery:"))
+@router.message(F.text.regexp(r"^отклонить восстановление\s+(\d+)$", flags=0))
 async def reject_recovery(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
+    **data: Any,
 ) -> None:
     """Reject finpass recovery request."""
-    request_id = int(callback.data.split(":")[-1])
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    # Extract request ID from message text
+    match = re.match(
+        r"^отклонить восстановление\s+(\d+)$", message.text.strip(), re.IGNORECASE
+    )
+    if not match:
+        await message.answer(
+            "❌ Неверный формат. Используйте: `отклонить восстановление <ID>`",
+            reply_markup=admin_keyboard(),
+        )
+        return
+
+    request_id = int(match.group(1))
+
+    # Get admin
+    from app.repositories.admin_repository import AdminRepository
+    
+    admin_repo = AdminRepository(session)
+    admin = await admin_repo.get_by(telegram_id=message.from_user.id)
+    
+    if not admin:
+        await message.answer(
+            "❌ Администратор не найден",
+            reply_markup=admin_keyboard(),
+        )
+        return
 
     recovery_service = FinpassRecoveryService(session)
     user_service = UserService(session)
@@ -215,25 +257,27 @@ async def reject_recovery(
 
         if user:
             try:
-                await callback.bot.send_message(
+                await message.bot.send_message(
                     user.telegram_id,
-                    f"тЭМ **╨Т╨░╤И ╨╖╨░╨┐╤А╨╛╤Б ╨╜╨░ "
-                    f"╨▓╨╛╤Б╤Б╤В╨░╨╜╨╛╨▓╨╗╨╡╨╜╨╕╨╡ ╨┐╨░╤А╨╛╨╗╤П "
-                    f"╨╛╤В╨║╨╗╨╛╨╜╨╡╨╜**\n\n"
-                    f"ID ╨╖╨░╨┐╤А╨╛╤Б╨░: #{request_id}\n\n"
-                    f"╨Х╤Б╨╗╨╕ ╤Г ╨▓╨░╤Б ╨╡╤Б╤В╤М ╨▓╨╛╨┐╤А╨╛╤Б╤Л,"
-                        "╨╛╨▒╤А╨░╤В╨╕╤В╨╡╤Б╤М ╨▓ ╨┐╨╛╨┤╨┤╨╡╤А╨╢╨║╤Г.",
+                    f"❌ **Ваш запрос на "
+                    f"восстановление пароля отклонён**\n\n"
+                    f"ID запроса: #{request_id}\n\n"
+                    f"Если у вас есть вопросы, обратитесь в поддержку.",
                 )
             except Exception as e:
                 logger.error(f"Failed to notify user: {e}")
 
-        await callback.answer(
-            f"тЬЕ ╨Ч╨░╨┐╤А╨╛╤Б #{request_id} ╨╛╤В╨║╨╗╨╛╨╜╨╡╨╜",
-            show_alert=True,
+        await message.answer(
+            f"✅ Запрос #{request_id} отклонён",
+            reply_markup=admin_keyboard(),
         )
 
-        await show_recovery_requests(callback, session, admin)
+        # Refresh display
+        await show_recovery_requests(message, session, **data)
 
     except Exception as e:
         await session.rollback()
-        await callback.answer(f"тЭМ ╨Ю╤И╨╕╨▒╨║╨░: {e}", show_alert=True)
+        await message.answer(
+            f"❌ Ошибка: {e}",
+            reply_markup=admin_keyboard(),
+        )

@@ -4,148 +4,146 @@ Wallet management handler.
 Allows admins to manage system and payout wallets.
 """
 
-from aiogram import Router
-from aiogram.types import CallbackQuery, InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+import re
+from typing import Any
+
+from aiogram import F, Router
+from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.admin import Admin
 from app.services.wallet_admin_service import WalletAdminService
+from bot.keyboards.reply import admin_keyboard
 
 router = Router()
 
 
-@router.callback_query(lambda c: c.data == "admin:wallets")
+@router.message(F.text == "💼 Управление кошельками")
 async def show_wallet_management(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
+    **data: Any,
 ) -> None:
     """Show wallet management menu."""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
     from app.config.settings import settings
 
     wallet_service = WalletAdminService(session)
     pending_requests = await wallet_service.get_pending_requests()
 
     text = (
-        "ЁЯТ╝ **╨г╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡ ╨║╨╛╤И╨╡╨╗╤М╨║╨░╨╝╨╕**\n\n"
-        "**╨в╨╡╨║╤Г╤Й╨╕╨╡ ╨░╨┤╤А╨╡╤Б╨░:**\n"
-        f"ЁЯПж System: `{settings.system_wallet_address}`\n"
-        f"ЁЯТ░ Payout: `{settings.payout_wallet_address}`\n\n"
+        "💼 **Управление кошельками**\n\n"
+        "**Текущие адреса:**\n"
+        f"🏦 System: `{settings.system_wallet_address}`\n"
+        f"💸 Payout: `{settings.payout_wallet_address}`\n\n"
     )
 
     if pending_requests:
         text += (
-            f"тП│ ╨Ю╨╢╨╕╨┤╨░╤О╤Й╨╕╤Е ╨╖╨░╨┐╤А╨╛╤Б╨╛╨▓: "
-            f"{len(pending_requests)}\n\n"
+            f"⏳ Ожидающих запросов: {len(pending_requests)}\n\n"
+            "Для просмотра заявок введите: **заявки кошельков**\n"
+            "Для одобрения заявки введите: **одобрить кошелек <ID>**\n"
+            "Для отклонения заявки введите: **отклонить кошелек <ID>**\n"
         )
 
-    builder = InlineKeyboardBuilder()
-
-    if pending_requests:
-        builder.row(
-            InlineKeyboardButton(
-                text=(
-                    f"ЁЯУЛ ╨а╨░╤Б╤Б╨╝╨╛╤В╤А╨╡╤В╤М ╨╖╨░╨┐╤А╨╛╤Б╤Л "
-                    f"({len(pending_requests)})"
-                ),
-                callback_data="admin:wallet_requests",
-            )
-        )
-
-    builder.row(
-        InlineKeyboardButton(
-            text="ЁЯПж ╨Ш╨╖╨╝╨╡╨╜╨╕╤В╤М System Wallet",
-            callback_data="admin:change_system_wallet",
-        )
-    )
-    builder.row(
-        InlineKeyboardButton(
-            text="ЁЯТ░ ╨Ш╨╖╨╝╨╡╨╜╨╕╤В╤М Payout Wallet",
-            callback_data="admin:change_payout_wallet",
-        )
-    )
-    builder.row(
-        InlineKeyboardButton(
-            text="тЧАя╕П ╨Э╨░╨╖╨░╨┤",
-            callback_data="admin:panel",
-        )
-    )
-
-    await callback.message.edit_text(
+    await message.answer(
         text,
-        reply_markup=builder.as_markup(),
         parse_mode="Markdown",
+        reply_markup=admin_keyboard(),
     )
-    await callback.answer()
 
 
-@router.callback_query(lambda c: c.data == "admin:wallet_requests")
+@router.message(F.text == "⏳ Заявки кошельков")
 async def show_wallet_requests(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
+    **data: Any,
 ) -> None:
     """Show pending wallet change requests."""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
     wallet_service = WalletAdminService(session)
     requests = await wallet_service.get_pending_requests()
 
     if not requests:
-        await callback.answer(
-            "╨Э╨╡╤В ╨╛╨╢╨╕╨┤╨░╤О╤Й╨╕╤Е ╨╖╨░╨┐╤А╨╛╤Б╨╛╨▓", show_alert=True
+        await message.answer(
+            "⏳ **Запросы на изменение кошельков**\n\n"
+            "Нет ожидающих запросов.",
+            parse_mode="Markdown",
+            reply_markup=admin_keyboard(),
         )
         return
 
     text = (
-        "ЁЯУЛ **╨Ч╨░╨┐╤А╨╛╤Б╤Л ╨╜╨░ ╨╕╨╖╨╝╨╡╨╜╨╡╨╜╨╕╨╡ "
-        "╨║╨╛╤И╨╡╨╗╤М╨║╨╛╨▓**\n\n"
+        "⏳ **Запросы на изменение кошельков**\n\n"
     )
-
-    builder = InlineKeyboardBuilder()
 
     for req in requests:
         text += (
             f"ID: #{req.id}\n"
-            f"╨в╨╕╨┐: {req.wallet_type}\n"
-            f"╨Э╨╛╨▓╤Л╨╣ ╨░╨┤╤А╨╡╤Б: `{req.new_address}`\n"
-            f"╨Ч╨░╨┐╤А╨╛╤Б╨╕╨╗: {req.requested_by_admin_id}\n"
-            f"╨Я╤А╨╕╤З╨╕╨╜╨░: {req.reason}\n\n"
+            f"Тип: {req.wallet_type}\n"
+            f"Новый адрес: `{req.new_address}`\n"
+            f"Запросил: {req.requested_by_admin_id}\n"
+            f"Причина: {req.reason}\n\n"
         )
 
-        builder.row(
-            InlineKeyboardButton(
-                text=f"тЬЕ ╨Ю╨┤╨╛╨▒╤А╨╕╤В╤М #{req.id}",
-                callback_data=f"admin:approve_wallet:{req.id}",
-            ),
-            InlineKeyboardButton(
-                text=f"тЭМ ╨Ю╤В╨║╨╗╨╛╨╜╨╕╤В╤М #{req.id}",
-                callback_data=f"admin:reject_wallet:{req.id}",
-            ),
-        )
-
-    builder.row(
-        InlineKeyboardButton(
-            text="тЧАя╕П ╨Э╨░╨╖╨░╨┤",
-            callback_data="admin:wallets",
-        )
+    text += (
+        "Для одобрения заявки введите: **одобрить кошелек <ID>**\n"
+        "Для отклонения заявки введите: **отклонить кошелек <ID>**\n"
+        "Пример: `одобрить кошелек 123` или `отклонить кошелек 123`"
     )
 
-    await callback.message.edit_text(
+    await message.answer(
         text,
-        reply_markup=builder.as_markup(),
         parse_mode="Markdown",
+        reply_markup=admin_keyboard(),
     )
-    await callback.answer()
 
 
-@router.callback_query(lambda c: c.data.startswith("admin:approve_wallet:"))
+@router.message(F.text.regexp(r"^одобрить кошелек\s+(\d+)$", flags=0))
 async def approve_wallet_change(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
+    **data: Any,
 ) -> None:
     """Approve wallet change request."""
-    request_id = int(callback.data.split(":")[-1])
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    # Extract request ID from message text
+    match = re.match(
+        r"^одобрить кошелек\s+(\d+)$", message.text.strip(), re.IGNORECASE
+    )
+    if not match:
+        await message.answer(
+            "❌ Неверный формат. Используйте: `одобрить кошелек <ID>`",
+            reply_markup=admin_keyboard(),
+        )
+        return
+
+    request_id = int(match.group(1))
+
+    # Get admin
+    from app.repositories.admin_repository import AdminRepository
+    
+    admin_repo = AdminRepository(session)
+    admin = await admin_repo.get_by(telegram_id=message.from_user.id)
+    
+    if not admin:
+        await message.answer(
+            "❌ Администратор не найден",
+            reply_markup=admin_keyboard(),
+        )
+        return
 
     wallet_service = WalletAdminService(session)
 
@@ -158,29 +156,59 @@ async def approve_wallet_change(
 
         await session.commit()
 
-        await callback.answer(
-            f"тЬЕ ╨Ч╨░╨┐╤А╨╛╤Б #{request_id} ╨╛╨┤╨╛╨▒╤А╨╡╨╜!\n"
-            f"тЪая╕П ╨в╤А╨╡╨▒╤Г╨╡╤В╤Б╤П ╨╛╨▒╨╜╨╛╨▓╨╕╤В╤М "
-            f"╨║╨╛╨╜╤Д╨╕╨│╤Г╤А╨░╤Ж╨╕╤О ╨╕ ╨┐╨╡╤А╨╡╨╖╨░╨┐╤Г╤Б╤В╨╕╤В╤М "
-            f"╨▒╨╛╤В╨░.",
-            show_alert=True,
+        await message.answer(
+            f"✅ Запрос #{request_id} одобрен!\n"
+            f"⚠️ Требуется обновить конфигурацию и перезапустить бота.",
+            reply_markup=admin_keyboard(),
         )
 
         # Refresh display
-        await show_wallet_requests(callback, session, admin)
+        await show_wallet_requests(message, session, **data)
 
     except ValueError as e:
-        await callback.answer(f"тЭМ ╨Ю╤И╨╕╨▒╨║╨░: {e}", show_alert=True)
+        await message.answer(
+            f"❌ Ошибка: {e}",
+            reply_markup=admin_keyboard(),
+        )
 
 
-@router.callback_query(lambda c: c.data.startswith("admin:reject_wallet:"))
+@router.message(F.text.regexp(r"^отклонить кошелек\s+(\d+)$", flags=0))
 async def reject_wallet_change(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
+    **data: Any,
 ) -> None:
     """Reject wallet change request."""
-    request_id = int(callback.data.split(":")[-1])
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    # Extract request ID from message text
+    match = re.match(
+        r"^отклонить кошелек\s+(\d+)$", message.text.strip(), re.IGNORECASE
+    )
+    if not match:
+        await message.answer(
+            "❌ Неверный формат. Используйте: `отклонить кошелек <ID>`",
+            reply_markup=admin_keyboard(),
+        )
+        return
+
+    request_id = int(match.group(1))
+
+    # Get admin
+    from app.repositories.admin_repository import AdminRepository
+    
+    admin_repo = AdminRepository(session)
+    admin = await admin_repo.get_by(telegram_id=message.from_user.id)
+    
+    if not admin:
+        await message.answer(
+            "❌ Администратор не найден",
+            reply_markup=admin_keyboard(),
+        )
+        return
 
     wallet_service = WalletAdminService(session)
 
@@ -193,12 +221,16 @@ async def reject_wallet_change(
 
         await session.commit()
 
-        await callback.answer(
-            f"тЬЕ ╨Ч╨░╨┐╤А╨╛╤Б #{request_id} ╨╛╤В╨║╨╗╨╛╨╜╨╡╨╜", show_alert=True
+        await message.answer(
+            f"✅ Запрос #{request_id} отклонён",
+            reply_markup=admin_keyboard(),
         )
 
         # Refresh display
-        await show_wallet_requests(callback, session, admin)
+        await show_wallet_requests(message, session, **data)
 
     except ValueError as e:
-        await callback.answer(f"тЭМ ╨Ю╤И╨╕╨▒╨║╨░: {e}", show_alert=True)
+        await message.answer(
+            f"❌ Ошибка: {e}",
+            reply_markup=admin_keyboard(),
+        )

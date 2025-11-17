@@ -9,12 +9,9 @@ from datetime import datetime
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Message,
-)
+from typing import Any
+
+from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.user_service import UserService
@@ -27,27 +24,21 @@ broadcast_rate_limits: dict[int, datetime] = {}
 BROADCAST_COOLDOWN_MS = 15 * 60 * 1000  # 15 minutes in milliseconds
 
 
-def get_cancel_button() -> InlineKeyboardMarkup:
-    """Get cancel button keyboard"""
-    buttons = [
-        [InlineKeyboardButton(text="❌ Отмена", callback_data="admin_panel")]
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-
-@router.callback_query(F.data == "admin_broadcast")
+@router.message(F.text == "📢 Рассылка")
 async def handle_start_broadcast(
-    callback: CallbackQuery,
+    message: Message,
     state: FSMContext,
-    is_admin: bool = False,
-    admin_id: int = 0,
+    **data: Any,
 ) -> None:
     """
     Start broadcast message
     PART5 CRITICAL: Multimedia broadcast support
     """
+    is_admin = data.get("is_admin", False)
+    admin_id = data.get("admin_id", 0)
+    
     if not is_admin:
-        await callback.answer("❌ Эта функция доступна только администраторам")
+        await message.answer("❌ Эта функция доступна только администраторам")
         return
 
     # Check rate limit
@@ -60,16 +51,16 @@ async def handle_start_broadcast(
 
         if remaining_cooldown > 0:
             remaining_minutes = int(remaining_cooldown / 60000) + 1
-            await callback.answer(
-                f"⏳ Подождите {remaining_minutes} мин. перед следующей "
-                "рассылкой",
-                show_alert=True,
+            from bot.keyboards.reply import admin_broadcast_keyboard
+            await message.answer(
+                f"⏳ Подождите {remaining_minutes} мин. перед следующей рассылкой",
+                reply_markup=admin_broadcast_keyboard(),
             )
             return
 
     await state.set_state(AdminStates.awaiting_broadcast_message)
 
-    message = """
+    text = """
 📢 **Рассылка всем пользователям**
 
 Отправьте сообщение, которое хотите разослать всем пользователям бота.
@@ -90,10 +81,11 @@ async def handle_start_broadcast(
 🎵 Аудио: Отправьте музыкальный файл + описание
     """.strip()
 
-    await callback.message.edit_text(
-        message, parse_mode="Markdown", reply_markup=get_cancel_button()
+    from bot.keyboards.reply import admin_broadcast_keyboard
+
+    await message.answer(
+        text, parse_mode="Markdown", reply_markup=admin_broadcast_keyboard()
     )
-    await callback.answer()
 
 
 @router.message(AdminStates.awaiting_broadcast_message)
@@ -101,14 +93,26 @@ async def handle_broadcast_message(  # noqa: C901
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    is_admin: bool = False,
-    admin_id: int = 0,
+    **data: Any,
 ) -> None:
     """
     Handle broadcast message input
     PART5 CRITICAL: Supports text, photo, voice, audio
     """
+    is_admin = data.get("is_admin", False)
+    admin_id = data.get("admin_id", 0)
+    
     if not is_admin:
+        return
+
+    # Check if message is a cancel button
+    if message.text == "❌ Отмена":
+        from bot.keyboards.reply import admin_keyboard
+        await state.clear()
+        await message.answer(
+            "❌ Рассылка отменена.",
+            reply_markup=admin_keyboard(),
+        )
         return
 
     # Check if message is a menu button - if so, clear state and ignore
@@ -218,12 +222,15 @@ async def handle_broadcast_message(  # noqa: C901
     broadcast_rate_limits[admin_id] = datetime.now()
 
     # Send completion message
+    from bot.keyboards.reply import admin_keyboard
+    
     await message.reply(
         f"✅ **Рассылка завершена!**\n\n"
         f"✅ Успешно: {success_count}\n"
         f"❌ Ошибки: {failed_count}\n"
         f"👥 Всего: {total_users}",
         parse_mode="Markdown",
+        reply_markup=admin_keyboard(),
     )
 
     # Reset state

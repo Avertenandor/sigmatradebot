@@ -325,43 +325,4 @@ async def handle_admin_withdrawals(
     )
 
 
-@router.message(F.text == "📢 Рассылка")
-async def handle_admin_broadcast(
-    message: Message,
-    **data: Any,
-) -> None:
-    """Start broadcast message"""
-    is_admin = data.get("is_admin", False)
-    if not is_admin:
-        await message.answer("❌ Эта функция доступна только администраторам")
-        return
-    
-    from aiogram.fsm.context import FSMContext
-    from bot.handlers.admin.broadcast import handle_start_broadcast
-    
-    state: FSMContext = data.get("state")
-    
-    # Create a mock callback to reuse existing handler
-    # Or create a new message-based handler
-    text = """📢 **Рассылка**
-
-Введите сообщение для рассылки всем пользователям бота.
-
-Вы можете отправить:
-• Текст
-• Фото с подписью
-• Видео с подписью
-• Документ
-
-Для отмены используйте /cancel"""
-    
-    await message.answer(
-        text,
-        parse_mode="Markdown",
-        reply_markup=admin_keyboard(),
-    )
-    
-    # Set state for broadcast
-    if state:
-        from bot.states.admin_states import AdminStates
-        await state.set_state(AdminStates.awaiting_broadcast_message)
+# Broadcast handler is now in broadcast.py as @router.message(F.text == "📢 Рассылка")

@@ -4,40 +4,46 @@ Blacklist management handler.
 Allows admins to manage user blacklist.
 """
 
-from aiogram import Router
+from typing import Any
+
+from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InlineKeyboardButton, Message
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import Message
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.admin import Admin
 from app.services.blacklist_service import BlacklistService
+from bot.keyboards.reply import admin_blacklist_keyboard, admin_keyboard, cancel_keyboard
 from bot.states.admin import BlacklistStates
 
 router = Router()
 
 
-@router.callback_query(lambda c: c.data == "admin:blacklist")
+@router.message(F.text == "🚫 Управление blacklist")
 async def show_blacklist(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
+    **data: Any,
 ) -> None:
     """Show blacklist management menu."""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
     blacklist_service = BlacklistService(session)
 
     active_count = await blacklist_service.count_active()
     entries = await blacklist_service.get_all_active(limit=10)
 
     text = (
-        f"ЁЯЪл **╨г╨┐╤А╨░╨▓╨╗╨╡╨╜╨╕╨╡ "
-        f"╨▒╨╗╨╡╨║╨╗╨╕╤Б╤В╨╛╨╝**\n\n╨Т╤Б╨╡╨│╨╛ "
-        f"╨╖╨░╨▒╨╗╨╛╨║╨╕╤А╨╛╨▓╨░╨╜╨╛: {active_count}\n\n"
+        f"🚫 **Управление blacklist**\n\nВсего "
+        f"заблокировано: {active_count}\n\n"
     )
 
     if entries:
-        text += "**╨Я╨╛╤Б╨╗╨╡╨┤╨╜╨╕╨╡ ╨╖╨░╨┐╨╕╤Б╨╕:**\n\n"
+        text += "**Последние записи:**\n\n"
         for entry in entries:
             from app.models.blacklist import BlacklistActionType
 
@@ -55,67 +61,57 @@ async def show_blacklist(
                 f"─────────────────────────────\n\n"
             )
 
-    builder = InlineKeyboardBuilder()
-    builder.row(
-        InlineKeyboardButton(
-            text="тЮХ ╨Ф╨╛╨▒╨░╨▓╨╕╤В╤М ╨▓ ╨▒╨╗╨╡╨║╨╗╨╕╤Б╤В",
-            callback_data="admin:add_to_blacklist",
-        )
-    )
-    builder.row(
-        InlineKeyboardButton(
-            text="тЮЦ ╨г╨┤╨░╨╗╨╕╤В╤М ╨╕╨╖ ╨▒╨╗╨╡╨║╨╗╨╕╤Б╤В╨░",
-            callback_data="admin:remove_from_blacklist",
-        )
-    )
-    builder.row(
-        InlineKeyboardButton(
-            text="тЧАя╕П ╨Э╨░╨╖╨░╨┤",
-            callback_data="admin:panel",
-        )
-    )
-
-    await callback.message.edit_text(
+    await message.answer(
         text,
-        reply_markup=builder.as_markup(),
         parse_mode="Markdown",
+        reply_markup=admin_blacklist_keyboard(),
     )
-    await callback.answer()
 
 
-@router.callback_query(lambda c: c.data == "admin:add_to_blacklist")
+@router.message(F.text == "➕ Добавить в blacklist")
 async def start_add_to_blacklist(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """Start adding to blacklist."""
-    await callback.message.edit_text(
-        "тЮХ **╨Ф╨╛╨▒╨░╨▓╨╗╨╡╨╜╨╕╨╡ ╨▓ ╨▒╨╗╨╡╨║╨╗╨╕╤Б╤В**\n\n"
-        "╨Т╨▓╨╡╨┤╨╕╤В╨╡ Telegram ID ╨╕╨╗╨╕ BSC wallet address:",
-        reply_markup=InlineKeyboardBuilder()
-        .row(
-            InlineKeyboardButton(
-                text="тЭМ ╨Ю╤В╨╝╨╡╨╜╨░",
-                callback_data="admin:blacklist",
-            )
-        )
-        .as_markup(),
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    await message.answer(
+        "➕ **Добавление в blacklist**\n\n"
+        "Введите Telegram ID или BSC wallet address:",
+        parse_mode="Markdown",
+        reply_markup=cancel_keyboard(),
     )
 
     await state.set_state(BlacklistStates.waiting_for_identifier)
-    await callback.answer()
 
 
 @router.message(BlacklistStates.waiting_for_identifier)
 async def process_blacklist_identifier(
     message: Message,
     session: AsyncSession,
-    admin: Admin,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """Process identifier for blacklist."""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        return
+
+    # Check if message is a cancel button
+    if message.text == "❌ Отмена":
+        await state.clear()
+        await message.answer(
+            "❌ Добавление в blacklist отменено.",
+            reply_markup=admin_blacklist_keyboard(),
+        )
+        return
+
     # Check if message is a menu button - if so, clear state and ignore
     from bot.utils.menu_buttons import is_menu_button
 
@@ -136,9 +132,9 @@ async def process_blacklist_identifier(
             telegram_id = int(identifier)
         except ValueError:
             await message.answer(
-                "тЭМ ╨Э╨╡╨▓╨╡╤А╨╜╤Л╨╣ ╤Д╨╛╤А╨╝╨░╤В! ╨Т╨▓╨╡╨┤╨╕╤В╨╡ "
-                "╤З╨╕╤Б╨╗╨╛╨▓╨╛╨╣ Telegram ID ╨╕╨╗╨╕ BSC ╨░╨┤╤А╨╡╤Б "
-                "(0x...)."
+                "❌ Неверный формат! Введите "
+                "числовой Telegram ID или BSC адрес (0x...).",
+                reply_markup=cancel_keyboard(),
             )
             return
 
@@ -149,7 +145,8 @@ async def process_blacklist_identifier(
     )
 
     await message.answer(
-        "╨Т╨▓╨╡╨┤╨╕╤В╨╡ ╨┐╤А╨╕╤З╨╕╨╜╤Г ╨▒╨╗╨╛╨║╨╕╤А╨╛╨▓╨║╨╕:",
+        "Введите причину блокировки:",
+        reply_markup=cancel_keyboard(),
     )
 
     await state.set_state(BlacklistStates.waiting_for_reason)
@@ -159,10 +156,23 @@ async def process_blacklist_identifier(
 async def process_blacklist_reason(
     message: Message,
     session: AsyncSession,
-    admin: Admin,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """Process blacklist reason."""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        return
+
+    # Check if message is a cancel button
+    if message.text == "❌ Отмена":
+        await state.clear()
+        await message.answer(
+            "❌ Добавление в blacklist отменено.",
+            reply_markup=admin_blacklist_keyboard(),
+        )
+        return
+
     # Check if message is a menu button - if so, clear state and ignore
     from bot.utils.menu_buttons import is_menu_button
 
@@ -174,14 +184,26 @@ async def process_blacklist_reason(
 
     if len(reason) < 5:
         await message.answer(
-            "тЭМ ╨Я╤А╨╕╤З╨╕╨╜╨░ ╤Б╨╗╨╕╤И╨║╨╛╨╝ ╨║╨╛╤А╨╛╤В╨║╨░╤П! "
-            "╨Ь╨╕╨╜╨╕╨╝╤Г╨╝ 5 ╤Б╨╕╨╝╨▓╨╛╨╗╨╛╨▓."
+            "❌ Причина слишком короткая! Минимум 5 символов.",
+            reply_markup=cancel_keyboard(),
         )
         return
 
-    data = await state.get_data()
-    telegram_id = data.get("telegram_id")
-    wallet_address = data.get("wallet_address")
+    data_state = await state.get_data()
+    telegram_id = data_state.get("telegram_id")
+    wallet_address = data_state.get("wallet_address")
+
+    # Get admin ID
+    admin_id = None
+    try:
+        from app.repositories.admin_repository import AdminRepository
+
+        admin_repo = AdminRepository(session)
+        admin = await admin_repo.get_by(telegram_id=message.from_user.id)
+        if admin:
+            admin_id = admin.id
+    except Exception:
+        pass
 
     blacklist_service = BlacklistService(session)
 
@@ -190,7 +212,7 @@ async def process_blacklist_reason(
             telegram_id=telegram_id,
             wallet_address=wallet_address,
             reason=reason,
-            added_by_admin_id=admin.id,
+            added_by_admin_id=admin_id,
         )
 
         await session.commit()
@@ -209,57 +231,64 @@ async def process_blacklist_reason(
             f"Telegram ID: {telegram_id or 'N/A'}\n"
             f"Тип: {action_type_text}\n"
             f"Причина: {reason}",
-            reply_markup=InlineKeyboardBuilder()
-            .row(
-                InlineKeyboardButton(
-                    text="тЧАя╕П ╨Э╨░╨╖╨░╨┤",
-                    callback_data="admin:blacklist",
-                )
-            )
-            .as_markup(),
+            parse_mode="Markdown",
+            reply_markup=admin_blacklist_keyboard(),
         )
 
     except Exception as e:
         logger.error(f"Error adding to blacklist: {e}")
-        await message.answer(f"тЭМ ╨Ю╤И╨╕╨▒╨║╨░: {e}")
+        await message.answer(
+            f"❌ Ошибка: {e}",
+            reply_markup=admin_blacklist_keyboard(),
+        )
 
     await state.clear()
 
 
-@router.callback_query(lambda c: c.data == "admin:remove_from_blacklist")
+@router.message(F.text == "🗑️ Удалить из blacklist")
 async def start_remove_from_blacklist(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    admin: Admin,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """Start removing from blacklist."""
-    await callback.message.edit_text(
-        "тЮЦ **╨г╨┤╨░╨╗╨╡╨╜╨╕╨╡ ╨╕╨╖ ╨▒╨╗╨╡╨║╨╗╨╕╤Б╤В╨░**\n\n"
-        "╨Т╨▓╨╡╨┤╨╕╤В╨╡ Telegram ID ╨╕╨╗╨╕ wallet address ╨┤╨╗╤П "
-        "╤Г╨┤╨░╨╗╨╡╨╜╨╕╤П:",
-        reply_markup=InlineKeyboardBuilder()
-        .row(
-            InlineKeyboardButton(
-                text="тЭМ ╨Ю╤В╨╝╨╡╨╜╨░",
-                callback_data="admin:blacklist",
-            )
-        )
-        .as_markup(),
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    await message.answer(
+        "🗑️ **Удаление из blacklist**\n\n"
+        "Введите Telegram ID или wallet address для удаления:",
+        parse_mode="Markdown",
+        reply_markup=cancel_keyboard(),
     )
 
     await state.set_state(BlacklistStates.waiting_for_removal_identifier)
-    await callback.answer()
 
 
 @router.message(BlacklistStates.waiting_for_removal_identifier)
 async def process_blacklist_removal(
     message: Message,
     session: AsyncSession,
-    admin: Admin,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """Process blacklist removal."""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        return
+
+    # Check if message is a cancel button
+    if message.text == "❌ Отмена":
+        await state.clear()
+        await message.answer(
+            "❌ Удаление из blacklist отменено.",
+            reply_markup=admin_blacklist_keyboard(),
+        )
+        return
+
     # Check if message is a menu button - if so, clear state and ignore
     from bot.utils.menu_buttons import is_menu_button
 
@@ -278,7 +307,10 @@ async def process_blacklist_removal(
         try:
             telegram_id = int(identifier)
         except ValueError:
-            await message.answer("тЭМ ╨Э╨╡╨▓╨╡╤А╨╜╤Л╨╣ ╤Д╨╛╤А╨╝╨░╤В!")
+            await message.answer(
+                "❌ Неверный формат!",
+                reply_markup=cancel_keyboard(),
+            )
             return
 
     blacklist_service = BlacklistService(session)
@@ -292,29 +324,27 @@ async def process_blacklist_removal(
 
     if success:
         await message.answer(
-            "тЬЕ **╨г╨┤╨░╨╗╨╡╨╜╨╛ ╨╕╨╖ ╨▒╨╗╨╡╨║╨╗╨╕╤Б╤В╨░!**\n\n"
-            "╨Я╨╛╨╗╤М╨╖╨╛╨▓╨░╤В╨╡╨╗╤М ╤Б╨╜╨╛╨▓╨░ ╨╝╨╛╨╢╨╡╤В "
-            "╨╕╤Б╨┐╨╛╨╗╤М╨╖╨╛╨▓╨░╤В╤М ╨▒╨╛╤В╨░.",
-            reply_markup=InlineKeyboardBuilder()
-            .row(
-                InlineKeyboardButton(
-                    text="тЧАя╕П ╨Э╨░╨╖╨░╨┤",
-                    callback_data="admin:blacklist",
-                )
-            )
-            .as_markup(),
+            "✅ **Удалено из blacklist!**\n\n"
+            "Пользователь снова может использовать бота.",
+            parse_mode="Markdown",
+            reply_markup=admin_blacklist_keyboard(),
         )
     else:
         await message.answer(
-            "тЭМ ╨Ч╨░╨┐╨╕╤Б╤М ╨╜╨╡ ╨╜╨░╨╣╨┤╨╡╨╜╨░ ╨▓ ╨▒╨╗╨╡╨║╨╗╨╕╤Б╤В╨╡.",
-            reply_markup=InlineKeyboardBuilder()
-            .row(
-                InlineKeyboardButton(
-                    text="тЧАя╕П ╨Э╨░╨╖╨░╨┤",
-                    callback_data="admin:blacklist",
-                )
-            )
-            .as_markup(),
+            "❌ Запись не найдена в blacklist.",
+            reply_markup=admin_blacklist_keyboard(),
         )
 
     await state.clear()
+
+
+@router.message(F.text == "👑 Админ-панель")
+async def handle_back_to_admin_panel(
+    message: Message,
+    session: AsyncSession,
+    **data: Any,
+) -> None:
+    """Return to admin panel from blacklist menu"""
+    from bot.handlers.admin.panel import handle_admin_panel_button
+    
+    await handle_admin_panel_button(message, session, **data)

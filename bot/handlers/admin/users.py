@@ -3,124 +3,64 @@ Admin Users Handler
 Handles user management (ban/unban)
 """
 
+from typing import Any
+
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Message,
-)
+from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.user_service import UserService
+from bot.keyboards.reply import admin_users_keyboard, cancel_keyboard
 from bot.states.admin_states import AdminStates
 
 router = Router(name="admin_users")
 
 
-def get_cancel_button() -> InlineKeyboardMarkup:
-    """Get cancel button keyboard"""
-    buttons = [
-        [InlineKeyboardButton(text="❌ Отмена", callback_data="admin_panel")]
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-
-@router.callback_query(F.data == "admin_users")
-async def handle_admin_users_menu(
-    callback: CallbackQuery,
-    session: AsyncSession,
-    is_admin: bool = False,
-) -> None:
-    """Show admin users management menu"""
-    if not is_admin:
-        await callback.answer("❌ Эта функция доступна только администраторам")
-        return
-
-    buttons = [
-        [
-            InlineKeyboardButton(
-                text="🚫 Заблокировать пользователя",
-                callback_data="admin_block_user",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="⚠️ Терминировать аккаунт",
-                callback_data="admin_terminate_user",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="✅ Разблокировать пользователя",
-                callback_data="admin_unban_user",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="◀️ Админ-панель", callback_data="admin_panel"
-            ),
-        ],
-    ]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-
-    message = """
-👥 **Управление пользователями**
-
-Выберите действие:
-    """.strip()
-
-    await callback.message.edit_text(
-        message, parse_mode="Markdown", reply_markup=keyboard
-    )
-    await callback.answer()
-
-
-@router.callback_query(F.data == "admin_block_user")
+@router.message(F.text == "🚫 Заблокировать пользователя")
 async def handle_start_block_user(
-    callback: CallbackQuery,
+    message: Message,
     state: FSMContext,
-    is_admin: bool = False,
+    **data: Any,
 ) -> None:
     """Start block user flow"""
+    is_admin = data.get("is_admin", False)
     if not is_admin:
-        await callback.answer("❌ Эта функция доступна только администраторам")
+        await message.answer("❌ Эта функция доступна только администраторам")
         return
 
     await state.set_state(AdminStates.awaiting_user_to_block)
 
-    message = """
+    text = """
 🚫 **Блокировка пользователя**
 
 Отправьте username (с @) или Telegram ID пользователя для блокировки.
 
-Пользователь получит уведомление и сможет подать апелляцию в течение 3
-    рабочих дней.
+Пользователь получит уведомление и сможет подать апелляцию в течение 3 рабочих дней.
 
 Пример: `@username` или `123456789`
     """.strip()
 
-    await callback.message.edit_text(
-        message, parse_mode="Markdown", reply_markup=get_cancel_button()
+    await message.answer(
+        text, parse_mode="Markdown", reply_markup=cancel_keyboard()
     )
-    await callback.answer()
 
 
-@router.callback_query(F.data == "admin_terminate_user")
+@router.message(F.text == "⚠️ Терминировать аккаунт")
 async def handle_start_terminate_user(
-    callback: CallbackQuery,
+    message: Message,
     state: FSMContext,
-    is_admin: bool = False,
+    **data: Any,
 ) -> None:
     """Start terminate user flow"""
+    is_admin = data.get("is_admin", False)
     if not is_admin:
-        await callback.answer("❌ Эта функция доступна только администраторам")
+        await message.answer("❌ Эта функция доступна только администраторам")
         return
 
     await state.set_state(AdminStates.awaiting_user_to_terminate)
 
-    message = """
+    text = """
 ⚠️ **Терминация аккаунта**
 
 Отправьте username (с @) или Telegram ID пользователя для терминации.
@@ -130,10 +70,9 @@ async def handle_start_terminate_user(
 Пример: `@username` или `123456789`
     """.strip()
 
-    await callback.message.edit_text(
-        message, parse_mode="Markdown", reply_markup=get_cancel_button()
+    await message.answer(
+        text, parse_mode="Markdown", reply_markup=cancel_keyboard()
     )
-    await callback.answer()
 
 
 @router.message(AdminStates.awaiting_user_to_block)
@@ -141,10 +80,20 @@ async def handle_block_user_input(  # noqa: C901
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    is_admin: bool = False,
+    **data: Any,
 ) -> None:
     """Handle block user input"""
+    is_admin = data.get("is_admin", False)
     if not is_admin:
+        return
+
+    # Check if message is a cancel button
+    if message.text == "❌ Отмена":
+        await state.clear()
+        await message.answer(
+            "❌ Блокировка отменена.",
+            reply_markup=admin_users_keyboard(),
+        )
         return
 
     # Check if message is a menu button - if so, clear state and ignore
@@ -242,11 +191,15 @@ async def handle_block_user_input(  # noqa: C901
         display_name = user.username or f"ID {user.telegram_id}"
         await message.reply(
             f"✅ Пользователь {display_name} заблокирован.\n"
-            f"Уведомление отправлено пользователю."
+            f"Уведомление отправлено пользователю.",
+            reply_markup=admin_users_keyboard(),
         )
     except Exception as e:
         logger.error(f"Error blocking user: {e}")
-        await message.reply(f"❌ Ошибка: {str(e)}")
+        await message.reply(
+            f"❌ Ошибка: {str(e)}",
+            reply_markup=admin_users_keyboard(),
+        )
 
     # Reset state
     await state.clear()
@@ -257,10 +210,20 @@ async def handle_terminate_user_input(  # noqa: C901
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    is_admin: bool = False,
+    **data: Any,
 ) -> None:
     """Handle terminate user input"""
+    is_admin = data.get("is_admin", False)
     if not is_admin:
+        return
+
+    # Check if message is a cancel button
+    if message.text == "❌ Отмена":
+        await state.clear()
+        await message.answer(
+            "❌ Терминация отменена.",
+            reply_markup=admin_users_keyboard(),
+        )
         return
 
     # Check if message is a menu button - if so, clear state and ignore
@@ -355,11 +318,15 @@ async def handle_terminate_user_input(  # noqa: C901
         display_name = user.username or f"ID {user.telegram_id}"
         await message.reply(
             f"✅ Аккаунт {display_name} терминирован.\n"
-            f"Уведомление отправлено пользователю."
+            f"Уведомление отправлено пользователю.",
+            reply_markup=admin_users_keyboard(),
         )
     except Exception as e:
         logger.error(f"Error terminating user: {e}")
-        await message.reply(f"❌ Ошибка: {str(e)}")
+        await message.reply(
+            f"❌ Ошибка: {str(e)}",
+            reply_markup=admin_users_keyboard(),
+        )
 
     # Reset state
     await state.clear()
@@ -370,9 +337,10 @@ async def handle_ban_user_input(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    is_admin: bool = False,
+    **data: Any,
 ) -> None:
     """Handle ban user input"""
+    is_admin = data.get("is_admin", False)
     if not is_admin:
         return
 
@@ -410,29 +378,36 @@ async def handle_ban_user_input(
 
     if result and result.get("success"):
         display_name = user.username or f"ID {user.telegram_id}"
-        await message.reply(f"✅ Пользователь {display_name} заблокирован")
+        await message.reply(
+            f"✅ Пользователь {display_name} заблокирован",
+            reply_markup=admin_users_keyboard(),
+        )
     else:
         error = result.get("error", "Unknown") if result else "Unknown error"
-        await message.reply(f"❌ Ошибка: {error}")
+        await message.reply(
+            f"❌ Ошибка: {error}",
+            reply_markup=admin_users_keyboard(),
+        )
 
     # Reset state
     await state.clear()
 
 
-@router.callback_query(F.data == "admin_unban_user")
+@router.message(F.text == "✅ Разблокировать пользователя")
 async def handle_start_unban_user(
-    callback: CallbackQuery,
+    message: Message,
     state: FSMContext,
-    is_admin: bool = False,
+    **data: Any,
 ) -> None:
     """Start unban user flow"""
+    is_admin = data.get("is_admin", False)
     if not is_admin:
-        await callback.answer("❌ Эта функция доступна только администраторам")
+        await message.answer("❌ Эта функция доступна только администраторам")
         return
 
     await state.set_state(AdminStates.awaiting_user_to_unban)
 
-    message = """
+    text = """
 ✅ **Разблокировка пользователя**
 
 Отправьте username (с @) или Telegram ID пользователя для разблокировки.
@@ -440,10 +415,9 @@ async def handle_start_unban_user(
 Пример: `@username` или `123456789`
     """.strip()
 
-    await callback.message.edit_text(
-        message, parse_mode="Markdown", reply_markup=get_cancel_button()
+    await message.answer(
+        text, parse_mode="Markdown", reply_markup=cancel_keyboard()
     )
-    await callback.answer()
 
 
 @router.message(AdminStates.awaiting_user_to_unban)
@@ -451,10 +425,20 @@ async def handle_unban_user_input(
     message: Message,
     state: FSMContext,
     session: AsyncSession,
-    is_admin: bool = False,
+    **data: Any,
 ) -> None:
     """Handle unban user input"""
+    is_admin = data.get("is_admin", False)
     if not is_admin:
+        return
+
+    # Check if message is a cancel button
+    if message.text == "❌ Отмена":
+        await state.clear()
+        await message.answer(
+            "❌ Разблокировка отменена.",
+            reply_markup=admin_users_keyboard(),
+        )
         return
 
     # Check if message is a menu button - if so, clear state and ignore
@@ -480,7 +464,7 @@ async def handle_unban_user_input(
         user = await user_service.find_by_username(username)
     elif identifier.isdigit():
         telegram_id = int(identifier)
-        user = await user_service.find_by_telegram_id(telegram_id)
+        user = await user_service.get_by_telegram_id(telegram_id)
 
     if not user:
         await message.reply("❌ Пользователь не найден")
@@ -491,9 +475,92 @@ async def handle_unban_user_input(
 
     if result["success"]:
         display_name = user.username or f"ID {user.telegram_id}"
-        await message.reply(f"✅ Пользователь {display_name} разблокирован")
+        await message.reply(
+            f"✅ Пользователь {display_name} разблокирован",
+            reply_markup=admin_users_keyboard(),
+        )
     else:
-        await message.reply(f"❌ Ошибка: {result.get('error', 'Unknown')}")
+        await message.reply(
+            f"❌ Ошибка: {result.get('error', 'Unknown')}",
+            reply_markup=admin_users_keyboard(),
+        )
 
     # Reset state
     await state.clear()
+
+
+@router.message(F.text == "🔍 Найти пользователя")
+async def handle_find_user(
+    message: Message,
+    state: FSMContext,
+    **data: Any,
+) -> None:
+    """Start find user flow"""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    # For now, just show a message - can be extended with FSM state if needed
+    await message.answer(
+        "🔍 **Поиск пользователя**\n\n"
+        "Отправьте username (с @) или Telegram ID пользователя для поиска.\n\n"
+        "Пример: `@username` или `123456789`",
+        parse_mode="Markdown",
+        reply_markup=admin_users_keyboard(),
+    )
+
+
+@router.message(F.text == "👥 Список пользователей")
+async def handle_list_users(
+    message: Message,
+    session: AsyncSession,
+    **data: Any,
+) -> None:
+    """Show list of users"""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    from app.repositories.user_repository import UserRepository
+    
+    user_repo = UserRepository(session)
+    # Get recent users (last 10) ordered by created_at desc
+    from sqlalchemy import select, desc
+    from app.models.user import User
+    
+    stmt = select(User).order_by(desc(User.created_at)).limit(10)
+    result = await session.execute(stmt)
+    users = result.scalars().all()
+    
+    if not users:
+        await message.answer(
+            "👥 **Список пользователей**\n\nПользователи не найдены.",
+            reply_markup=admin_users_keyboard(),
+        )
+        return
+
+    text = "👥 **Последние пользователи:**\n\n"
+    for idx, user in enumerate(users, 1):
+        text += f"{idx}. {user.username or f'ID {user.telegram_id}'}\n"
+        text += f"   ID: {user.telegram_id}\n"
+        text += f"   Баланс: {user.balance:.2f} USDT\n\n"
+
+    await message.answer(
+        text,
+        parse_mode="Markdown",
+        reply_markup=admin_users_keyboard(),
+    )
+
+
+@router.message(F.text == "👑 Админ-панель")
+async def handle_back_to_admin_panel(
+    message: Message,
+    session: AsyncSession,
+    **data: Any,
+) -> None:
+    """Return to admin panel from users menu"""
+    from bot.handlers.admin.panel import handle_admin_panel_button
+    
+    await handle_admin_panel_button(message, session, **data)

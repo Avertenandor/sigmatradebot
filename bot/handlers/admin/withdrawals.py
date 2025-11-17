@@ -3,32 +3,37 @@ Admin Withdrawals Handler
 Handles withdrawal approval and rejection
 """
 
+import re
+from typing import Any
+
 from aiogram import F, Router
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-)
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message
+from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.withdrawal import Withdrawal, WithdrawalStatus
 from app.services.blockchain_service import get_blockchain_service
 from app.services.notification_service import NotificationService
 from app.services.user_service import UserService
 from app.services.withdrawal_service import WithdrawalService
+from bot.keyboards.reply import admin_withdrawals_keyboard, admin_keyboard
+from bot.states.admin_states import AdminStates
 from bot.utils.formatters import format_usdt
 
 router = Router(name="admin_withdrawals")
 
 
-@router.callback_query(F.data == "admin_pending_withdrawals")
+@router.message(F.text == "⏳ Ожидающие выводы")
 async def handle_pending_withdrawals(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    is_admin: bool = False,
+    **data: Any,
 ) -> None:
     """Handle pending withdrawals list (admin only)"""
+    is_admin = data.get("is_admin", False)
     if not is_admin:
-        await callback.answer("❌ Эта функция доступна только администраторам")
+        await message.answer("❌ Эта функция доступна только администраторам")
         return
 
     withdrawal_service = WithdrawalService(session)
@@ -38,96 +43,78 @@ async def handle_pending_withdrawals(
             await withdrawal_service.get_pending_withdrawals()
         )
 
-        message = "💸 **Ожидающие заявки на вывод**\n\n"
+        text = "💸 **Ожидающие заявки на вывод**\n\n"
 
         if not pending_withdrawals:
-            message += "Нет ожидающих заявок."
-            buttons = [
-                [
-                    InlineKeyboardButton(
-                        text="◀️ Назад", callback_data="admin_panel"
-                    )
-                ]
-            ]
-            keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-
-            await callback.message.edit_text(
-                message, parse_mode="Markdown", reply_markup=keyboard
+            text += "Нет ожидающих заявок."
+            await message.answer(
+                text,
+                parse_mode="Markdown",
+                reply_markup=admin_withdrawals_keyboard(),
             )
-            await callback.answer()
             return
 
-        message += f"Всего заявок: **{len(pending_withdrawals)}**\n\n"
+        text += f"Всего заявок: **{len(pending_withdrawals)}**\n\n"
 
-        for idx, withdrawal in enumerate(pending_withdrawals, 1):
+        for idx, withdrawal in enumerate(pending_withdrawals[:10], 1):
             date = withdrawal.created_at.strftime("%d.%m.%Y %H:%M")
 
-            message += f"**{idx}. Заявка #{withdrawal.id}**\n"
-            message += f"💰 Сумма: {format_usdt(withdrawal.amount)} USDT\n"
-            message += f"👤 Пользователь ID: {withdrawal.user_id}\n"
+            text += f"**{idx}. Заявка #{withdrawal.id}**\n"
+            text += f"💰 Сумма: {format_usdt(withdrawal.amount)} USDT\n"
+            text += f"👤 Пользователь ID: {withdrawal.user_id}\n"
 
             if (
                 hasattr(withdrawal, "user")
                 and withdrawal.user
                 and withdrawal.user.username
             ):
-                message += f"📱 @{withdrawal.user.username}\n"
+                text += f"📱 @{withdrawal.user.username}\n"
 
-            message += f"💳 Кошелек: `{withdrawal.to_address}`\n"
-            message += f"📅 Дата: {date}\n\n"
+            text += f"💳 Кошелек: `{withdrawal.to_address}`\n"
+            text += f"📅 Дата: {date}\n\n"
 
-        # Create buttons for first 5 withdrawals
-        buttons = []
-        display_count = min(len(pending_withdrawals), 5)
+        if len(pending_withdrawals) > 10:
+            text += f"... и еще {len(pending_withdrawals) - 10} заявок\n\n"
 
-        for i in range(display_count):
-            withdrawal = pending_withdrawals[i]
-            buttons.append(
-                [
-                    InlineKeyboardButton(
-                        text=f"✅ #{withdrawal.id} Одобрить",
-                        callback_data=f"admin_approve_withdrawal_{withdrawal.id}",
-                    ),
-                    InlineKeyboardButton(
-                        text=f"❌ #{withdrawal.id} Отклонить",
-                        callback_data=f"admin_reject_withdrawal_{withdrawal.id}",
-                    ),
-                ]
-            )
+        text += "Для одобрения заявки введите: **одобрить <ID>**\n"
+        text += "Для отклонения заявки введите: **отклонить <ID>**\n"
+        text += "Пример: `одобрить 123` или `отклонить 123`"
 
-        buttons.append(
-            [InlineKeyboardButton(text="◀️ Назад", callback_data="admin_panel")]
+        await message.answer(
+            text,
+            parse_mode="Markdown",
+            reply_markup=admin_withdrawals_keyboard(),
         )
-
-        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-
-        await callback.message.edit_text(
-            message, parse_mode="Markdown", reply_markup=keyboard
-        )
-        await callback.answer()
 
     except Exception as e:
-        await callback.answer(f"❌ Ошибка при загрузке заявок: {str(e)}")
+        await message.answer(
+            f"❌ Ошибка при загрузке заявок: {str(e)}",
+            reply_markup=admin_withdrawals_keyboard(),
+        )
 
 
-@router.callback_query(F.data.startswith("admin_approve_withdrawal_"))
+@router.message(F.text.regexp(r"^одобрить\s+(\d+)$", flags=0))
 async def handle_approve_withdrawal(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    is_admin: bool = False,
+    **data: Any,
 ) -> None:
     """Handle approve withdrawal (admin only)"""
+    is_admin = data.get("is_admin", False)
     if not is_admin:
-        await callback.answer("❌ Эта функция доступна только администраторам")
+        await message.answer("❌ Эта функция доступна только администраторам")
         return
 
-    # Extract withdrawal ID from callback data
-    withdrawal_id_str = callback.data.replace("admin_approve_withdrawal_", "")
-    if not withdrawal_id_str.isdigit():
-        await callback.answer("❌ Неверный формат")
+    # Extract withdrawal ID from message text
+    match = re.match(r"^одобрить\s+(\d+)$", message.text.strip(), re.IGNORECASE)
+    if not match:
+        await message.answer(
+            "❌ Неверный формат. Используйте: `одобрить <ID>`",
+            reply_markup=admin_withdrawals_keyboard(),
+        )
         return
 
-    withdrawal_id = int(withdrawal_id_str)
+    withdrawal_id = int(match.group(1))
 
     withdrawal_service = WithdrawalService(session)
     user_service = UserService(session)
@@ -141,7 +128,10 @@ async def handle_approve_withdrawal(
         )
 
         if not withdrawal:
-            await callback.answer("❌ Заявка не найдена")
+            await message.answer(
+                "❌ Заявка не найдена",
+                reply_markup=admin_withdrawals_keyboard(),
+            )
             return
 
         # Send real blockchain transaction
@@ -151,7 +141,10 @@ async def handle_approve_withdrawal(
 
         if not payment_result["success"]:
             error_msg = payment_result.get("error", "Неизвестная ошибка")
-            await callback.answer(f"❌ Ошибка отправки: {error_msg}")
+            await message.answer(
+                f"❌ Ошибка отправки: {error_msg}",
+                reply_markup=admin_withdrawals_keyboard(),
+            )
             return
 
         tx_hash = payment_result["tx_hash"]
@@ -160,8 +153,9 @@ async def handle_approve_withdrawal(
         )
 
         if not success:
-            await callback.answer(
-                f"❌ Ошибка: {error_msg or 'Неизвестная ошибка'}"
+            await message.answer(
+                f"❌ Ошибка: {error_msg or 'Неизвестная ошибка'}",
+                reply_markup=admin_withdrawals_keyboard(),
             )
             return
 
@@ -172,10 +166,7 @@ async def handle_approve_withdrawal(
                 user.telegram_id, float(withdrawal.amount), tx_hash
             )
 
-        await callback.answer("✅ Заявка одобрена!")
-
-        # Update message
-        message = (
+        text = (
             f"✅ **Заявка #{withdrawal_id} одобрена**\n\n"
             f"💰 Сумма: {format_usdt(withdrawal.amount)} USDT\n"
             f"👤 Пользователь ID: {withdrawal.user_id}\n"
@@ -184,47 +175,41 @@ async def handle_approve_withdrawal(
             "Средства отправлены пользователю."
         )
 
-        buttons = [
-            [
-                InlineKeyboardButton(
-                    text="📋 Список заявок",
-                    callback_data="admin_pending_withdrawals",
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="◀️ Админ-панель", callback_data="admin_panel"
-                )
-            ],
-        ]
-        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-
-        await callback.message.edit_text(
-            message, parse_mode="Markdown", reply_markup=keyboard
+        await message.answer(
+            text,
+            parse_mode="Markdown",
+            reply_markup=admin_withdrawals_keyboard(),
         )
 
     except Exception as e:
-        await callback.answer(f"❌ Ошибка при обработке: {str(e)}")
+        await message.answer(
+            f"❌ Ошибка при обработке: {str(e)}",
+            reply_markup=admin_withdrawals_keyboard(),
+        )
 
 
-@router.callback_query(F.data.startswith("admin_reject_withdrawal_"))
+@router.message(F.text.regexp(r"^отклонить\s+(\d+)$", flags=0))
 async def handle_reject_withdrawal(
-    callback: CallbackQuery,
+    message: Message,
     session: AsyncSession,
-    is_admin: bool = False,
+    **data: Any,
 ) -> None:
     """Handle reject withdrawal (admin only)"""
+    is_admin = data.get("is_admin", False)
     if not is_admin:
-        await callback.answer("❌ Эта функция доступна только администраторам")
+        await message.answer("❌ Эта функция доступна только администраторам")
         return
 
-    # Extract withdrawal ID from callback data
-    withdrawal_id_str = callback.data.replace("admin_reject_withdrawal_", "")
-    if not withdrawal_id_str.isdigit():
-        await callback.answer("❌ Неверный формат")
+    # Extract withdrawal ID from message text
+    match = re.match(r"^отклонить\s+(\d+)$", message.text.strip(), re.IGNORECASE)
+    if not match:
+        await message.answer(
+            "❌ Неверный формат. Используйте: `отклонить <ID>`",
+            reply_markup=admin_withdrawals_keyboard(),
+        )
         return
 
-    withdrawal_id = int(withdrawal_id_str)
+    withdrawal_id = int(match.group(1))
 
     withdrawal_service = WithdrawalService(session)
     user_service = UserService(session)
@@ -237,7 +222,10 @@ async def handle_reject_withdrawal(
         )
 
         if not withdrawal:
-            await callback.answer("❌ Заявка не найдена")
+            await message.answer(
+                "❌ Заявка не найдена",
+                reply_markup=admin_withdrawals_keyboard(),
+            )
             return
 
         success, error_msg = await withdrawal_service.reject_withdrawal(
@@ -245,8 +233,9 @@ async def handle_reject_withdrawal(
         )
 
         if not success:
-            await callback.answer(
-                f"❌ Ошибка: {error_msg or 'Неизвестная ошибка'}"
+            await message.answer(
+                f"❌ Ошибка: {error_msg or 'Неизвестная ошибка'}",
+                reply_markup=admin_withdrawals_keyboard(),
             )
             return
 
@@ -257,10 +246,7 @@ async def handle_reject_withdrawal(
                 user.telegram_id, float(withdrawal.amount)
             )
 
-        await callback.answer("✅ Заявка отклонена")
-
-        # Update message
-        message = (
+        text = (
             f"❌ **Заявка #{withdrawal_id} отклонена**\n\n"
             f"💰 Сумма: {format_usdt(withdrawal.amount)} USDT\n"
             f"👤 Пользователь ID: {withdrawal.user_id}\n"
@@ -268,24 +254,130 @@ async def handle_reject_withdrawal(
             "Средства возвращены на баланс пользователя."
         )
 
-        buttons = [
-            [
-                InlineKeyboardButton(
-                    text="📋 Список заявок",
-                    callback_data="admin_pending_withdrawals",
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="◀️ Админ-панель", callback_data="admin_panel"
-                )
-            ],
-        ]
-        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-
-        await callback.message.edit_text(
-            message, parse_mode="Markdown", reply_markup=keyboard
+        await message.answer(
+            text,
+            parse_mode="Markdown",
+            reply_markup=admin_withdrawals_keyboard(),
         )
 
     except Exception as e:
-        await callback.answer(f"❌ Ошибка при обработке: {str(e)}")
+        await message.answer(
+            f"❌ Ошибка при обработке: {str(e)}",
+            reply_markup=admin_withdrawals_keyboard(),
+        )
+
+
+@router.message(F.text == "✅ Одобренные выводы")
+async def handle_approved_withdrawals(
+    message: Message,
+    session: AsyncSession,
+    **data: Any,
+) -> None:
+    """Show approved withdrawals"""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    withdrawal_service = WithdrawalService(session)
+
+    try:
+        # Get approved withdrawals (last 10)
+        stmt = (
+            select(Withdrawal)
+            .where(Withdrawal.status == WithdrawalStatus.APPROVED)
+            .order_by(desc(Withdrawal.created_at))
+            .limit(10)
+        )
+        result = await session.execute(stmt)
+        approved_withdrawals = result.scalars().all()
+
+        text = "✅ **Одобренные заявки на вывод**\n\n"
+
+        if not approved_withdrawals:
+            text += "Нет одобренных заявок."
+        else:
+            for idx, withdrawal in enumerate(approved_withdrawals, 1):
+                date = withdrawal.created_at.strftime("%d.%m.%Y %H:%M")
+                text += f"**{idx}. Заявка #{withdrawal.id}**\n"
+                text += f"💰 Сумма: {format_usdt(withdrawal.amount)} USDT\n"
+                text += f"👤 Пользователь ID: {withdrawal.user_id}\n"
+                text += f"💳 Кошелек: `{withdrawal.to_address}`\n"
+                if withdrawal.tx_hash:
+                    text += f"🔗 TX: `{withdrawal.tx_hash}`\n"
+                text += f"📅 Дата: {date}\n\n"
+
+        await message.answer(
+            text,
+            parse_mode="Markdown",
+            reply_markup=admin_withdrawals_keyboard(),
+        )
+
+    except Exception as e:
+        await message.answer(
+            f"❌ Ошибка при загрузке заявок: {str(e)}",
+            reply_markup=admin_withdrawals_keyboard(),
+        )
+
+
+@router.message(F.text == "❌ Отклоненные выводы")
+async def handle_rejected_withdrawals(
+    message: Message,
+    session: AsyncSession,
+    **data: Any,
+) -> None:
+    """Show rejected withdrawals"""
+    is_admin = data.get("is_admin", False)
+    if not is_admin:
+        await message.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    withdrawal_service = WithdrawalService(session)
+
+    try:
+        # Get rejected withdrawals (last 10)
+        stmt = (
+            select(Withdrawal)
+            .where(Withdrawal.status == WithdrawalStatus.REJECTED)
+            .order_by(desc(Withdrawal.created_at))
+            .limit(10)
+        )
+        result = await session.execute(stmt)
+        rejected_withdrawals = result.scalars().all()
+
+        text = "❌ **Отклоненные заявки на вывод**\n\n"
+
+        if not rejected_withdrawals:
+            text += "Нет отклоненных заявок."
+        else:
+            for idx, withdrawal in enumerate(rejected_withdrawals, 1):
+                date = withdrawal.created_at.strftime("%d.%m.%Y %H:%M")
+                text += f"**{idx}. Заявка #{withdrawal.id}**\n"
+                text += f"💰 Сумма: {format_usdt(withdrawal.amount)} USDT\n"
+                text += f"👤 Пользователь ID: {withdrawal.user_id}\n"
+                text += f"💳 Кошелек: `{withdrawal.to_address}`\n"
+                text += f"📅 Дата: {date}\n\n"
+
+        await message.answer(
+            text,
+            parse_mode="Markdown",
+            reply_markup=admin_withdrawals_keyboard(),
+        )
+
+    except Exception as e:
+        await message.answer(
+            f"❌ Ошибка при загрузке заявок: {str(e)}",
+            reply_markup=admin_withdrawals_keyboard(),
+        )
+
+
+@router.message(F.text == "👑 Админ-панель")
+async def handle_back_to_admin_panel(
+    message: Message,
+    session: AsyncSession,
+    **data: Any,
+) -> None:
+    """Return to admin panel from withdrawals menu"""
+    from bot.handlers.admin.panel import handle_admin_panel_button
+    
+    await handle_admin_panel_button(message, session, **data)
