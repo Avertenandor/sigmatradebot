@@ -76,6 +76,9 @@ async def cmd_start(
 
     # Check if already registered
     if user:
+        logger.info(
+            f"cmd_start: registered user {user.telegram_id}, clearing FSM state"
+        )
         # КРИТИЧНО: очистим любое FSM состояние, чтобы /start всегда работал
         await state.clear()
         
@@ -84,6 +87,7 @@ async def cmd_start(
             f"Ваш баланс: {user.balance} USDT\n"
             f"Используйте меню ниже для навигации."
         )
+        logger.debug("cmd_start: sending welcome with ReplyKeyboardRemove")
         # 1) Очистим старую клавиатуру
         await message.answer(
             welcome_text,
@@ -91,11 +95,13 @@ async def cmd_start(
             disable_web_page_preview=False,
             reply_markup=ReplyKeyboardRemove(),
         )
+        logger.debug("cmd_start: sending main menu keyboard")
         # 2) И отправим главное меню отдельным сообщением
         await message.answer(
             "Выберите действие ниже:",
             reply_markup=main_menu_reply_keyboard(),
         )
+        logger.info("cmd_start: main menu keyboard sent successfully")
         return
 
     # Not registered: покажем приветствие и сразу главное меню
