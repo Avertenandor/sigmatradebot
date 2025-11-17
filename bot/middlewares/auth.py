@@ -97,6 +97,9 @@ class AuthMiddleware(BaseMiddleware):
         is_admin = False
         if hasattr(user, "is_admin"):
             is_admin = user.is_admin
+            logger.debug(
+                f"User {telegram_user.id} is_admin from user.is_admin: {is_admin}"
+            )
         else:
             # Check if user exists in Admin table
             from app.repositories.admin_repository import AdminRepository
@@ -104,6 +107,9 @@ class AuthMiddleware(BaseMiddleware):
             admin_repo = AdminRepository(session)
             admin = await admin_repo.get_by_telegram_id(telegram_user.id)
             is_admin = admin is not None
+            logger.debug(
+                f"User {telegram_user.id} admin check: admin={admin}, is_admin={is_admin}"
+            )
             if is_admin:
                 logger.info(
                     f"User {telegram_user.id} (@{telegram_user.username}) "
@@ -112,6 +118,9 @@ class AuthMiddleware(BaseMiddleware):
 
         data["is_admin"] = is_admin
         data["admin_id"] = user.id if is_admin else 0
+        logger.debug(
+            f"AuthMiddleware: Set is_admin={is_admin}, admin_id={data['admin_id']} for user {telegram_user.id}"
+        )
 
         # Call next handler
         return await handler(event, data)
