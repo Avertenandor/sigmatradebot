@@ -225,3 +225,45 @@ async def handle_admin_stats(
         reply_markup=get_admin_stats_keyboard(range_type),
     )
     await callback.answer()
+
+
+@router.callback_query(F.data == "admin_support")
+async def handle_admin_support(
+    callback: CallbackQuery,
+    session: AsyncSession,
+    is_admin: bool = False,
+) -> None:
+    """Handle admin support tickets view."""
+    if not is_admin:
+        await callback.answer("❌ Эта функция доступна только администраторам")
+        return
+
+    from app.services.support_service import SupportService
+    
+    support_service = SupportService(session)
+    
+    # Get open tickets
+    pending_tickets = await support_service.list_open_tickets()
+    
+    if not pending_tickets:
+        message = "🆘 **Техподдержка**\n\nНет ожидающих обращений."
+    else:
+        message = f"🆘 **Техподдержка**\n\nОжидающих обращений: {len(pending_tickets)}\n\n"
+        for ticket in pending_tickets[:5]:
+            message += f"• #{ticket.id} от пользователя {ticket.user_id}\n"
+        
+        if len(pending_tickets) > 5:
+            message += f"\n... и еще {len(pending_tickets) - 5} обращений"
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text="◀️ Админ-панель", callback_data="admin_panel"
+        )]
+    ])
+    
+    await callback.message.edit_text(
+        message,
+        parse_mode="Markdown",
+        reply_markup=keyboard,
+    )
+    await callback.answer()

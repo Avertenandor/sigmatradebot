@@ -8,7 +8,7 @@ from typing import Any
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
@@ -89,6 +89,50 @@ async def handle_main_menu(
         )
         return
     await show_main_menu(message, session, user, state)
+
+
+@router.callback_query(F.data == "main_menu")
+async def handle_main_menu_callback(
+    callback: CallbackQuery,
+    session: AsyncSession,
+    state: FSMContext,
+    **data: Any,
+) -> None:
+    """Handle main menu callback from inline keyboard."""
+    user: User | None = data.get("user")
+    if not user:
+        await callback.answer("Ошибка: пользователь не найден")
+        return
+    
+    await state.clear()
+    
+    # Get blacklist status
+    blacklist_repo = BlacklistRepository(session)
+    blacklist_entry = await blacklist_repo.find_by_telegram_id(
+        user.telegram_id
+    )
+    
+    # Check if user is admin
+    from app.config.settings import settings
+    
+    is_admin = user.telegram_id in settings.get_admin_ids()
+    
+    text = (
+        f"📊 *Главное меню*\n\n"
+        f"Добро пожаловать, {user.username or 'пользователь'}!\n\n"
+        f"Выберите действие из меню ниже:"
+    )
+    
+    if callback.message:
+        # For reply keyboards, we need to send a new message, not edit
+        await callback.message.answer(
+            text,
+            reply_markup=main_menu_reply_keyboard(
+                user=user, blacklist_entry=blacklist_entry, is_admin=is_admin
+            ),
+            parse_mode="Markdown",
+        )
+        await callback.answer()
 
 
 @router.message(F.text == "📊 Баланс")
@@ -247,60 +291,8 @@ async def show_settings_menu(
 # Handlers для submenu кнопок
 
 
-@router.message(F.text == "👥 Мои рефералы")
-async def show_my_referrals(
-    message: Message,
-    session: AsyncSession,
-    **data: Any,
-) -> None:
-    """Show user's referrals list."""
-    user: User | None = data.get("user")
-    if not user:
-        await message.answer("Ошибка: пользователь не найден")
-        return
-    
-    UserService(session)
-
-    # TODO: Implement referral list logic
-    text = "👥 *Мои рефералы*\n\nФункция в разработке"
-
-    await message.answer(text, parse_mode="Markdown")
-
-
-@router.message(F.text == "💰 Мой заработок")
-async def show_my_earnings(
-    message: Message,
-    session: AsyncSession,
-    **data: Any,
-) -> None:
-    """Show user's referral earnings."""
-    user: User | None = data.get("user")
-    if not user:
-        await message.answer("Ошибка: пользователь не найден")
-        return
-    
-    # TODO: Implement earnings logic
-    text = "💰 *Мой заработок*\n\nФункция в разработке"
-
-    await message.answer(text, parse_mode="Markdown")
-
-
-@router.message(F.text == "📊 Статистика рефералов")
-async def show_referral_stats(
-    message: Message,
-    session: AsyncSession,
-    **data: Any,
-) -> None:
-    """Show referral statistics."""
-    user: User | None = data.get("user")
-    if not user:
-        await message.answer("Ошибка: пользователь не найден")
-        return
-    
-    # TODO: Implement stats logic
-    text = "📊 *Статистика рефералов*\n\nФункция в разработке"
-
-    await message.answer(text, parse_mode="Markdown")
+# Referral handlers are implemented in referral.py
+# These handlers are removed to avoid duplication
 
 
 @router.message(F.text == "👤 Мой профиль")
