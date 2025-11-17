@@ -14,6 +14,7 @@ from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     Message,
+        ReplyKeyboardRemove,
 )
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -80,13 +81,21 @@ async def cmd_start(
             f"Ваш баланс: {user.balance} USDT\n"
             f"Используйте меню ниже для навигации."
         )
+        # 1) Очистим старую клавиатуру
         await message.answer(
             welcome_text,
+            parse_mode="Markdown",
+            disable_web_page_preview=False,
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        # 2) И отправим главное меню отдельным сообщением
+        await message.answer(
+            "Выберите действие ниже:",
             reply_markup=main_menu_reply_keyboard(),
         )
         return
 
-    # Start registration with referral code
+    # Not registered: покажем приветствие и сразу главное меню
     welcome_text = (
         "👋 **Добро пожаловать в SigmaTrade!**\n\n"
         "SigmaTrade — это платформа для инвестиций в USDT на сети "
@@ -110,10 +119,17 @@ async def cmd_start(
             "После регистрации вы будете привязаны к пригласившему."
         )
 
+    # 1) Очистим клавиатуру в приветствии
     await message.answer(
         welcome_text,
         parse_mode="Markdown",
         disable_web_page_preview=False,
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    # 2) Добавим большое главное меню отдельно
+    await message.answer(
+        "Выберите действие ниже:",
+        reply_markup=main_menu_reply_keyboard(),
     )
 
     await state.set_state(RegistrationStates.waiting_for_wallet)
