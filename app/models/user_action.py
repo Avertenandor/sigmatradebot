@@ -4,7 +4,7 @@ UserAction model.
 Audit logging for user actions with auto-cleanup after 7 days.
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, Optional
 
 from sqlalchemy import JSON, DateTime, ForeignKey, Index, Integer, String
@@ -62,7 +62,7 @@ class UserAction(Base):
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow, nullable=False
+        DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False
     )
 
     # Relationships
