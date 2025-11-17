@@ -4,6 +4,8 @@ Transaction History Handler - ТОЛЬКО REPLY KEYBOARDS!
 Shows transaction history without inline keyboards.
 """
 
+from typing import Any
+
 from aiogram import F, Router
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -53,9 +55,14 @@ def get_status_text(status: TransactionStatus) -> str:
 async def handle_transaction_history(
     message: Message,
     session: AsyncSession,
-    user: User,
+    **data: Any,
 ) -> None:
     """Show transaction history (last 20 transactions)."""
+    user: User | None = data.get("user")
+    if not user:
+        await message.answer("Ошибка: пользователь не найден")
+        return
+    
     transaction_service = TransactionService(session)
 
     # Get last 20 transactions
