@@ -12,7 +12,8 @@ from aiogram.types import Message
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.withdrawal import Withdrawal, WithdrawalStatus
+from app.models.transaction import Transaction
+from app.models.enums import TransactionStatus, TransactionType
 from app.services.blockchain_service import get_blockchain_service
 from app.services.notification_service import NotificationService
 from app.services.user_service import UserService
@@ -284,9 +285,12 @@ async def handle_approved_withdrawals(
     try:
         # Get approved withdrawals (last 10)
         stmt = (
-            select(Withdrawal)
-            .where(Withdrawal.status == WithdrawalStatus.APPROVED)
-            .order_by(desc(Withdrawal.created_at))
+            select(Transaction)
+            .where(
+                Transaction.type == TransactionType.WITHDRAWAL.value,
+                Transaction.status == TransactionStatus.CONFIRMED.value,
+            )
+            .order_by(desc(Transaction.created_at))
             .limit(10)
         )
         result = await session.execute(stmt)
@@ -337,9 +341,12 @@ async def handle_rejected_withdrawals(
     try:
         # Get rejected withdrawals (last 10)
         stmt = (
-            select(Withdrawal)
-            .where(Withdrawal.status == WithdrawalStatus.REJECTED)
-            .order_by(desc(Withdrawal.created_at))
+            select(Transaction)
+            .where(
+                Transaction.type == TransactionType.WITHDRAWAL.value,
+                Transaction.status == TransactionStatus.FAILED.value,
+            )
+            .order_by(desc(Transaction.created_at))
             .limit(10)
         )
         result = await session.execute(stmt)
