@@ -1,7 +1,7 @@
 """change users timestamps to timezone aware
 
 Revision ID: 20251117_000001
-Revises: 
+Revises: add_finpass_reason
 Create Date: 2025-11-17 21:25:00.000000
 
 """
