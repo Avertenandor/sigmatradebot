@@ -15,7 +15,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.admin import Admin
 from app.services.blacklist_service import BlacklistService
 from bot.keyboards.reply import admin_blacklist_keyboard, admin_keyboard, cancel_keyboard
-from bot.states.admin import BlacklistStates, AdminStates
+from bot.states.admin import BlacklistStates
+from bot.states.admin_states import AdminStates
 
 router = Router()
 
@@ -38,7 +39,7 @@ async def show_blacklist(
     entries = await blacklist_service.get_all_active(limit=10)
 
     text = (
-        f"🚫 **Управление blacklist**\n\nВсего "
+        f"🚫 **Управление черным списком**\n\nВсего "
         f"заблокировано: {active_count}\n\n"
     )
 
@@ -72,7 +73,7 @@ async def show_blacklist(
         
         text += "\n**Действия:**\n"
         text += "• `Просмотр #ID` - детали записи\n"
-        text += "• `Разблокировать #ID` - удалить из blacklist"
+        text += "• `Разблокировать #ID` - удалить из черного списка"
 
     await message.answer(
         text,
@@ -81,7 +82,7 @@ async def show_blacklist(
     )
 
 
-@router.message(F.text == "➕ Добавить в blacklist")
+@router.message(F.text == "➕ Добавить в черный список")
 async def start_add_to_blacklist(
     message: Message,
     session: AsyncSession,
@@ -95,7 +96,7 @@ async def start_add_to_blacklist(
         return
 
     await message.answer(
-        "➕ **Добавление в blacklist**\n\n"
+        "➕ **Добавление в черный список**\n\n"
         "Введите Telegram ID или BSC wallet address:",
         parse_mode="Markdown",
         reply_markup=cancel_keyboard(),
@@ -120,7 +121,7 @@ async def process_blacklist_identifier(
     if message.text == "❌ Отмена":
         await state.clear()
         await message.answer(
-            "❌ Добавление в blacklist отменено.",
+            "❌ Добавление в черный список отменено.",
             reply_markup=admin_blacklist_keyboard(),
         )
         return
@@ -139,7 +140,17 @@ async def process_blacklist_identifier(
     wallet_address = None
 
     if identifier.startswith("0x") and len(identifier) == 42:
-        wallet_address = identifier.lower()
+        # Validate BSC address format
+        from app.utils.validation import validate_bsc_address
+        if validate_bsc_address(identifier, checksum=False):
+            wallet_address = identifier.lower()
+        else:
+            await message.answer(
+                "❌ Неверный формат BSC адреса! "
+                "Адрес должен начинаться с '0x' и содержать 42 символа.",
+                reply_markup=cancel_keyboard(),
+            )
+            return
     else:
         try:
             telegram_id = int(identifier)
@@ -181,7 +192,7 @@ async def process_blacklist_reason(
     if message.text == "❌ Отмена":
         await state.clear()
         await message.answer(
-            "❌ Добавление в blacklist отменено.",
+            "❌ Добавление в черный список отменено.",
             reply_markup=admin_blacklist_keyboard(),
         )
         return
@@ -239,7 +250,7 @@ async def process_blacklist_reason(
         }.get(entry.action_type, entry.action_type)
 
         await message.answer(
-            f"✅ **Добавлено в блеклист!**\n\n"
+            f"✅ **Добавлено в черный список!**\n\n"
             f"ID: #{entry.id}\n"
             f"Telegram ID: {telegram_id or 'N/A'}\n"
             f"Тип: {action_type_text}\n"
@@ -258,7 +269,7 @@ async def process_blacklist_reason(
     await state.clear()
 
 
-@router.message(F.text == "🗑️ Удалить из blacklist")
+@router.message(F.text == "🗑️ Удалить из черного списка")
 async def start_remove_from_blacklist(
     message: Message,
     session: AsyncSession,
@@ -272,7 +283,7 @@ async def start_remove_from_blacklist(
         return
 
     await message.answer(
-        "🗑️ **Удаление из blacklist**\n\n"
+        "🗑️ **Удаление из черного списка**\n\n"
         "Введите Telegram ID или wallet address для удаления:",
         parse_mode="Markdown",
         reply_markup=cancel_keyboard(),
@@ -297,7 +308,7 @@ async def process_blacklist_removal(
     if message.text == "❌ Отмена":
         await state.clear()
         await message.answer(
-            "❌ Удаление из blacklist отменено.",
+            "❌ Удаление из черного списка отменено.",
             reply_markup=admin_blacklist_keyboard(),
         )
         return
@@ -314,16 +325,29 @@ async def process_blacklist_removal(
     telegram_id = None
     wallet_address = None
 
-    if identifier.startswith("0x"):
-        wallet_address = identifier.lower()
+    if identifier.startswith("0x") and len(identifier) == 42:
+        # Validate BSC address format
+        from app.utils.validation import validate_bsc_address
+        if validate_bsc_address(identifier, checksum=False):
+            wallet_address = identifier.lower()
+        else:
+            await message.answer(
+                "❌ Неверный формат BSC адреса! "
+                "Адрес должен начинаться с '0x' и содержать 42 символа.",
+                reply_markup=admin_blacklist_keyboard(),
+            )
+            await state.clear()
+            return
     else:
         try:
             telegram_id = int(identifier)
         except ValueError:
             await message.answer(
-                "❌ Неверный формат!",
-                reply_markup=cancel_keyboard(),
+                "❌ Неверный формат! Введите "
+                "числовой Telegram ID или BSC адрес (0x...).",
+                reply_markup=admin_blacklist_keyboard(),
             )
+            await state.clear()
             return
 
     blacklist_service = BlacklistService(session)
@@ -337,14 +361,14 @@ async def process_blacklist_removal(
 
     if success:
         await message.answer(
-            "✅ **Удалено из blacklist!**\n\n"
+            "✅ **Удалено из черного списка!**\n\n"
             "Пользователь снова может использовать бота.",
             parse_mode="Markdown",
             reply_markup=admin_blacklist_keyboard(),
         )
     else:
         await message.answer(
-            "❌ Запись не найдена в blacklist.",
+            "❌ Запись не найдена в черном списке.",
             reply_markup=admin_blacklist_keyboard(),
         )
 
@@ -405,7 +429,7 @@ async def handle_view_blacklist_entry(
             added_by_text = f"Admin ID: {entry.added_by_admin_id}"
     
     text = (
-        f"📋 **Запись blacklist #{entry.id}**\n\n"
+        f"📋 **Запись черного списка #{entry.id}**\n\n"
         f"{status_emoji} Статус: {status_text}\n"
         f"👤 Telegram ID: {entry.telegram_id or 'N/A'}\n"
         f"💳 Wallet: {entry.wallet_address or 'N/A'}\n"
@@ -560,13 +584,13 @@ async def handle_unban_confirm(
         
         await message.answer(
             f"✅ **Пользователь разблокирован!**\n\n"
-            f"Запись #{entry_id} удалена из blacklist.",
+            f"Запись #{entry_id} удалена из черного списка.",
             parse_mode="Markdown",
             reply_markup=admin_blacklist_keyboard(),
         )
     else:
         await message.answer(
-            "❌ Ошибка при удалении из blacklist.",
+            "❌ Ошибка при удалении из черного списка.",
             reply_markup=admin_blacklist_keyboard(),
         )
     

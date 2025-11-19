@@ -128,7 +128,7 @@ async def handle_referral_stats(
         if bot:
             bot_info = await bot.get_me()
             bot_username = bot_info.username
-    referral_link = user_service.generate_referral_link(user.id, bot_username)
+    referral_link = user_service.generate_referral_link(user.telegram_id, bot_username)
 
     # Get user position in leaderboard
     user_position = await referral_service.get_user_leaderboard_position(

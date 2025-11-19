@@ -221,7 +221,7 @@ async def main() -> None:  # noqa: C901
     dp.include_router(transaction.router)
     dp.include_router(support.router)
     dp.include_router(verification.router)
-    # dp.include_router(finpass_recovery.router)  # Temporarily disabled
+    dp.include_router(finpass_recovery.router)
     dp.include_router(instructions.router)
     dp.include_router(appeal.router)
 

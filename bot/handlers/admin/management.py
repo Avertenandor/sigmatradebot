@@ -110,10 +110,10 @@ async def start_add_admin(
         reply_markup=cancel_keyboard(),
     )
 
-    await state.set_state(AdminManagementStates.waiting_for_telegram_id)
+    await state.set_state(AdminManagementStates.awaiting_admin_telegram_id)
 
 
-@router.message(AdminManagementStates.waiting_for_telegram_id)
+@router.message(AdminManagementStates.awaiting_admin_telegram_id)
 async def process_telegram_id(
     message: Message,
     session: AsyncSession,
@@ -163,10 +163,10 @@ async def process_telegram_id(
         reply_markup=cancel_keyboard(),
     )
 
-    await state.set_state(AdminManagementStates.waiting_for_role)
+    await state.set_state(AdminManagementStates.awaiting_admin_role)
 
 
-@router.message(AdminManagementStates.waiting_for_role)
+@router.message(AdminManagementStates.awaiting_admin_role)
 async def process_role(
     message: Message,
     session: AsyncSession,

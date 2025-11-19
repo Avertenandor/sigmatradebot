@@ -90,7 +90,7 @@ async def select_deposit_level(
         # Fallback to old session
         session = data.get("session")
         if not session:
-            await message.answer("❌ Системная ошибка. Попробуйте позже.")
+            await message.answer("❌ Системная ошибка. Отправьте /start или обратитесь в поддержку.")
             return
         validation_service = DepositValidationService(session)
         can_purchase, error_msg = await validation_service.can_purchase_level(

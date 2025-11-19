@@ -73,7 +73,7 @@ async def show_recovery_requests(
     if len(requests) > len(display_requests):
         text += (
             "─────────────────────────────\n"
-            f"И еще запросов — никого вонь.\n\n"
+            f"И еще {len(requests) - len(display_requests)} запросов не показаны в этом списке.\n\n"
         )
 
     text += (

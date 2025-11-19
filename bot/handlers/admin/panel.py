@@ -25,6 +25,33 @@ from bot.utils.formatters import format_usdt
 router = Router(name="admin_panel")
 
 
+async def get_admin_and_super_status(
+    session: AsyncSession,
+    telegram_id: int | None,
+    data: dict[str, Any],
+) -> tuple[Admin | None, bool]:
+    """
+    Get admin object and super_admin status.
+    
+    Args:
+        session: Database session
+        telegram_id: Telegram user ID
+        data: Handler data dict
+        
+    Returns:
+        Tuple of (Admin object or None, is_super_admin bool)
+    """
+    admin: Admin | None = data.get("admin")
+    if not admin and telegram_id:
+        # If admin not in data (e.g., before master key auth), fetch from DB
+        from app.services.admin_service import AdminService
+        admin_service = AdminService(session)
+        admin = await admin_service.get_admin_by_telegram_id(telegram_id)
+    
+    is_super_admin = admin.is_super_admin if admin else False
+    return admin, is_super_admin
+
+
 @router.message(AdminStates.awaiting_master_key_input)
 async def handle_master_key_input(
     message: Message,
@@ -92,9 +119,11 @@ async def handle_master_key_input(
 Выберите действие:
     """.strip()
 
-    # Get admin from data to check if super_admin
-    admin: Admin | None = data.get("admin")
-    is_super_admin = admin.is_super_admin if admin else False
+    # Get admin and super_admin status
+    telegram_id = message.from_user.id if message.from_user else None
+    admin, is_super_admin = await get_admin_and_super_status(
+        session, telegram_id, data
+    )
 
     await message.answer(
         text,
@@ -179,9 +208,10 @@ async def handle_admin_panel_button(
     if user:
         blacklist_entry = await blacklist_repo.find_by_telegram_id(user.telegram_id)
 
-    # Get admin from data to check if super_admin
-    admin: Admin | None = data.get("admin")
-    is_super_admin = admin.is_super_admin if admin else False
+    # Get admin and super_admin status
+    admin, is_super_admin = await get_admin_and_super_status(
+        session, telegram_id, data
+    )
 
     await message.answer(
         text,
@@ -270,9 +300,11 @@ async def handle_admin_stats(
         "earnings", 0))} USDT)
     """.strip()
 
-    # Get admin from data to check if super_admin
-    admin: Admin | None = data.get("admin")
-    is_super_admin = admin.is_super_admin if admin else False
+    # Get admin and super_admin status
+    telegram_id = message.from_user.id if message.from_user else None
+    admin, is_super_admin = await get_admin_and_super_status(
+        session, telegram_id, data
+    )
 
     await message.answer(
         text,
@@ -779,9 +811,11 @@ async def handle_admin_withdrawals(
         logger.error(f"Error getting pending withdrawals: {e}")
         text = "❌ Ошибка при получении списка заявок на вывод."
     
-    # Get admin from data to check if super_admin
-    admin: Admin | None = data.get("admin")
-    is_super_admin = admin.is_super_admin if admin else False
+    # Get admin and super_admin status
+    telegram_id = message.from_user.id if message.from_user else None
+    admin, is_super_admin = await get_admin_and_super_status(
+        session, telegram_id, data
+    )
 
     await message.answer(
         text,

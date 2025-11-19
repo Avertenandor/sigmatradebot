@@ -59,7 +59,7 @@ async def withdraw_all(
         # Fallback
         session = data.get("session")
         if not session:
-            await message.answer("❌ Системная ошибка")
+            await message.answer("❌ Системная ошибка. Отправьте /start или обратитесь в поддержку.")
             return
         user_service = UserService(session)
         balance = await user_service.get_user_balance(user.id)
@@ -187,7 +187,7 @@ async def process_withdrawal_amount(
         # Fallback
         session = data.get("session")
         if not session:
-            await message.answer("❌ Системная ошибка")
+            await message.answer("❌ Системная ошибка. Отправьте /start или обратитесь в поддержку.")
             await state.clear()
             return
         user_service = UserService(session)
@@ -260,7 +260,7 @@ async def process_financial_password(
         # Fallback
         session = data.get("session")
         if not session:
-            await message.answer("❌ Системная ошибка")
+            await message.answer("❌ Системная ошибка. Отправьте /start или обратитесь в поддержку.")
             await state.clear()
             return
         
@@ -401,7 +401,7 @@ async def show_withdrawal_history(
         # Fallback
         session = data.get("session")
         if not session:
-            await message.answer("❌ Системная ошибка")
+            await message.answer("❌ Системная ошибка. Отправьте /start или обратитесь в поддержку.")
             return
         withdrawal_service = WithdrawalService(session)
         result = await withdrawal_service.get_user_withdrawals(

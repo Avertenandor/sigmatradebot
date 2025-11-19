@@ -11,12 +11,13 @@ REFERRAL_RATES = {
 }
 
 # Deposit levels configuration
+# NOTE: Values must match app/services/deposit_validation_service.py
 DEPOSIT_LEVELS = {
-    1: 10.0,  # 10 USDT
-    2: 50.0,  # 50 USDT
+    1: 10.0,   # 10 USDT
+    2: 50.0,   # 50 USDT
     3: 100.0,  # 100 USDT
-    4: 500.0,  # 500 USDT
-    5: 1000.0,  # 1000 USDT
+    4: 150.0,  # 150 USDT
+    5: 300.0,  # 300 USDT
 }
 
 # ROI cap for level 1 deposits

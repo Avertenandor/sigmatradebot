@@ -87,7 +87,7 @@ async def process_ticket_message(
             session = data.get("session")
             if not session:
                 await state.clear()
-                await message.answer("❌ Системная ошибка. Попробуйте позже.")
+                await message.answer("❌ Системная ошибка. Отправьте /start или обратитесь в поддержку.")
                 return
             
             support_service = SupportService(session)
@@ -180,7 +180,7 @@ async def handle_my_tickets(
         # Fallback to old session
         session = data.get("session")
         if not session:
-            await message.answer("❌ Системная ошибка.", reply_markup=support_keyboard())
+            await message.answer("❌ Системная ошибка. Отправьте /start или попробуйте позже.", reply_markup=support_keyboard())
             return
         support_service = SupportService(session)
         tickets = await support_service.get_user_tickets(user.id)

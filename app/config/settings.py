@@ -29,26 +29,31 @@ class Settings(BaseSettings):
     wallet_private_key: str | None = None
     wallet_address: str
     usdt_contract_address: str
-    rpc_url: str
+    rpc_url: str  # QuickNode endpoint (with rate limits)
     system_wallet_address: str  # System wallet for deposits
+    # Blockchain polling settings
+    blockchain_poll_interval: int = Field(
+        default=3, ge=1, description="Blockchain event polling interval in seconds"
+    )
     # Payout wallet (optional, defaults to wallet_address)
     payout_wallet_address: str | None = None
 
     # Deposit levels (USDT amounts)
+    # NOTE: Values must match app/services/deposit_validation_service.py and bot/utils/constants.py
     deposit_level_1: float = Field(
-        default=50.0, gt=0, description="Deposit level 1 amount"
+        default=10.0, gt=0, description="Deposit level 1 amount"
     )
     deposit_level_2: float = Field(
-        default=100.0, gt=0, description="Deposit level 2 amount"
+        default=50.0, gt=0, description="Deposit level 2 amount"
     )
     deposit_level_3: float = Field(
-        default=250.0, gt=0, description="Deposit level 3 amount"
+        default=100.0, gt=0, description="Deposit level 3 amount"
     )
     deposit_level_4: float = Field(
-        default=500.0, gt=0, description="Deposit level 4 amount"
+        default=150.0, gt=0, description="Deposit level 4 amount"
     )
     deposit_level_5: float = Field(
-        default=1000.0, gt=0, description="Deposit level 5 amount"
+        default=300.0, gt=0, description="Deposit level 5 amount"
     )
 
     # Redis (for FSM storage and Dramatiq)

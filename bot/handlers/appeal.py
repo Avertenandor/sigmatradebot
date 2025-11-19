@@ -5,6 +5,7 @@ Handles user appeals for blocked accounts.
 """
 
 from datetime import datetime
+from typing import Any
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
@@ -27,6 +28,7 @@ async def start_appeal(
     session: AsyncSession,
     user: User,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """
     Start appeal process for blocked users.
@@ -111,6 +113,7 @@ async def process_appeal_text(
     session: AsyncSession,
     user: User,
     state: FSMContext,
+    **data: Any,
 ) -> None:
     """
     Process appeal text and send to admins.

@@ -92,6 +92,9 @@ class Transaction(Base):
     tx_hash: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
+    to_address: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )  # Recipient address (for withdrawals)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(

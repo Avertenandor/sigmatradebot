@@ -35,9 +35,7 @@ from app.services.support_service import SupportService
 from app.services.transaction_service import TransactionService
 from app.services.user_service import UserService
 
-# from app.services.settings_service import (
-#     SettingsService,
-# )  # Temporarily disabled due to encoding issues
+from app.services.settings_service import SettingsService
 from app.services.wallet_admin_service import WalletAdminService
 from app.services.withdrawal_service import WithdrawalService
 
@@ -64,6 +62,6 @@ __all__ = [
     "init_blockchain_service",
     # Additional
     "FinpassRecoveryService",
-    # "SettingsService",  # Temporarily disabled
+    "SettingsService",
     "WalletAdminService",
 ]

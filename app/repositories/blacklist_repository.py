@@ -73,10 +73,17 @@ class BlacklistRepository(BaseRepository[Blacklist]):
         Returns:
             Blacklist entry or None
         """
-        # Note: Blacklist model doesn't have wallet_address field
-        # in current schema. This method is for compatibility with
-        # BlacklistService
-        return None
+        from sqlalchemy import select
+        normalized = wallet_address.lower()
+        stmt = (
+            select(Blacklist)
+            .where(
+                Blacklist.wallet_address == normalized,
+                Blacklist.is_active == 1
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
 
     async def get_active_blacklist(
         self, limit: int = 100, offset: int = 0
@@ -92,9 +99,10 @@ class BlacklistRepository(BaseRepository[Blacklist]):
             List of active Blacklist entries
         """
         from sqlalchemy import select
+        # Note: is_active is stored as Integer (1/0) in DB, not boolean
         stmt = (
             select(Blacklist)
-            .where(Blacklist.is_active)
+            .where(Blacklist.is_active == 1)
             .limit(limit)
             .offset(offset)
             .order_by(Blacklist.created_at.desc())
@@ -110,6 +118,7 @@ class BlacklistRepository(BaseRepository[Blacklist]):
             Number of active entries
         """
         from sqlalchemy import func, select
-        stmt = select(func.count(Blacklist.id)).where(Blacklist.is_active)
+        # Note: is_active is stored as Integer (1/0) in DB, not boolean
+        stmt = select(func.count(Blacklist.id)).where(Blacklist.is_active == 1)
         result = await self.session.execute(stmt)
         return result.scalar() or 0

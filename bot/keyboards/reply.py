@@ -269,7 +269,7 @@ def admin_keyboard(is_super_admin: bool = False) -> ReplyKeyboardMarkup:
         KeyboardButton(text="🔐 Управление кошельком"),
     )
     builder.row(
-        KeyboardButton(text="🚫 Управление blacklist"),
+        KeyboardButton(text="🚫 Управление черным списком"),
     )
     
     # Add admin management button only for super_admin

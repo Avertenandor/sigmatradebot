@@ -247,11 +247,14 @@ async def process_wallet(
 
     wallet_address = message.text.strip()
 
-    # Validate wallet format (0x + 40 hex chars)
-    if not wallet_address.startswith("0x") or len(wallet_address) != 42:
+    # Validate wallet format using proper validation
+    from app.utils.validation import validate_bsc_address
+    
+    if not validate_bsc_address(wallet_address, checksum=False):
         await message.answer(
             "❌ Неверный формат адреса!\n\n"
-            "BSC адрес должен начинаться с '0x' и содержать 42 символа.\n"
+            "BSC адрес должен начинаться с '0x' и содержать 42 символа "
+            "(0x + 40 hex символов).\n"
             "Попробуйте еще раз:"
         )
         return
@@ -262,7 +265,7 @@ async def process_wallet(
         # Fallback to old session for backward compatibility
         session = data.get("session")
         if not session:
-            await message.answer("❌ Системная ошибка. Попробуйте позже.")
+            await message.answer("❌ Системная ошибка. Отправьте /start или обратитесь в поддержку.")
             return
         user_service = UserService(session)
         existing = await user_service.get_by_wallet(wallet_address)
@@ -424,12 +427,30 @@ async def process_password_confirmation(
     wallet_address = state_data.get("wallet_address")
     referrer_telegram_id = state_data.get("referrer_telegram_id")
     
+    # Hash financial password with bcrypt
+    import bcrypt
+    hashed_password = bcrypt.hashpw(
+        password.encode("utf-8"), bcrypt.gensalt(rounds=12)
+    ).decode("utf-8")
+    
+    # Normalize wallet address to checksum format
+    from app.utils.validation import normalize_bsc_address
+    try:
+        wallet_address = normalize_bsc_address(wallet_address)
+    except ValueError as e:
+        await message.answer(
+            f"❌ Ошибка валидации адреса кошелька:\n{str(e)}\n\n"
+            "Попробуйте начать заново: /start"
+        )
+        await state.clear()
+        return
+    
     session_factory = data.get("session_factory")
     if not session_factory:
         # Fallback to old session for backward compatibility
         session = data.get("session")
         if not session:
-            await message.answer("❌ Системная ошибка. Попробуйте позже.")
+            await message.answer("❌ Системная ошибка. Отправьте /start или обратитесь в поддержку.")
             await state.clear()
             return
         user_service = UserService(session)
@@ -438,7 +459,7 @@ async def process_password_confirmation(
                 telegram_id=message.from_user.id,
                 username=message.from_user.username,
                 wallet_address=wallet_address,
-                financial_password=password,
+                financial_password=hashed_password,
                 referrer_telegram_id=referrer_telegram_id,
             )
         except ValueError as e:
@@ -475,7 +496,7 @@ async def process_password_confirmation(
                         telegram_id=message.from_user.id,
                         username=message.from_user.username,
                         wallet_address=wallet_address,
-                        financial_password=password,
+                        financial_password=hashed_password,
                         referrer_telegram_id=referrer_telegram_id,
                     )
             # Transaction closed here

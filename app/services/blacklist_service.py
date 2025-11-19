@@ -122,12 +122,17 @@ class BlacklistService:
                 else:
                     appeal_deadline = None
 
+                update_data = {
+                    "action_type": action_type,
+                    "created_at": datetime.now(UTC),
+                    "appeal_deadline": appeal_deadline,
+                    "is_active": True,
+                }
+                if wallet_address:
+                    update_data["wallet_address"] = wallet_address
                 await self.repository.update(
                     existing.id,
-                    action_type=action_type,
-                    created_at=datetime.now(UTC),
-                    appeal_deadline=appeal_deadline,
-                    is_active=True,
+                    **update_data
                 )
 
                 logger.info(
@@ -155,14 +160,17 @@ class BlacklistService:
             )
 
         # Create new entry
-        entry = await self.repository.create(
-            telegram_id=telegram_id,
-            reason=reason,
-            created_by_admin_id=added_by_admin_id,
-            action_type=action_type,
-            appeal_deadline=appeal_deadline,
-            is_active=True,
-        )
+        create_data = {
+            "telegram_id": telegram_id,
+            "reason": reason,
+            "created_by_admin_id": added_by_admin_id,
+            "action_type": action_type,
+            "appeal_deadline": appeal_deadline,
+            "is_active": True,
+        }
+        if wallet_address:
+            create_data["wallet_address"] = wallet_address
+        entry = await self.repository.create(**create_data)
 
         logger.info(
             f"Added to blacklist: "

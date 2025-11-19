@@ -337,7 +337,7 @@ async def show_referral_menu(
 
     user_service = UserService(session)
     bot_username = settings.telegram_bot_username
-    referral_link = user_service.generate_referral_link(user.id, bot_username)
+    referral_link = user_service.generate_referral_link(user.telegram_id, bot_username)
 
     text = (
         f"👥 *Реферальная программа*\n\n"
@@ -435,7 +435,7 @@ async def show_my_profile(
     from app.config.settings import settings
 
     bot_username = settings.telegram_bot_username
-    referral_link = user_service.generate_referral_link(user.id, bot_username)
+    referral_link = user_service.generate_referral_link(user.telegram_id, bot_username)
 
     # Build ROI section
     roi_section = ""

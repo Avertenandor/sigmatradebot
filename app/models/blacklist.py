@@ -50,8 +50,13 @@ class Blacklist(Base):
     )
 
     # Banned user
-    telegram_id: Mapped[int] = mapped_column(
-        BigInteger, unique=True, nullable=False, index=True
+    telegram_id: Mapped[int | None] = mapped_column(
+        BigInteger, unique=False, nullable=True, index=True
+    )
+
+    # Wallet address (for wallet-based bans)
+    wallet_address: Mapped[str | None] = mapped_column(
+        String(42), nullable=True, index=True
     )
 
     # Action type
@@ -91,5 +96,6 @@ class Blacklist(Base):
         """String representation."""
         return (
             f"Blacklist(id={self.id}, telegram_id={self.telegram_id}, "
+            f"wallet_address={self.wallet_address}, "
             f"action_type={self.action_type})"
         )

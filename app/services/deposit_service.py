@@ -85,6 +85,8 @@ class DepositService:
         """
         Confirm deposit after blockchain confirmation.
 
+        Processes referral rewards automatically after confirmation.
+
         Args:
             deposit_id: Deposit ID
             block_number: Confirmation block number
@@ -92,11 +94,14 @@ class DepositService:
         Returns:
             Updated deposit
         """
+        from datetime import UTC, datetime
+
         try:
             deposit = await self.deposit_repo.update(
                 deposit_id,
                 status=TransactionStatus.CONFIRMED.value,
                 block_number=block_number,
+                confirmed_at=datetime.now(UTC),
             )
 
             if deposit:
@@ -104,6 +109,35 @@ class DepositService:
                 logger.info(
                     "Deposit confirmed", extra={"deposit_id": deposit_id}
                 )
+
+                # Process referral rewards after deposit confirmation
+                from app.services.referral_service import ReferralService
+
+                referral_service = ReferralService(self.session)
+                success, total_rewards, error = (
+                    await referral_service.process_referral_rewards(
+                        user_id=deposit.user_id, deposit_amount=deposit.amount
+                    )
+                )
+
+                if success:
+                    logger.info(
+                        "Referral rewards processed",
+                        extra={
+                            "deposit_id": deposit_id,
+                            "user_id": deposit.user_id,
+                            "total_rewards": str(total_rewards),
+                        },
+                    )
+                else:
+                    logger.warning(
+                        "Failed to process referral rewards",
+                        extra={
+                            "deposit_id": deposit_id,
+                            "user_id": deposit.user_id,
+                            "error": error,
+                        },
+                    )
 
             return deposit
 

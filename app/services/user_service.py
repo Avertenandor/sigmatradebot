@@ -423,20 +423,20 @@ class UserService:
         }
 
     def generate_referral_link(
-        self, user_id: int, bot_username: str | None
+        self, telegram_id: int, bot_username: str | None
     ) -> str:
         """
         Generate referral link for user.
 
         Args:
-            user_id: User ID
+            telegram_id: User's Telegram ID (used in referral code)
             bot_username: Bot username
 
         Returns:
             Referral link
         """
         username = bot_username or "bot"
-        return f"https://t.me/{username}?start=ref_{user_id}"
+        return f"https://t.me/{username}?start=ref_{telegram_id}"
 
     async def find_by_id(self, user_id: int) -> User | None:
         """
