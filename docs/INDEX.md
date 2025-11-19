@@ -101,7 +101,6 @@
 - **[DEPLOY_TO_SERVER.md](deployment/DEPLOY_TO_SERVER.md)** - Деплой на сервер
 - **[DEPLOY_ADMIN_SYSTEM.md](deployment/DEPLOY_ADMIN_SYSTEM.md)** - Деплой системы админов
 - **[QUICK_DEPLOY_ADMIN_SYSTEM.md](deployment/QUICK_DEPLOY_ADMIN_SYSTEM.md)** - Быстрый деплой админ-системы
-- **[SERVER_ACCESS.md](deployment/SERVER_ACCESS.md)** - Доступ к серверам
 - **[ROLLBACK_PROCEDURES.md](deployment/ROLLBACK_PROCEDURES.md)** - Процедуры отката
 - **[OPERATIONS.md](deployment/OPERATIONS.md)** - Операции
 - **[SIGMATRADE_SERVER_SETUP.md](deployment/SIGMATRADE_SERVER_SETUP.md)** - Настройка сервера
@@ -133,4 +132,5 @@ Production готовность и чеклисты:
 
 - [Основной README](../README.md)
 - [TypeScript README](../README.typescript.md) - для справки по старой версии
+- [SERVER_ACCESS.md](../SERVER_ACCESS.md) - ⚠️ **ВАЖНО:** Доступ к серверам (в корне проекта)
 - [Makefile](../Makefile) - команды для разработки
