@@ -19,6 +19,27 @@ class SystemSettingRepository(BaseRepository[SystemSetting]):
         """Initialize system setting repository."""
         super().__init__(SystemSetting, session)
 
+    async def get_by_key(self, key: str) -> Optional[SystemSetting]:
+        """
+        Get setting by key.
+
+        Args:
+            key: Setting key
+
+        Returns:
+            SystemSetting or None if not found
+        """
+        return await self.get_by(key=key)
+
+    async def get_all(self) -> list[SystemSetting]:
+        """
+        Get all settings.
+
+        Returns:
+            List of all SystemSetting instances
+        """
+        return await self.find_all()
+
     async def get_value(
         self, key: str, default: Optional[str] = None
     ) -> Optional[str]:

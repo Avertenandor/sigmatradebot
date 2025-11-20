@@ -1,0 +1,39 @@
+[MASTER]
+# Extension packages to consider (comma-separated)
+extension-pkg-allow-list=pydantic,sqlalchemy
+
+[MESSAGES CONTROL]
+# Disable specific warnings
+disable=
+    # Alembic dynamically generates attributes at runtime
+    # These are false positives for alembic.op module
+    no-member,
+    # Suppress warnings about module names in migrations
+    # Migration files use timestamp prefixes which don't conform to snake_case
+    invalid-name,
+    # Suppress broad exception warnings for now (should be reviewed later)
+    broad-exception-caught,
+    # Suppress global statement warnings (used in singleton patterns)
+    global-statement
+
+[BASIC]
+# Good variable names which should always be accepted
+good-names=i,j,k,ex,Run,_,id,db,op,sa
+
+[TYPECHECK]
+# List of members which are set dynamically and missed by pylint inference
+# Alembic operations are generated at runtime
+generated-members=alembic.op.*,sqlalchemy.func.*
+
+[IMPORTS]
+# Allow wrong import order (handled by isort/black)
+# This allows flexibility in import ordering
+ignored-modules=
+
+[FORMAT]
+# Maximum number of characters on a single line
+max-line-length=100
+
+[DESIGN]
+# Minimum number of public methods for a class
+min-public-methods=0

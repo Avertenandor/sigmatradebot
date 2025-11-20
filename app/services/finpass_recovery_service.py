@@ -65,11 +65,9 @@ class FinpassRecoveryService:
 
         # Create request
         request = await self.repository.create(
-            {
-                "user_id": user_id,
-                "reason": reason or "User requested password recovery",
-                "status": "pending",
-            }
+            user_id=user_id,
+            reason=reason or "User requested password recovery",
+            status="pending",
         )
 
         logger.info(
@@ -110,12 +108,13 @@ class FinpassRecoveryService:
             )
 
         # Update request
-        request.status = "approved"
-        request.reviewed_by_admin_id = admin_id
-        request.reviewed_at = datetime.utcnow()
-        request.admin_notes = admin_notes
-
-        await self.repository.update(request)
+        request = await self.repository.update(
+            request.id,
+            status="approved",
+            reviewed_by_admin_id=admin_id,
+            reviewed_at=datetime.utcnow(),
+            admin_notes=admin_notes,
+        )
 
         logger.info(
             f"Financial password recovery approved: "
@@ -155,12 +154,13 @@ class FinpassRecoveryService:
             )
 
         # Update request
-        request.status = "rejected"
-        request.reviewed_by_admin_id = admin_id
-        request.reviewed_at = datetime.utcnow()
-        request.admin_notes = admin_notes or "Request rejected"
-
-        await self.repository.update(request)
+        request = await self.repository.update(
+            request.id,
+            status="rejected",
+            reviewed_by_admin_id=admin_id,
+            reviewed_at=datetime.utcnow(),
+            admin_notes=admin_notes or "Request rejected",
+        )
 
         logger.info(
             f"Financial password recovery rejected: "
@@ -196,9 +196,10 @@ class FinpassRecoveryService:
             )
 
         # Mark as verified
-        request.verified_at = datetime.utcnow()
-
-        await self.repository.update(request)
+        request = await self.repository.update(
+            request.id,
+            verified_at=datetime.utcnow(),
+        )
 
         logger.info(
             f"Financial password recovery verified: "
